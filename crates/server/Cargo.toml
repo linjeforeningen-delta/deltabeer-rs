@@ -1,0 +1,24 @@
+[package]
+name = "server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+# Server-specific (local versions)
+axum = "0.8"
+tower-http = { version = "0.6", features = ["trace"] }
+utoipa = "5"
+utoipa-swagger-ui = "9"
+
+# Shared (workspace = true)
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# delta-core = { path = "../delta-core" }
+# storage-sqlite = { path = "../storage-sqlite" }
