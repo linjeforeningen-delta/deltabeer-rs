@@ -1,10 +1,13 @@
+use crate::state::AppState;
 use axum::{Router, http::StatusCode, response::IntoResponse};
 
+mod _mappings;
+mod _types;
 mod admins;
 mod stats;
 mod users;
 
-pub fn routes() -> Router {
+pub fn routes() -> Router<AppState> {
     Router::new()
         .merge(users::routes()) // /v1/users...
         .merge(admins::routes()) // /v1/admins...

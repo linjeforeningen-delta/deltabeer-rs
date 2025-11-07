@@ -17,3 +17,4 @@ serde.workspace = true
 rusqlite.workspace = true
 tokio.workspace = true
 r2d2.workspace = true
+chrono.workspace = true

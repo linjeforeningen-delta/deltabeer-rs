@@ -1,9 +1,13 @@
 use axum::{
     Json, Router,
-    extract::Path,
+    extract::{Json as JsonIn, Path, State},
+    http::StatusCode,
     routing::{get, post},
 };
-use serde_json::json;
+
+use super::_types::*;
+use crate::api::response::ApiResult;
+use crate::state::AppState;
 
 /// Mounts:
 ///   GET  /v1/users
@@ -11,35 +15,54 @@ use serde_json::json;
 ///   GET  /v1/users/{ident}
 ///   POST /v1/users/{ident}/spend
 ///   PATCH /v1/users/{ident}        (if you want user edits here too)
-pub fn routes() -> Router {
+
+pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/users", get(get_users))
         .route("/users/resolve/{ident}", get(resolve_user))
         .nest(
             "/users",
             Router::new()
-                .route("/{ident}", get(get_user).patch(update_user))
+                .route("/{ident}", get(get_user))
                 .route("/{ident}/spend", post(spend)),
         )
 }
 
-async fn get_users() -> Json<serde_json::Value> {
-    Json(json!({ "items": [] }))
+macro_rules! mock_user {
+    () => {
+        UserDto {
+            id: UserIdDto::from(&UserId::new()),
+            name: String::from("Ada Lovelace"),
+            username: String::from("adalov"),
+            card_number: String::from("123456"),
+            role: RoleDto::Admin,
+            birthdate: NaiveDate::from_ymd_opt(1815, 12, 10).unwrap(),
+            comments: String::from("Author of Note G"),
+            balance: 0,
+            spent: 0,
+        }
+    };
 }
 
-async fn resolve_user(Path(ident): Path<String>) -> Json<serde_json::Value> {
-    // return the canonical UUID for ident (uuid | username | card)
-    Json(json!({ "id": ident })) // stub
+async fn get_users(State(state): State<AppState>) -> ApiResult<Vec<UserDto>> {
+    todo!("Implement a queryable user list")
 }
 
-async fn get_user(Path(ident): Path<String>) -> Json<serde_json::Value> {
-    Json(json!({ "id": ident, "username": "example_user", "balance": 10000 }))
+async fn resolve_user(
+    State(state): State<AppState>,
+    Path(ident): Path<String>,
+) -> ApiResult<UserIdDto> {
+    todo!("Implement a user resolver")
 }
 
-async fn update_user(Path(ident): Path<String>) -> Json<serde_json::Value> {
-    Json(json!({ "updated": ident }))
+async fn get_user(State(state): State<AppState>, Path(ident): Path<String>) -> ApiResult<UserDto> {
+    todo!("Implement a user resolver")
 }
 
-async fn spend(Path(ident): Path<String>) -> Json<serde_json::Value> {
-    Json(json!({ "spent_for": ident }))
+async fn spend(
+    State(state): State<AppState>,
+    Path(ident): Path<String>,
+    JsonIn(payload): JsonIn<SpendRequestDto>,
+) -> ApiResult<TransactionDto> {
+    todo!("Implement a user spend operation")
 }

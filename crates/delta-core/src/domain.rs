@@ -1,3 +1,4 @@
+use chrono::{DateTime, NaiveDate, Utc};
 use rusqlite::types::{FromSql, FromSqlError, ToSql, ToSqlOutput, Value, ValueRef};
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -46,12 +47,16 @@ impl FromSql for Role {
 #[serde(transparent)]
 pub struct UserId(pub Uuid);
 
+impl UserId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+
 impl ToSql for UserId {
     fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
-        Ok(ToSqlOutput::Owned(Value::Text(self.0.to_string())))
-
-        // 2) Or the helper (works on recent rusqlite):
-        // Ok(ToSqlOutput::from(self.0.to_string()))
+        // Ok(ToSqlOutput::Owned(Value::Text(self.0.to_string())))
+        Ok(ToSqlOutput::from(self.0.to_string()))
     }
 }
 impl FromSql for UserId {
@@ -74,8 +79,47 @@ pub struct User {
     pub username: String,
     pub card_number: String,
     pub role: Role,
-    pub birthdate: String,
+    pub birthdate: NaiveDate,
     pub comments: String,
     pub balance: i32,
     pub spent: i32,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
+#[serde(transparent)]
+pub struct TransactionId(pub Uuid);
+
+impl TransactionId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+
+impl ToSql for TransactionId {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        // Ok(ToSqlOutput::Owned(Value::Text(self.0.to_string())))
+        Ok(ToSqlOutput::from(self.0.to_string()))
+    }
+}
+impl FromSql for TransactionId {
+    fn column_result(v: ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
+        match v {
+            ValueRef::Text(bytes) => {
+                let s = std::str::from_utf8(bytes).map_err(|e| FromSqlError::Other(Box::new(e)))?;
+                let uuid = Uuid::parse_str(s).map_err(|e| FromSqlError::Other(Box::new(e)))?;
+                Ok(Self(uuid))
+            }
+            _ => Err(FromSqlError::InvalidType),
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
+pub struct Transaction {
+    pub id: TransactionId,
+    pub user_id: UserId,
+    pub amount: i32,
+    pub ts: DateTime<Utc>,
+    pub requires_approval: bool,
+    pub approved_by: Option<UserId>,
 }

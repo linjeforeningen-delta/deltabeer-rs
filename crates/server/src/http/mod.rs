@@ -1,19 +1,34 @@
-use axum::{Json, Router, http::StatusCode, response::IntoResponse, routing::get};
-use serde_json::json;
+use axum::{Json, Router, http::StatusCode, routing::get};
+use serde::Serialize;
 use tower_http::trace::TraceLayer;
+
+use crate::api::{error::ApiError, response::ApiResult};
+use crate::state::AppState;
 
 mod v1;
 
-pub fn routes() -> Router {
+pub fn routes() -> Router<AppState> {
     Router::new()
         // global (non-versioned) health
         .route("/health", get(health))
         // versioned API
         .nest("/v1", v1::routes())
         .layer(TraceLayer::new_for_http())
-        .fallback(|| async { (StatusCode::NOT_FOUND, "404").into_response() })
+        .fallback(|| async { ApiError::NotFound("404") })
 }
 
-async fn health() -> Json<serde_json::Value> {
-    Json(json!({"ok": true, "version": env!("CARGO_PKG_VERSION")}))
+#[derive(Serialize)]
+struct HealthResponse {
+    ok: bool,
+    version: &'static str,
+}
+
+async fn health() -> ApiResult<HealthResponse> {
+    Ok((
+        StatusCode::OK,
+        Json(HealthResponse {
+            ok: true,
+            version: env!("CARGO_PKG_VERSION"),
+        }),
+    ))
 }

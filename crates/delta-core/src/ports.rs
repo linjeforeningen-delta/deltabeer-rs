@@ -27,5 +27,4 @@ pub trait UserRepo: Send + Sync {
     async fn get(&self, key: &str) -> Result<User, RepoError>;
     async fn create(&self, user: User) -> Result<(), RepoError>;
     async fn update(&self, user: User) -> Result<(), RepoError>;
-
 }

@@ -1,19 +1,21 @@
-use axum::{Json, Router, routing::get};
-use serde_json::json;
+use super::_types::*;
+use crate::api::response::ApiResult;
+use crate::state::AppState;
+use axum::{Json, Router, extract::State, routing::get};
 
 /// Mounts:
 ///   GET /v1/stats
 ///   GET /v1/stats/summary
-pub fn routes() -> Router {
+pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/stats", get(get_stats))
         .nest("/stats", Router::new().route("/summary", get(summary)))
 }
 
-async fn get_stats() -> Json<serde_json::Value> {
-    Json(json!({ "ok": true }))
+async fn get_stats(State(state): State<AppState>) -> ApiResult<StatsDto> {
+    todo!("Implement a stats query")
 }
 
-async fn summary() -> Json<serde_json::Value> {
-    Json(json!({ "total_users": 0, "total_spent": 0, "total_balance": 0 }))
+async fn summary(State(state): State<AppState>) -> ApiResult<StatsSummaryDto> {
+    todo!("Implement a stats summary")
 }
