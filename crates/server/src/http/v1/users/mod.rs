@@ -1,3 +1,6 @@
+mod doc;
+pub use doc::ApiDoc;
+
 use axum::{
     Json, Router,
     extract::{Json as JsonIn, Path, State},
@@ -5,7 +8,7 @@ use axum::{
     routing::{get, post},
 };
 
-use super::_types::*;
+use super::types::*;
 use crate::api::response::ApiResult;
 use crate::state::AppState;
 
@@ -44,25 +47,67 @@ macro_rules! mock_user {
     };
 }
 
+#[utoipa::path(
+    get,
+    path = "",
+    tag = "users",
+    responses(
+        (status = 200, description = "List of users", body = Vec<UserDto>)
+    )
+)]
 async fn get_users(State(state): State<AppState>) -> ApiResult<Vec<UserDto>> {
-    todo!("Implement a queryable user list")
+    todo!()
 }
 
+#[utoipa::path(
+    get,
+    path = "/resolve/{ident}",
+    tag = "users",
+    params(
+        ("ident" = String, Path, description = "User identifier")
+    ),
+    responses(
+        (status = 200, description = "User identifier", body = UserIdDto)
+    )
+)]
 async fn resolve_user(
     State(state): State<AppState>,
     Path(ident): Path<String>,
 ) -> ApiResult<UserIdDto> {
-    todo!("Implement a user resolver")
+    todo!()
 }
 
+#[utoipa::path(
+    get,
+    path = "/{ident}",
+    tag = "users",
+    params(
+        ("ident" = String, Path, description = "User identifier")
+    ),
+    responses(
+        (status = 200, description = "Get single user", body = UserDto)
+    )
+)]
 async fn get_user(State(state): State<AppState>, Path(ident): Path<String>) -> ApiResult<UserDto> {
-    todo!("Implement a user resolver")
+    todo!()
 }
 
+#[utoipa::path(
+    post,
+    path = "/{ident}/spend",
+    tag = "users",
+    params(
+        ("ident" = String, Path, description = "User identifier")
+    ),
+    request_body = SpendRequestDto,
+    responses(
+        (status = 200, description = "Spend accepted", body = TransactionDto)
+    )
+)]
 async fn spend(
     State(state): State<AppState>,
     Path(ident): Path<String>,
     JsonIn(payload): JsonIn<SpendRequestDto>,
 ) -> ApiResult<TransactionDto> {
-    todo!("Implement a user spend operation")
+    todo!()
 }

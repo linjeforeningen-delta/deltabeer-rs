@@ -7,7 +7,7 @@ use serde::Serialize;
 use utoipa::ToSchema;
 
 #[derive(Serialize, ToSchema)]
-struct ErrorBody {
+pub struct ErrorBody {
     pub message: String,
 }
 #[derive(Debug)]
@@ -32,6 +32,6 @@ impl IntoResponse for ApiError {
             ApiError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
 
-        (status, Json(ErrorBody { message })).into_response()
+        (status, message).into_response()
     }
 }

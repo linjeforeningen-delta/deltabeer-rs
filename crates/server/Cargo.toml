@@ -7,8 +7,8 @@ edition.workspace = true
 # Server-specific (local versions)
 axum = { version = "0.8", features = ["macros", "tokio", "http1"] }
 tower-http = { version = "0.6", features = ["trace"] }
-utoipa = { version = "5", features = ["macros", "chrono"] }
-utoipa-swagger-ui = "9"
+utoipa = { version = "5", features = ["macros", "chrono", "axum_extras"] }
+utoipa-swagger-ui = { version = "9", features = ["axum"] }
 utoipa-axum = "0.2"
 
 # Shared (workspace = true)
@@ -21,7 +21,7 @@ anyhow.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 
- delta-core = { path = "../delta-core" }
+delta-core = { path = "../delta-core" }
 thiserror.workspace = true
 reqwest = "0.12.24"
 # storage-sqlite = { path = "../storage-sqlite" }

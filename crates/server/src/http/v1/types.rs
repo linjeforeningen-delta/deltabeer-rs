@@ -20,33 +20,52 @@ pub enum RoleDto {
     User,
 }
 
+macro_rules! mock_user {
+    () => {
+        UserDto {
+            id: UserIdDto::from(&UserId::new()),
+            name: String::from("Ada Lovelace"),
+            username: String::from("adalov"),
+            card_number: String::from("123456"),
+            role: RoleDto::Admin,
+            birthdate: NaiveDate::from_ymd_opt(1815, 12, 10).unwrap(),
+            comments: String::from("Author of Note G"),
+            balance: 0,
+            spent: 0,
+        }
+    };
+}
+
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDto {
     pub id: UserIdDto,
+    #[schema(example = "Ada Lovelace")]
     pub name: String,
+    #[schema(example = "adalov")]
     pub username: String,
+    #[schema(example = "123456")]
     pub card_number: String,
     pub role: RoleDto,
+    #[schema(format = "date", example = "1815-12-10")]
     pub birthdate: NaiveDate,
+    #[schema(value_type = String, example = "Author of Note G")]
     pub comments: String,
-    pub balance: i32,
-    pub spent: i32,
+    pub balance: u32,
+    pub spent: u32,
 }
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserPatchDto {
+    #[schema(nullable, example = "Ada Lovelace")]
     pub name: Option<String>,
+    #[schema(nullable, example = "adalov")]
     pub username: Option<String>,
+    #[schema(nullable, example = "123456")]
     pub card_number: Option<String>,
+    #[schema(nullable, example = "Author of Note G")]
     pub comments: Option<String>,
-}
-
-#[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct UserRoleUpdateDto {
-    pub role: RoleDto,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -65,48 +84,41 @@ pub struct UserCreateRequestDto {
 pub struct TransactionDto {
     pub id: TransactionIdDto,
     pub user_id: UserIdDto,
-    pub amount: i32,
+    pub amount: u32,
     pub timestamp: DateTime<Utc>,
     pub requires_approval: bool,
     pub approved_by: Option<UserIdDto>,
 }
 
 #[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct SpendRequestDto {
-    pub amount: i32,
-}
+#[serde(transparent)]
+pub struct SpendRequestDto (pub u32);
 
 #[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct TopupRequestDto {
-    pub amount: i32,
-}
+#[serde(transparent)]
+pub struct TopupRequestDto (pub u32);
 
 #[derive(Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct UserIdentificationDto {
-    pub ident: String,
-}
+#[serde(transparent)]
+pub struct UserIdentificationDto(pub String);
 
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct StatsDto {
-    pub total_users: usize,
-    pub total_balance: i32,
-    pub total_spent: i32,
+    pub total_users: u32,
+    pub total_balance: u32,
+    pub total_spent: u32,
 }
 
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct StatsSummaryDto {
-    pub total_users: usize,
-    pub total_balance: i32,
-    pub total_spent: i32,
-    pub total_transactions: usize,
+    pub total_users: u32,
+    pub total_balance: u32,
+    pub total_spent: u32,
+    pub total_transactions: u32,
 }
 
-#[derive(serde::Serialize)]
-pub struct LoginResponse {
-    pub message: String,
-}
+#[derive(Serialize, ToSchema)]
+#[serde(transparent)]
+pub struct LoginResponse(pub String);

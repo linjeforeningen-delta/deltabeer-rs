@@ -22,12 +22,14 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let app = Router::new()
-        .nest("/", http::routes())
+        .merge(http::routes())
         .with_state(app_state) // attach state on the parent
         .layer(tower_http::trace::TraceLayer::new_for_http());
 
-    let listener = TcpListener::bind("127.0.0.1:0").await?;
-    println!("Listening on http://{}", listener.local_addr()?);
+    let listener = TcpListener::bind("000.0.0.0:0").await?;
+    let addr = listener.local_addr()?;
+    println!("Listening on http://{}", addr);
+    println!("Docs available at http://{}/docs", addr);
     axum::serve(listener, app).await?;
     Ok(())
 }

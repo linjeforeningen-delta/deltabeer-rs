@@ -1,4 +1,4 @@
-use super::_types::*;
+use super::types::*;
 use delta_core::domain::*;
 
 impl From<&UserId> for UserIdDto {

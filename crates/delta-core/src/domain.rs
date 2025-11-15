@@ -81,8 +81,8 @@ pub struct User {
     pub role: Role,
     pub birthdate: NaiveDate,
     pub comments: String,
-    pub balance: i32,
-    pub spent: i32,
+    pub balance: u32,
+    pub spent: u32,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
@@ -118,7 +118,7 @@ impl FromSql for TransactionId {
 pub struct Transaction {
     pub id: TransactionId,
     pub user_id: UserId,
-    pub amount: i32,
+    pub amount: u32,
     pub ts: DateTime<Utc>,
     pub requires_approval: bool,
     pub approved_by: Option<UserId>,
