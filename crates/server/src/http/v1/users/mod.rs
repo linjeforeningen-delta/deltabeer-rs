@@ -2,22 +2,14 @@ mod doc;
 pub use doc::ApiDoc;
 
 use axum::{
-    Json, Router,
+    Router,
     extract::{Json as JsonIn, Path, State},
-    http::StatusCode,
     routing::{get, post},
 };
 
 use super::types::*;
 use crate::api::response::ApiResult;
 use crate::state::AppState;
-
-/// Mounts:
-///   GET  /v1/users
-///   GET  /v1/users/resolve/{ident}
-///   GET  /v1/users/{ident}
-///   POST /v1/users/{ident}/spend
-///   PATCH /v1/users/{ident}        (if you want user edits here too)
 
 pub fn routes() -> Router<AppState> {
     Router::new()
@@ -29,22 +21,6 @@ pub fn routes() -> Router<AppState> {
                 .route("/{ident}", get(get_user))
                 .route("/{ident}/spend", post(spend)),
         )
-}
-
-macro_rules! mock_user {
-    () => {
-        UserDto {
-            id: UserIdDto::from(&UserId::new()),
-            name: String::from("Ada Lovelace"),
-            username: String::from("adalov"),
-            card_number: String::from("123456"),
-            role: RoleDto::Admin,
-            birthdate: NaiveDate::from_ymd_opt(1815, 12, 10).unwrap(),
-            comments: String::from("Author of Note G"),
-            balance: 0,
-            spent: 0,
-        }
-    };
 }
 
 #[utoipa::path(

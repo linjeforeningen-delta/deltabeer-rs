@@ -1,7 +1,4 @@
-use crate::api::{
-    error::{ApiError, ErrorBody},
-    response::ApiResult,
-};
+use crate::api::{error::ApiError, response::ApiResult};
 use crate::state::AppState;
 use axum::{Json, Router, http::StatusCode, routing::get};
 use serde::Serialize;
@@ -57,12 +54,6 @@ async fn health() -> ApiResult<HealthResponse> {
 #[openapi(
     paths(
         health,
-    ),
-    components(
-        schemas(
-            // HealthResponse,
-            // ErrorBody, // if you want your ApiError body documented too
-        )
     ),
     tags(
         (name = "health", description = "Health check endpoints")

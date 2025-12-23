@@ -20,22 +20,6 @@ pub enum RoleDto {
     User,
 }
 
-macro_rules! mock_user {
-    () => {
-        UserDto {
-            id: UserIdDto::from(&UserId::new()),
-            name: String::from("Ada Lovelace"),
-            username: String::from("adalov"),
-            card_number: String::from("123456"),
-            role: RoleDto::Admin,
-            birthdate: NaiveDate::from_ymd_opt(1815, 12, 10).unwrap(),
-            comments: String::from("Author of Note G"),
-            balance: 0,
-            spent: 0,
-        }
-    };
-}
-
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDto {
@@ -92,11 +76,11 @@ pub struct TransactionDto {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(transparent)]
-pub struct SpendRequestDto (pub u32);
+pub struct SpendRequestDto(pub u32);
 
 #[derive(Deserialize, ToSchema)]
 #[serde(transparent)]
-pub struct TopupRequestDto (pub u32);
+pub struct TopupRequestDto(pub u32);
 
 #[derive(Serialize, ToSchema)]
 #[serde(transparent)]

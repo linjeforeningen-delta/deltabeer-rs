@@ -1,6 +1,6 @@
 use crate::api::error::ApiError;
 use crate::state::AppState;
-use axum::{Router, http::StatusCode, response::IntoResponse};
+use axum::Router;
 use utoipa::OpenApi;
 
 pub mod admins;

@@ -6,24 +6,16 @@ use crate::api::response::ApiResult;
 use crate::http::v1::types::UserDto;
 use crate::state::AppState;
 use axum::{
-    Json, Router,
+    Router,
     extract::{Json as JsonIn, Path, State},
-    routing::{get, patch, post, put},
+    routing::{get, patch, post},
 };
-use serde_json::json;
 
-/// Mounts:
-///   GET  /v1/admins
-///   POST /v1/admins/login
-///   POST /v1/admins/logout
-///   POST /v1/admins/user_management/create
-///   PATCH /v1/admins/user_management/{ident}/update
-///   POST /v1/admins/user_management/{ident}/topup
-///   PUT  /v1/admins/user_management/{ident}/role
 pub fn routes() -> Router<AppState> {
     Router::new().route("/admins", get(get_admins)).nest(
         "/admins",
         Router::new()
+            .route("/pass", post(pass))
             .route("/session", post(login).delete(logout))
             .nest(
                 "/user_management",
@@ -45,6 +37,18 @@ pub fn routes() -> Router<AppState> {
     )
 )]
 async fn get_admins(State(state): State<AppState>) -> ApiResult<Vec<UserDto>> {
+    todo!()
+}
+
+#[utoipa::path(
+    post,
+    path = "/pass",
+    tag = "admins",
+    responses(
+        (status = 200, description = "Login response", body = LoginResponse, example="Logged in successfully. Token: ")
+    )
+)]
+async fn pass(State(state): State<AppState>) -> ApiResult<LoginResponse> {
     todo!()
 }
 

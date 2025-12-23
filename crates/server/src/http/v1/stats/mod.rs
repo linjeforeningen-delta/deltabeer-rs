@@ -4,11 +4,8 @@ pub use doc::ApiDoc;
 use super::types::*;
 use crate::api::response::ApiResult;
 use crate::state::AppState;
-use axum::{Json, Router, extract::State, routing::get};
+use axum::{Router, extract::State, routing::get};
 
-/// Mounts:
-///   GET /v1/stats
-///   GET /v1/stats/summary
 pub fn routes() -> Router<AppState> {
     Router::new().nest(
         "/stats",

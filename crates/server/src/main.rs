@@ -1,7 +1,6 @@
 use axum::Router;
-use std::sync::Arc;
 use tokio::net::TcpListener;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 mod api;
 mod http;
@@ -12,14 +11,13 @@ use state::AppState;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let app_state = AppState {};
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("tower_http=info,axum=info,server=debug"));
     tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer()) // pretty console output
-        .with(tracing_subscriber::EnvFilter::new(
-            // log everything from tower_http and axum at info+
-            std::env::var("RUST_LOG")
-                .unwrap_or_else(|_| "tower_http=info,axum=info,server=debug".into()),
-        ))
-        .init();
+        .with(tracing_subscriber::fmt::layer())
+        .with(filter)
+        .try_init()
+        .ok();
 
     let app = Router::new()
         .merge(http::routes())
@@ -28,8 +26,9 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = TcpListener::bind("000.0.0.0:0").await?;
     let addr = listener.local_addr()?;
-    println!("Listening on http://{}", addr);
-    println!("Docs available at http://{}/docs", addr);
+    tracing::info!("server started");
+    tracing::info!(%addr, "Server listening on http://{addr}");
+    tracing::info!(%addr, "Swagger UI available at http://{addr}/docs");
     axum::serve(listener, app).await?;
     Ok(())
 }
