@@ -1,4 +1,5 @@
 use chrono::{DateTime, NaiveDate, Utc};
+use delta_core::domain::Amount;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -20,6 +21,10 @@ pub enum RoleDto {
     User,
 }
 
+#[derive(Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AmountDto(pub u32);
+
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDto {
@@ -28,15 +33,15 @@ pub struct UserDto {
     pub name: String,
     #[schema(example = "adalov")]
     pub username: String,
-    #[schema(example = "123456")]
-    pub card_number: String,
+    #[schema(example = 123456)]
+    pub card_number: u32,
     pub role: RoleDto,
     #[schema(format = "date", example = "1815-12-10")]
     pub birthdate: NaiveDate,
     #[schema(value_type = String, example = "Author of Note G")]
     pub comments: String,
-    pub balance: u32,
-    pub spent: u32,
+    pub balance: AmountDto,
+    pub spent: AmountDto,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -65,12 +70,19 @@ pub struct UserCreateRequestDto {
 
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub enum TransactionKindDto {
+    Spend,
+    TopUp,
+}
+
+#[derive(Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct TransactionDto {
     pub id: TransactionIdDto,
     pub user_id: UserIdDto,
-    pub amount: u32,
+    pub kind: TransactionKindDto,
+    pub amount: AmountDto,
     pub timestamp: DateTime<Utc>,
-    pub requires_approval: bool,
     pub approved_by: Option<UserIdDto>,
 }
 
@@ -105,4 +117,12 @@ pub struct StatsSummaryDto {
 
 #[derive(Serialize, ToSchema)]
 #[serde(transparent)]
-pub struct LoginResponse(pub String);
+pub struct AdminTokenDto(pub String);
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Credentials {
+    pub user_id: UserIdDto,
+    #[schema(example = "s3cr3tP4ssw0rd")]
+    pub password: String,
+}

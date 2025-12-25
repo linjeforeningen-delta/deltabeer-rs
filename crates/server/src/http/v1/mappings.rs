@@ -1,5 +1,15 @@
 use super::types::*;
-use delta_core::domain::*;
+use delta_core::{domain::*, services::auth::AdminToken};
+use serde_json::map::Values;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum MappingError {
+    #[error("Spend transaction has unexpected approval")]
+    UnexpectedApproval,
+    #[error("TopUp transaction is missing approval")]
+    MissingApproval,
+}
 
 impl From<&UserId> for UserIdDto {
     fn from(value: &UserId) -> Self {
@@ -31,50 +41,47 @@ impl From<RoleDto> for Role {
     }
 }
 
+impl From<&Amount> for AmountDto {
+    fn from(value: &Amount) -> Self {
+        AmountDto(value.0)
+    }
+}
+
+impl From<AmountDto> for Amount {
+    fn from(value: AmountDto) -> Self {
+        Amount(value.0)
+    }
+}
+
 impl From<&User> for UserDto {
     fn from(value: &User) -> Self {
         UserDto {
-            id: UserIdDto::from(&value.id),
+            id: (&value.id).into(),
             name: value.name.clone(),
             username: value.username.clone(),
             card_number: value.card_number.clone(),
-            role: RoleDto::from(&value.role),
+            role: (&value.role).into(),
             birthdate: value.birthdate,
             comments: value.comments.clone(),
-            balance: value.balance,
-            spent: value.spent,
+            balance: (&value.balance).into(),
+            spent: (&value.spent).into(),
         }
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum MappingError {
-    #[error("invalid role")]
-    InvalidRole,
-    #[error("username required")]
-    UsernameRequired,
-    // ...
-}
-
-impl TryFrom<UserDto> for User {
-    type Error = MappingError;
-
-    fn try_from(value: UserDto) -> Result<Self, Self::Error> {
-        if value.username.trim().is_empty() {
-            return Err(MappingError::UsernameRequired);
-        }
-
-        Ok(User {
-            id: UserId::try_from(value.id).unwrap(),
+impl From<UserDto> for User {
+    fn from(value: UserDto) -> Self {
+        User {
+            id: value.id.into(),
             name: value.name,
             username: value.username,
             birthdate: value.birthdate,
-            role: Role::try_from(value.role).map_err(|_| MappingError::InvalidRole)?,
+            role: value.role.into(),
             comments: value.comments,
             card_number: value.card_number,
-            balance: 0,
-            spent: 0,
-        })
+            balance: value.balance.into(),
+            spent: value.spent.into(),
+        }
     }
 }
 
@@ -84,15 +91,75 @@ impl From<&TransactionId> for TransactionIdDto {
     }
 }
 
+impl From<TransactionIdDto> for TransactionId {
+    fn from(value: TransactionIdDto) -> Self {
+        TransactionId(value.0)
+    }
+}
+
 impl From<&Transaction> for TransactionDto {
     fn from(value: &Transaction) -> Self {
-        TransactionDto {
-            id: TransactionIdDto::from(&value.id),
-            user_id: UserIdDto::from(&value.user_id),
-            amount: value.amount,
-            timestamp: value.ts,
-            requires_approval: value.requires_approval,
-            approved_by: value.approved_by.map(|id| UserIdDto::from(&id)),
+        match value {
+            Transaction::Spend {
+                id,
+                user_id,
+                amount,
+                ts,
+            } => TransactionDto {
+                id: id.into(),
+                user_id: user_id.into(),
+                kind: TransactionKindDto::Spend,
+                amount: amount.into(),
+                timestamp: *ts,
+                approved_by: None,
+            },
+            Transaction::TopUp {
+                id,
+                user_id,
+                amount,
+                ts,
+                approved_by,
+            } => TransactionDto {
+                id: id.into(),
+                user_id: user_id.into(),
+                kind: TransactionKindDto::TopUp,
+                amount: amount.into(),
+                timestamp: *ts,
+                approved_by: Some(approved_by.into()),
+            },
         }
+    }
+}
+
+impl TryFrom<TransactionDto> for Transaction {
+    type Error = MappingError;
+
+    fn try_from(dto: TransactionDto) -> Result<Self, Self::Error> {
+        match (dto.kind, dto.approved_by) {
+            (TransactionKindDto::Spend, None) => Ok(Transaction::Spend {
+                id: dto.id.into(),
+                user_id: dto.user_id.into(),
+                amount: dto.amount.into(),
+                ts: dto.timestamp,
+            }),
+
+            (TransactionKindDto::TopUp, Some(approved_by)) => Ok(Transaction::TopUp {
+                id: dto.id.into(),
+                user_id: dto.user_id.into(),
+                amount: dto.amount.into(),
+                ts: dto.timestamp,
+                approved_by: approved_by.into(),
+            }),
+
+            (TransactionKindDto::Spend, Some(_)) => Err(MappingError::UnexpectedApproval),
+
+            (TransactionKindDto::TopUp, None) => Err(MappingError::MissingApproval),
+        }
+    }
+}
+
+impl From<&AdminToken> for AdminTokenDto {
+    fn from(value: &AdminToken) -> Self {
+        AdminTokenDto(value.0.clone())
     }
 }

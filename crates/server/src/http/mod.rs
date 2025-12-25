@@ -7,7 +7,7 @@ use utoipa::{OpenApi, ToSchema};
 
 use utoipa_swagger_ui::SwaggerUi;
 
-mod v1;
+pub(crate) mod v1;
 
 use crate::http::v1::ApiDoc as V1ApiDoc;
 
