@@ -1,7 +1,6 @@
 use crate::domain::{DomainError, Role, UserId};
 use crate::ports::{AdminRepo, Clock, UserRepo};
 use chrono::{DateTime, NaiveDate, Utc};
-use serde::Deserialize;
 
 struct Ctx<'a> {
     users: &'a dyn UserRepo,

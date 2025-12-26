@@ -14,7 +14,4 @@ thiserror.workspace = true
 anyhow.workspace = true
 uuid.workspace = true
 serde.workspace = true
-rusqlite.workspace = true
-tokio.workspace = true
-r2d2.workspace = true
 chrono.workspace = true

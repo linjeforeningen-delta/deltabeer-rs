@@ -1,4 +1,8 @@
-/target
+# Rust
+/target/
+
+# Env files
+.env
 
 # IntelliJ project files
 .idea

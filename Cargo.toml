@@ -2,10 +2,9 @@
 resolver = "2"
 members = ["crates/cli", "crates/delta-core",
      "crates/delta-core",
-     "crates/storage-sqlite",
+    "crates/storage-diesel",
     "crates/server",
-    "crates/storage-sqlite",
-     "crates/cli",
+    "crates/cli",
 ]
 
 
@@ -25,6 +24,4 @@ anyhow = "1"
 tracing = "0.1"
 async-trait = "0.1"
 thiserror = "2"
-rusqlite = { version = "0.37", features = ["uuid", "chrono"] }
-r2d2 = "0.8.10"
-r2d2_sqlite = "0.31.0"
+dotenvy = "0.15"
