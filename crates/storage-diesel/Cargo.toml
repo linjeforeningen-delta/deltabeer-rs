@@ -11,6 +11,7 @@ thiserror.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 dotenvy.workspace = true
+tracing.workspace = true
 
 r2d2 = "0.8"
 diesel = { version = "2.1", features = ["sqlite", "r2d2", "chrono", "uuid"] }

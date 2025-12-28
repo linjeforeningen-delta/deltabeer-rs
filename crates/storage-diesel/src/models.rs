@@ -22,17 +22,19 @@ pub struct UserRow {
 #[derive(Insertable)]
 #[diesel(table_name = users)]
 pub struct NewUser<'a> {
-    pub id: &'a str,
+    pub id: String,
     pub name: &'a str,
     pub username: &'a str,
     pub card_number: i64,
     pub role: &'a str,
-    pub birthdate: &'a str,
+    pub birthdate: String,
     pub comments: &'a str,
+    pub balance: i64,
+    pub spent: i64,
 }
 
 /// =======================
-/// admins (capability table)
+/// admins
 /// =======================
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = admins)]
@@ -48,14 +50,14 @@ pub struct AdminRow {
 #[derive(Insertable)]
 #[diesel(table_name = admins)]
 pub struct NewAdmin<'a> {
-    pub user_id: &'a str,
+    pub user_id: String,
     pub password_hash: &'a str,
     pub created_at: i64,
     pub active: bool,
 }
 
 /// =======================
-/// transactions (immutable)
+/// transactions
 /// =======================
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = transactions)]
@@ -73,11 +75,11 @@ pub struct TransactionRow {
 #[derive(Insertable)]
 #[diesel(table_name = transactions)]
 pub struct NewTransaction<'a> {
-    pub id: &'a str,
-    pub user_id: &'a str,
+    pub id: String,
+    pub user_id: String,
     pub kind: &'a str,
     pub amount: i64,
-    pub approved_by: Option<&'a str>,
+    pub approved_by: Option<String>,
     pub created_at: i64,
 }
 

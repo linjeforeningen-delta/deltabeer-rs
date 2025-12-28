@@ -1,7 +1,7 @@
+use crate::domain::DomainError;
 use crate::domain::user::UserId;
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use uuid::Uuid;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
@@ -11,6 +11,13 @@ pub struct TransactionId(pub Uuid);
 impl TransactionId {
     pub fn new() -> Self {
         Self(Uuid::new_v4())
+    }
+}
+
+impl TryFrom<&str> for TransactionId {
+    type Error = uuid::Error;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Uuid::parse_str(value).map(Self)
     }
 }
 
@@ -28,6 +35,18 @@ pub enum Approval {
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Serialize, Deserialize)]
 pub struct Amount(pub u32);
+
+impl TryFrom<i64> for Amount {
+    type Error = DomainError;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if value >= 0 {
+            Ok(Amount(value as u32))
+        } else {
+            Err(DomainError::InvalidAmount)
+        }
+    }
+}
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 pub enum Transaction {

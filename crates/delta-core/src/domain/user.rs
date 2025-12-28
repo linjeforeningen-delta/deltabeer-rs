@@ -29,6 +29,13 @@ impl UserId {
     }
 }
 
+impl TryFrom<&str> for UserId {
+    type Error = uuid::Error;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Uuid::parse_str(value).map(Self)
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 pub struct User {
     pub id: UserId,

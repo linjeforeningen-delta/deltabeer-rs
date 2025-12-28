@@ -1,3 +1,4 @@
+mod mappings;
 mod models;
 mod schema;
 
