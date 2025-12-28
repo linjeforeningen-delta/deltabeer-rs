@@ -1,72 +1,100 @@
-use crate::schema::{admin_tokens, admins, transactions, users};
+use crate::schema::{admin_tokens, admins, transactions, users, users_with_role};
 use diesel::prelude::*;
 
 /// =======================
-/// users
+/// users (row = schema authority)
 /// =======================
-#[derive(Debug, Queryable, Identifiable)]
+#[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = users)]
+#[diesel(belongs_to(UserRow, foreign_key = created_by))]
 pub struct UserRow {
-    pub id: String, // UUID as TEXT
+    pub id: String,
     pub name: String,
     pub username: String,
     pub card_number: i64,
-    pub role: String,
-    pub birthdate: String, // YYYY-MM-DD
+    pub birthdate: String,
     pub comments: String,
     pub balance: i64,
     pub spent: i64,
+    pub created_at: i64,
+    pub created_by: String,
 }
 
-/// Insert model
-#[derive(Insertable)]
-#[diesel(table_name = users)]
-pub struct NewUser<'a> {
+#[derive(Debug, Queryable, Identifiable)]
+#[diesel(table_name = users_with_role)]
+pub struct UserWithRoleRow {
     pub id: String,
-    pub name: &'a str,
-    pub username: &'a str,
+    pub name: String,
+    pub username: String,
     pub card_number: i64,
-    pub role: &'a str,
     pub birthdate: String,
-    pub comments: &'a str,
+    pub comments: String,
     pub balance: i64,
     pub spent: i64,
+    pub created_at: i64,
+    pub created_by: String,
+    pub role: String, // "admin" | "user"
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = users)]
+pub struct NewUser {
+    pub id: String,
+    pub name: String,
+    pub username: String,
+    pub card_number: i64,
+    pub birthdate: String,
+    pub comments: String,
+    pub balance: i64,
+    pub spent: i64,
+    pub created_at: i64,
+    pub created_by: String,
 }
 
 /// =======================
-/// admins
+/// admins (row = schema authority)
 /// =======================
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = admins)]
-#[diesel(primary_key(user_id))]
 #[diesel(belongs_to(UserRow, foreign_key = user_id))]
 pub struct AdminRow {
-    pub user_id: String, // FK + PK
+    pub id: String,
+    pub user_id: String,
     pub password_hash: String,
-    pub created_at: i64, // unix timestamp
-    pub active: bool,
+    pub granted_at: i64,
+    pub granted_by: String,
+    pub revoked_at: Option<i64>,
+    pub revoked_by: Option<String>,
 }
 
 #[derive(Insertable)]
 #[diesel(table_name = admins)]
-pub struct NewAdmin<'a> {
+pub struct NewAdminGant {
+    pub id: String,
     pub user_id: String,
-    pub password_hash: &'a str,
-    pub created_at: i64,
-    pub active: bool,
+    pub password_hash: String,
+    pub granted_at: i64,
+    pub granted_by: String,
+}
+
+#[derive(Insertable, AsChangeset)]
+#[diesel(table_name = admins)]
+pub struct AdminRevoke {
+    pub id: String,
+    pub revoked_at: i64,
+    pub revoked_by: String,
 }
 
 /// =======================
-/// transactions
+/// transactions (row = schema authority)
 /// =======================
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = transactions)]
 #[diesel(belongs_to(UserRow, foreign_key = user_id))]
-#[diesel(belongs_to(AdminRow, foreign_key = approved_by))]
 pub struct TransactionRow {
     pub id: String,
     pub user_id: String,
-    pub kind: String, // 'topup' | 'spend'
+    pub kind: String,
     pub amount: i64,
     pub approved_by: Option<String>,
     pub created_at: i64,
@@ -74,17 +102,17 @@ pub struct TransactionRow {
 
 #[derive(Insertable)]
 #[diesel(table_name = transactions)]
-pub struct NewTransaction<'a> {
+pub struct NewTransaction {
     pub id: String,
     pub user_id: String,
-    pub kind: &'a str,
+    pub kind: String,
     pub amount: i64,
     pub approved_by: Option<String>,
     pub created_at: i64,
 }
 
 /// =======================
-/// admin_tokens
+/// admin_tokens (row = schema authority)
 /// =======================
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = admin_tokens)]
@@ -100,9 +128,9 @@ pub struct AdminTokenRow {
 
 #[derive(Insertable)]
 #[diesel(table_name = admin_tokens)]
-pub struct NewAdminToken<'a> {
-    pub token: &'a str,
-    pub user_id: &'a str,
+pub struct NewAdminToken {
+    pub token: String,
+    pub user_id: String,
     pub expires_at: i64,
     pub single_use: bool,
     pub created_at: i64,

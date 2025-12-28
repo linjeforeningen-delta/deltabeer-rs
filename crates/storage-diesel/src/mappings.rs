@@ -1,4 +1,4 @@
-use crate::models::{AdminRow, NewAdmin, NewTransaction, NewUser, TransactionRow, UserRow};
+use crate::models::{AdminRow, NewTransaction, NewUser, TransactionRow, UserRow, UserWithRoleRow};
 use delta_core::domain::*;
 use delta_core::ports::Admin;
 use thiserror::Error;
@@ -35,9 +35,9 @@ where
 /// users
 /// =======================
 
-impl TryFrom<&UserRow> for User {
+impl TryFrom<&UserWithRoleRow> for User {
     type Error = MappingError;
-    fn try_from(value: &UserRow) -> Result<Self, Self::Error> {
+    fn try_from(value: &UserWithRoleRow) -> Result<Self, Self::Error> {
         Ok(User {
             id: parse_id(&value.id)?,
             name: value.name.clone(),
@@ -57,25 +57,6 @@ impl TryFrom<&UserRow> for User {
             balance: Amount::try_from(value.balance)?,
             spent: Amount::try_from(value.spent)?,
         })
-    }
-}
-
-impl<'a> From<&'a User> for NewUser<'a> {
-    fn from(value: &'a User) -> Self {
-        NewUser {
-            id: value.id.0.to_string(),
-            name: &value.name,
-            username: &value.username,
-            card_number: value.card_number as i64,
-            role: match value.role {
-                Role::Admin => "admin",
-                Role::User => "user",
-            },
-            birthdate: value.birthdate.to_string(),
-            comments: &value.comments,
-            balance: value.balance.0 as i64,
-            spent: value.spent.0 as i64,
-        }
     }
 }
 
@@ -108,8 +89,8 @@ impl TryFrom<&TransactionRow> for Transaction {
     }
 }
 
-impl<'a> From<&'a Transaction> for NewTransaction<'a> {
-    fn from(value: &'a Transaction) -> Self {
+impl From<Transaction> for NewTransaction {
+    fn from(value: Transaction) -> Self {
         match value {
             Transaction::TopUp {
                 id,
@@ -120,7 +101,7 @@ impl<'a> From<&'a Transaction> for NewTransaction<'a> {
             } => NewTransaction {
                 id: id.0.to_string(),
                 user_id: user_id.0.to_string(),
-                kind: "topup",
+                kind: "topup".to_string(),
                 amount: amount.0 as i64,
                 approved_by: Some(approved_by.0.to_string()),
                 created_at: ts.timestamp(),
@@ -134,7 +115,7 @@ impl<'a> From<&'a Transaction> for NewTransaction<'a> {
             } => NewTransaction {
                 id: id.0.to_string(),
                 user_id: user_id.0.to_string(),
-                kind: "spend",
+                kind: "spend".to_string(),
                 amount: amount.0 as i64,
                 approved_by: None,
                 created_at: ts.timestamp(),
