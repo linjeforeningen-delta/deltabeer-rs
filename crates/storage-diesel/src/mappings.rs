@@ -1,6 +1,5 @@
-use crate::models::{AdminRow, NewTransaction, NewUser, TransactionRow, UserRow, UserWithRoleRow};
+use crate::models::{NewTransaction, TransactionRow, UserWithRoleRow};
 use delta_core::domain::*;
-use delta_core::ports::Admin;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

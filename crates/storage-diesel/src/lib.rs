@@ -3,16 +3,17 @@ mod models;
 mod schema;
 
 use crate::mappings::MappingError;
-use crate::models::{NewUser, UserWithRoleRow};
-use crate::schema::users_with_role::dsl::{role, users_with_role};
+use crate::models::{
+    AdminTokenRow, NewAdminGrant, NewAdminToken, NewTransaction, NewUser, UserWithRoleRow,
+};
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use delta_core::ports::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
 use diesel::prelude::*;
 use thiserror::Error;
 
-use crate::schema::users::dsl::*;
 use delta_core::domain::{ActionRecord, Transaction, User, UserId};
-use delta_core::services::auth::{AdminToken, TokenData};
+use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sqlite::SqliteConnection;
 
@@ -94,6 +95,7 @@ macro_rules! repo_call {
 #[async_trait]
 impl UserRepo for DieselRepo {
     async fn get(&self, key: &UserId) -> Result<User, RepoError> {
+        use crate::schema::users_with_role::dsl::*;
         let key = key.to_owned();
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let row = users_with_role
@@ -106,10 +108,11 @@ impl UserRepo for DieselRepo {
     }
 
     async fn get_by_name(&self, user_name: &str) -> Result<User, RepoError> {
+        use crate::schema::users_with_role::dsl::*;
         let user_name = user_name.to_owned();
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let row = users_with_role
-                .filter(crate::schema::users_with_role::username.eq(user_name))
+                .filter(username.eq(user_name))
                 .first::<UserWithRoleRow>(conn)
                 .map_err(map_diesel_error)?;
 
@@ -118,9 +121,10 @@ impl UserRepo for DieselRepo {
     }
 
     async fn get_by_card(&self, user_card_number: u32) -> Result<User, RepoError> {
+        use crate::schema::users_with_role::dsl::*;
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let row = users_with_role
-                .filter(crate::schema::users_with_role::card_number.eq(user_card_number as i64))
+                .filter(card_number.eq(user_card_number as i64))
                 .first::<UserWithRoleRow>(conn)
                 .map_err(map_diesel_error)?;
 
@@ -129,6 +133,7 @@ impl UserRepo for DieselRepo {
     }
 
     async fn insert(&self, user: User, record: ActionRecord) -> Result<(), RepoError> {
+        use crate::schema::users::dsl::*;
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             diesel::insert_into(users)
                 .values(&NewUser {
@@ -150,6 +155,7 @@ impl UserRepo for DieselRepo {
     }
 
     async fn update(&self, user: User) -> Result<(), RepoError> {
+        use crate::schema::users::dsl::*;
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             diesel::update(users.find(user.id.0.to_string()))
                 .set((
@@ -170,36 +176,117 @@ impl UserRepo for DieselRepo {
 #[async_trait]
 impl AdminRepo for DieselRepo {
     async fn get(&self, user_id_val: UserId) -> Result<String, RepoError> {
-        todo!()
+        use crate::schema::admins::dsl::*;
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            let hash = admins
+                .filter(user_id.eq(user_id_val.0.to_string()))
+                .filter(revoked_at.is_null())
+                .select(password_hash)
+                .first::<String>(conn)
+                .map_err(map_diesel_error)?;
+
+            Ok(hash)
+        })
     }
 
-    async fn insert(&self, user_id_val: UserId, data: String) -> Result<(), RepoError> {
-        todo!()
+    async fn grant(
+        &self,
+        user_id_val: UserId,
+        data: String,
+        record: ActionRecord,
+    ) -> Result<(), RepoError> {
+        use crate::schema::admins::dsl::*;
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            diesel::insert_into(admins)
+                .values(&NewAdminGrant {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    user_id: user_id_val.0.to_string(),
+                    password_hash: data,
+                    granted_at: record.at.timestamp(),
+                    granted_by: record.actor.0.to_string(),
+                })
+                .execute(conn)
+                .map_err(map_diesel_error)?;
+            Ok(())
+        })
     }
 
-    async fn remove(&self, user_id_val: UserId) -> Result<(), RepoError> {
-        todo!()
+    async fn revoke(&self, user_id_val: UserId, record: ActionRecord) -> Result<(), RepoError> {
+        use crate::schema::admins::dsl::*;
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            diesel::update(
+                admins
+                    .filter(user_id.eq(user_id_val.0.to_string()))
+                    .filter(revoked_at.is_null()),
+            )
+            .set((
+                revoked_at.eq(record.at.timestamp()),
+                revoked_by.eq(record.actor.0.to_string()),
+            ))
+            .execute(conn)
+            .map_err(map_diesel_error)?;
+            Ok(())
+        })
     }
 }
 
 #[async_trait]
 impl TransactionRepo for DieselRepo {
     async fn insert(&self, tx: Transaction) -> Result<(), RepoError> {
-        todo!()
+        use crate::schema::transactions::dsl::*;
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            diesel::insert_into(transactions)
+                .values(&NewTransaction::from(tx))
+                .execute(conn)
+                .map_err(map_diesel_error)?;
+            Ok(())
+        })
     }
 }
 
 #[async_trait]
 impl TokenRepo for DieselRepo {
-    async fn insert(&self, token: AdminToken, data: TokenData) -> Result<(), RepoError> {
-        todo!()
+    async fn insert(
+        &self,
+        token_arg: AdminToken,
+        data: TokenData,
+        created_at_arg: DateTime<Utc>,
+    ) -> Result<(), RepoError> {
+        use crate::schema::admin_tokens::dsl::*;
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            diesel::insert_into(admin_tokens)
+                .values(&NewAdminToken {
+                    token: token_arg.0,
+                    user_id: data.user_id.0.to_string(),
+                    expires_at: data.expires_at.timestamp(),
+                    single_use: matches!(data.kind, TokenKind::SingleUse),
+                    created_at: created_at_arg.timestamp(),
+                })
+                .execute(conn)
+                .map_err(map_diesel_error)?;
+            Ok(())
+        })
     }
 
     async fn get(&self, token: &AdminToken) -> Result<TokenData, RepoError> {
-        todo!()
-    }
+        use crate::schema::admin_tokens::dsl::{admin_tokens, token as token_col};
+        let token_val = token.0.clone();
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            let row = admin_tokens
+                .filter(token_col.eq(token_val))
+                .first::<AdminTokenRow>(conn)
+                .map_err(map_diesel_error)?;
 
-    async fn remove(&self, token: &AdminToken) -> Result<(), RepoError> {
-        todo!()
+            Ok(TokenData {
+                user_id: UserId::try_from(row.user_id.as_str()).map_err(|_| RepoError::Internal)?,
+                expires_at: chrono::DateTime::from_timestamp(row.expires_at, 0)
+                    .ok_or(RepoError::Internal)?,
+                kind: if row.single_use {
+                    TokenKind::SingleUse
+                } else {
+                    TokenKind::Session
+                },
+            })
+        })
     }
 }

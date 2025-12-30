@@ -1,4 +1,4 @@
-use crate::domain::{User, UserId};
+use crate::domain::{ActionRecord, UserId};
 use crate::ports::RepoError;
 use async_trait::async_trait;
 
@@ -10,6 +10,6 @@ pub struct Admin {
 #[async_trait]
 pub trait AdminRepo {
     async fn get(&self, id: UserId) -> Result<String, RepoError>;
-    async fn insert(&self, id: UserId, data: String) -> Result<(), RepoError>;
-    async fn remove(&self, id: UserId) -> Result<(), RepoError>;
+    async fn grant(&self, id: UserId, data: String, record: ActionRecord) -> Result<(), RepoError>;
+    async fn revoke(&self, id: UserId, record: ActionRecord) -> Result<(), RepoError>;
 }

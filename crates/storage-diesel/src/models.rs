@@ -69,7 +69,7 @@ pub struct AdminRow {
 
 #[derive(Insertable)]
 #[diesel(table_name = admins)]
-pub struct NewAdminGant {
+pub struct NewAdminGrant {
     pub id: String,
     pub user_id: String,
     pub password_hash: String,

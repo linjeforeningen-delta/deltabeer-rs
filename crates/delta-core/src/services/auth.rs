@@ -11,15 +11,16 @@ struct Ctx<'a> {
 
 pub struct AdminToken(pub String);
 
-enum TokenKind {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TokenKind {
     SingleUse,
     Session,
 }
 
 pub struct TokenData {
-    user_id: UserId,
-    expires_at: DateTime<Utc>,
-    kind: TokenKind,
+    pub user_id: UserId,
+    pub expires_at: DateTime<Utc>,
+    pub kind: TokenKind,
 }
 
 fn issue_admin_pass(
