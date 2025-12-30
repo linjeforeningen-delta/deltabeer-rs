@@ -1292,6 +1292,7 @@ dependencies = [
  "r2d2",
  "tempfile",
  "thiserror",
+ "tokio",
  "tracing",
  "uuid",
 ]

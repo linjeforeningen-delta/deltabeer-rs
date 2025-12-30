@@ -1,5 +1,5 @@
-use crate::domain::DomainError;
 use crate::domain::user::UserId;
+use crate::domain::DomainError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -45,6 +45,12 @@ impl TryFrom<i64> for Amount {
         } else {
             Err(DomainError::InvalidAmount)
         }
+    }
+}
+
+impl From<Amount> for i64 {
+    fn from(value: Amount) -> Self {
+        value.0 as i64
     }
 }
 
