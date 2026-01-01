@@ -1,17 +1,21 @@
 use crate::domain::{Amount, Transaction, TransactionId, UserId};
-use crate::ports::RepoError;
-use crate::services::context::{HasClock, HasTokens, HasTransactions, HasUsers};
+use crate::ports::{RepoError, TokenRepo, TransactionRepo, UserRepo};
+use crate::services::context::Ctx;
 use crate::services::{
     auth::{validate_authorization, AdminToken},
     ServiceError,
 };
 
 const MAX_RETRIES: usize = 3;
-pub async fn spend<T>(user_id: UserId, amount: Amount, ctx: &T) -> Result<Transaction, ServiceError>
+pub async fn spend<R>(
+    user_id: UserId,
+    amount: Amount,
+    ctx: &Ctx<'_, R>,
+) -> Result<Transaction, ServiceError>
 where
-    T: HasTransactions + HasUsers + HasClock,
+    R: TransactionRepo + UserRepo,
 {
-    let user = ctx.users().get(&user_id).await?.deduct_balance(amount)?;
+    let user = ctx.repo.get_user(&user_id).await?.deduct_balance(amount)?;
 
     // make this atomic
     for _ in 0..MAX_RETRIES {
@@ -19,11 +23,11 @@ where
             id: TransactionId::new(),
             user_id,
             amount,
-            ts: ctx.clock().now(),
+            ts: ctx.clock.now(),
         };
-        match ctx.transactions().insert(tx.clone()).await {
+        match ctx.repo.insert_transaction(tx.clone()).await {
             Ok(()) => {
-                ctx.users().update(user).await?;
+                ctx.repo.update_user(user).await?;
                 return Ok(tx);
             }
             Err(RepoError::Conflict) => continue,
@@ -33,16 +37,16 @@ where
     Err(ServiceError::Conflict)
 }
 
-pub async fn top_up<T>(
+pub async fn top_up<R>(
     user_id: UserId,
     amount: Amount,
     token: AdminToken,
-    ctx: &T,
+    ctx: &Ctx<'_, R>,
 ) -> Result<Transaction, ServiceError>
 where
-    T: HasTransactions + HasUsers + HasClock + HasTokens,
+    R: TransactionRepo + UserRepo + TokenRepo,
 {
-    let user = ctx.users().get(&user_id).await?.add_balance(amount)?;
+    let user = ctx.repo.get_user(&user_id).await?.add_balance(amount)?;
     let admin_id = validate_authorization(token, ctx)?;
 
     // make this atomic
@@ -51,12 +55,12 @@ where
             id: TransactionId::new(),
             user_id,
             amount,
-            ts: ctx.clock().now(),
+            ts: ctx.clock.now(),
             approved_by: admin_id,
         };
-        match ctx.transactions().insert(tx.clone()).await {
+        match ctx.repo.insert_transaction(tx.clone()).await {
             Ok(()) => {
-                ctx.users().update(user).await?;
+                ctx.repo.update_user(user).await?;
                 return Ok(tx);
             }
             Err(RepoError::Conflict) => continue,

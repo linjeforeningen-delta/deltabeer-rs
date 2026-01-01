@@ -1,5 +1,6 @@
 use crate::domain::{DomainError, UserId};
-use crate::services::context::{HasAdmins, HasClock, HasTokens, HasUsers};
+use crate::ports::{AdminRepo, TokenRepo, UserRepo};
+use crate::services::context::Ctx;
 use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,13 +18,13 @@ pub struct TokenData {
     pub kind: TokenKind,
 }
 
-pub fn issue_admin_pass<T>(
+pub fn issue_admin_pass<R>(
     user_id: UserId,
     password: String,
-    ctx: &T,
+    ctx: &Ctx<'_, R>,
 ) -> Result<AdminToken, DomainError>
 where
-    T: HasTokens + HasClock + HasUsers + HasAdmins,
+    R: TokenRepo + AdminRepo + UserRepo,
 {
     // check if user is admin
     // verify password against stored hash
@@ -37,9 +38,12 @@ where
     todo!()
 }
 
-pub fn issue_admin_session<T>(token: AdminToken, ctx: &T) -> Result<AdminToken, DomainError>
+pub fn issue_admin_session<R>(
+    token: AdminToken,
+    ctx: &Ctx<'_, R>,
+) -> Result<AdminToken, DomainError>
 where
-    T: HasTokens + HasClock,
+    R: TokenRepo,
 {
     // 1. validate token
     // 2. ensure NOT expired
@@ -53,9 +57,9 @@ where
     todo!()
 }
 
-pub fn validate_authorization<T>(token: AdminToken, ctx: &T) -> Result<UserId, DomainError>
+pub fn validate_authorization<R>(token: AdminToken, ctx: &Ctx<'_, R>) -> Result<UserId, DomainError>
 where
-    T: HasTokens + HasClock,
+    R: TokenRepo,
 {
     // validate token
     // return user id if valid

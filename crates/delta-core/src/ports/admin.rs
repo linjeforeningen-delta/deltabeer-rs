@@ -9,7 +9,12 @@ pub struct Admin {
 
 #[async_trait]
 pub trait AdminRepo {
-    async fn get(&self, id: UserId) -> Result<String, RepoError>;
-    async fn grant(&self, id: UserId, data: String, record: ActionRecord) -> Result<(), RepoError>;
-    async fn revoke(&self, id: UserId, record: ActionRecord) -> Result<(), RepoError>;
+    async fn get_admin(&self, id: UserId) -> Result<String, RepoError>;
+    async fn grant_admin(
+        &self,
+        id: UserId,
+        data: String,
+        record: ActionRecord,
+    ) -> Result<(), RepoError>;
+    async fn revoke_admin(&self, id: UserId, record: ActionRecord) -> Result<(), RepoError>;
 }

@@ -46,11 +46,13 @@ async fn test_user_repo_insert_and_get() {
     let user = create_test_user(user_id, "alice");
     let record = create_action_record(user_id);
 
-    UserRepo::insert(&repo, user.clone(), record)
+    UserRepo::insert_user(&repo, user.clone(), record)
         .await
         .expect("insert failed");
 
-    let retrieved = UserRepo::get(&repo, &user_id).await.expect("get failed");
+    let retrieved = UserRepo::get_user(&repo, &user_id)
+        .await
+        .expect("get failed");
     assert_eq!(retrieved.id, user.id);
     assert_eq!(retrieved.username, user.username);
 }
@@ -62,16 +64,16 @@ async fn test_user_repo_get_by_name_and_card() {
     let user = create_test_user(user_id, "bob");
     let record = create_action_record(user_id);
 
-    UserRepo::insert(&repo, user.clone(), record)
+    UserRepo::insert_user(&repo, user.clone(), record)
         .await
         .expect("insert failed");
 
-    let by_name = UserRepo::get_by_name(&repo, "bob")
+    let by_name = UserRepo::get_user_by_name(&repo, "bob")
         .await
         .expect("get_by_name failed");
     assert_eq!(by_name.id, user.id);
 
-    let by_card = UserRepo::get_by_card(&repo, user.card_number)
+    let by_card = UserRepo::get_user_by_card(&repo, user.card_number)
         .await
         .expect("get_by_card failed");
     assert_eq!(by_card.id, user.id);
@@ -84,17 +86,19 @@ async fn test_user_repo_update() {
     let mut user = create_test_user(user_id, "charlie");
     let record = create_action_record(user_id);
 
-    UserRepo::insert(&repo, user.clone(), record)
+    UserRepo::insert_user(&repo, user.clone(), record)
         .await
         .expect("insert failed");
 
     user.name = "Charlie Updated".to_string();
     user.balance = Amount(100);
-    UserRepo::update(&repo, user.clone())
+    UserRepo::update_user(&repo, user.clone())
         .await
         .expect("update failed");
 
-    let retrieved = UserRepo::get(&repo, &user_id).await.expect("get failed");
+    let retrieved = UserRepo::get_user(&repo, &user_id)
+        .await
+        .expect("get failed");
     assert_eq!(retrieved.name, "Charlie Updated");
     assert_eq!(retrieved.balance, Amount(100));
 }
@@ -106,15 +110,15 @@ async fn test_admin_repo_grant_and_get() {
     let user = create_test_user(user_id, "admin_user");
     let record = create_action_record(user_id);
 
-    UserRepo::insert(&repo, user, record)
+    UserRepo::insert_user(&repo, user, record)
         .await
         .expect("insert user failed");
 
-    AdminRepo::grant(&repo, user_id, "hashed_password".to_string(), record)
+    AdminRepo::grant_admin(&repo, user_id, "hashed_password".to_string(), record)
         .await
         .expect("grant failed");
 
-    let hash = AdminRepo::get(&repo, user_id)
+    let hash = AdminRepo::get_admin(&repo, user_id)
         .await
         .expect("get admin failed");
     assert_eq!(hash, "hashed_password");
@@ -128,14 +132,14 @@ async fn test_admin_repo_revoke() {
     let other_id = UserId::new();
     let other_user = create_test_user(other_id, "other");
 
-    UserRepo::insert(&repo, admin_user, create_action_record(admin_id))
+    UserRepo::insert_user(&repo, admin_user, create_action_record(admin_id))
         .await
         .unwrap();
-    UserRepo::insert(&repo, other_user, create_action_record(other_id))
+    UserRepo::insert_user(&repo, other_user, create_action_record(other_id))
         .await
         .unwrap();
 
-    AdminRepo::grant(
+    AdminRepo::grant_admin(
         &repo,
         admin_id,
         "pass".to_string(),
@@ -145,11 +149,11 @@ async fn test_admin_repo_revoke() {
     .unwrap();
 
     // Revoke admin_id by other_id
-    AdminRepo::revoke(&repo, admin_id, create_action_record(other_id))
+    AdminRepo::revoke_admin(&repo, admin_id, create_action_record(other_id))
         .await
         .expect("revoke failed");
 
-    let result = AdminRepo::get(&repo, admin_id).await;
+    let result = AdminRepo::get_admin(&repo, admin_id).await;
     assert!(matches!(result, Err(RepoError::NotFound)));
 }
 
@@ -158,7 +162,7 @@ async fn test_transaction_repo_insert_spend() {
     let (repo, _dir) = setup().await;
     let user_id = UserId::new();
     let user = create_test_user(user_id, "spender");
-    UserRepo::insert(&repo, user, create_action_record(user_id))
+    UserRepo::insert_user(&repo, user, create_action_record(user_id))
         .await
         .unwrap();
 
@@ -169,7 +173,7 @@ async fn test_transaction_repo_insert_spend() {
         ts: Utc::now(),
     };
 
-    TransactionRepo::insert(&repo, tx)
+    TransactionRepo::insert_transaction(&repo, tx)
         .await
         .expect("insert spend failed");
 }
@@ -180,21 +184,21 @@ async fn test_transaction_repo_insert_topup() {
     let user_id = UserId::new();
     let admin_id = UserId::new();
 
-    UserRepo::insert(
+    UserRepo::insert_user(
         &repo,
         create_test_user(user_id, "user"),
         create_action_record(user_id),
     )
     .await
     .unwrap();
-    UserRepo::insert(
+    UserRepo::insert_user(
         &repo,
         create_test_user(admin_id, "admin"),
         create_action_record(user_id),
     )
     .await
     .unwrap();
-    AdminRepo::grant(
+    AdminRepo::grant_admin(
         &repo,
         admin_id,
         "pass".to_string(),
@@ -211,7 +215,7 @@ async fn test_transaction_repo_insert_topup() {
         approved_by: admin_id,
     };
 
-    TransactionRepo::insert(&repo, tx)
+    TransactionRepo::insert_transaction(&repo, tx)
         .await
         .expect("insert topup failed");
 }
@@ -220,7 +224,7 @@ async fn test_transaction_repo_insert_topup() {
 async fn test_token_repo_session() {
     let (repo, _dir) = setup().await;
     let user_id = UserId::new();
-    UserRepo::insert(
+    UserRepo::insert_user(
         &repo,
         create_test_user(user_id, "user"),
         create_action_record(user_id),
@@ -235,11 +239,11 @@ async fn test_token_repo_session() {
         kind: TokenKind::Session,
     };
 
-    TokenRepo::insert(&repo, token.clone(), data, Utc::now())
+    TokenRepo::insert_token(&repo, token.clone(), data, Utc::now())
         .await
         .expect("insert token failed");
 
-    let retrieved = TokenRepo::get(&repo, &token)
+    let retrieved = TokenRepo::get_token(&repo, &token)
         .await
         .expect("get token failed");
     assert_eq!(retrieved.user_id, user_id);
@@ -250,7 +254,7 @@ async fn test_token_repo_session() {
 async fn test_token_repo_single_use() {
     let (repo, _dir) = setup().await;
     let user_id = UserId::new();
-    UserRepo::insert(
+    UserRepo::insert_user(
         &repo,
         create_test_user(user_id, "user"),
         create_action_record(user_id),
@@ -265,11 +269,11 @@ async fn test_token_repo_single_use() {
         kind: TokenKind::SingleUse,
     };
 
-    TokenRepo::insert(&repo, token.clone(), data, Utc::now())
+    TokenRepo::insert_token(&repo, token.clone(), data, Utc::now())
         .await
         .expect("insert token failed");
 
-    let retrieved = TokenRepo::get(&repo, &token)
+    let retrieved = TokenRepo::get_token(&repo, &token)
         .await
         .expect("get token failed");
     assert_eq!(retrieved.kind, TokenKind::SingleUse);
@@ -282,33 +286,33 @@ async fn test_user_repo_conflict() {
     let user = create_test_user(user_id, "alice");
     let record = create_action_record(user_id);
 
-    UserRepo::insert(&repo, user.clone(), record)
+    UserRepo::insert_user(&repo, user.clone(), record)
         .await
         .expect("insert failed");
 
     // Duplicate insert
-    let result = UserRepo::insert(&repo, user, record).await;
+    let result = UserRepo::insert_user(&repo, user, record).await;
     assert!(matches!(result, Err(RepoError::Conflict)));
 }
 
 #[tokio::test]
 async fn test_user_repo_not_found() {
     let (repo, _dir) = setup().await;
-    let result = UserRepo::get(&repo, &UserId::new()).await;
+    let result = UserRepo::get_user(&repo, &UserId::new()).await;
     assert!(matches!(result, Err(RepoError::NotFound)));
 }
 
 #[tokio::test]
 async fn test_admin_repo_get_not_found() {
     let (repo, _dir) = setup().await;
-    let result = AdminRepo::get(&repo, UserId::new()).await;
+    let result = AdminRepo::get_admin(&repo, UserId::new()).await;
     assert!(matches!(result, Err(RepoError::NotFound)));
 }
 
 #[tokio::test]
 async fn test_token_repo_get_not_found() {
     let (repo, _dir) = setup().await;
-    let result = TokenRepo::get(&repo, &AdminToken("non_existent".to_string())).await;
+    let result = TokenRepo::get_token(&repo, &AdminToken("non_existent".to_string())).await;
     assert!(matches!(result, Err(RepoError::NotFound)));
 }
 
@@ -317,14 +321,14 @@ async fn test_user_repo_insert_duplicate_username() {
     let (repo, _dir) = setup().await;
     let user1_id = UserId::new();
     let user1 = create_test_user(user1_id, "alice");
-    UserRepo::insert(&repo, user1, create_action_record(user1_id))
+    UserRepo::insert_user(&repo, user1, create_action_record(user1_id))
         .await
         .unwrap();
 
     let user2_id = UserId::new();
     let mut user2 = create_test_user(user2_id, "alice"); // same username
     user2.card_number = 9999; // different card number
-    let result = UserRepo::insert(&repo, user2, create_action_record(user1_id)).await;
+    let result = UserRepo::insert_user(&repo, user2, create_action_record(user1_id)).await;
     assert!(matches!(result, Err(RepoError::Conflict)));
 }
 
@@ -333,14 +337,14 @@ async fn test_user_repo_insert_duplicate_card_number() {
     let (repo, _dir) = setup().await;
     let user1_id = UserId::new();
     let user1 = create_test_user(user1_id, "alice");
-    UserRepo::insert(&repo, user1.clone(), create_action_record(user1_id))
+    UserRepo::insert_user(&repo, user1.clone(), create_action_record(user1_id))
         .await
         .unwrap();
 
     let user2_id = UserId::new();
     let mut user2 = create_test_user(user2_id, "bob");
     user2.card_number = user1.card_number; // same card number
-    let result = UserRepo::insert(&repo, user2, create_action_record(user1_id)).await;
+    let result = UserRepo::insert_user(&repo, user2, create_action_record(user1_id)).await;
     assert!(matches!(result, Err(RepoError::Conflict)));
 }
 
@@ -349,7 +353,7 @@ async fn test_user_repo_update_immutable_fields_fail() {
     let (repo, _dir) = setup().await;
     let user_id = UserId::new();
     let user = create_test_user(user_id, "alice");
-    UserRepo::insert(&repo, user.clone(), create_action_record(user_id))
+    UserRepo::insert_user(&repo, user.clone(), create_action_record(user_id))
         .await
         .unwrap();
 
@@ -362,11 +366,11 @@ async fn test_user_repo_update_immutable_fields_fail() {
     updated_user.birthdate = NaiveDate::from_ymd_opt(2000, 2, 2).unwrap();
     updated_user.name = "Alice Updated".to_string();
 
-    UserRepo::update(&repo, updated_user)
+    UserRepo::update_user(&repo, updated_user)
         .await
         .expect("update failed");
 
-    let retrieved = UserRepo::get(&repo, &user_id).await.unwrap();
+    let retrieved = UserRepo::get_user(&repo, &user_id).await.unwrap();
     assert_eq!(retrieved.name, "Alice Updated");
     assert_eq!(retrieved.birthdate, user.birthdate); // Should remain unchanged
 }
@@ -375,7 +379,7 @@ async fn test_user_repo_update_immutable_fields_fail() {
 async fn test_token_repo_overwrite() {
     let (repo, _dir) = setup().await;
     let user_id = UserId::new();
-    UserRepo::insert(
+    UserRepo::insert_user(
         &repo,
         create_test_user(user_id, "user"),
         create_action_record(user_id),
@@ -389,7 +393,7 @@ async fn test_token_repo_overwrite() {
         expires_at: Utc::now() + Duration::hours(1),
         kind: TokenKind::Session,
     };
-    TokenRepo::insert(&repo, token.clone(), data1, Utc::now())
+    TokenRepo::insert_token(&repo, token.clone(), data1, Utc::now())
         .await
         .unwrap();
 
@@ -399,7 +403,7 @@ async fn test_token_repo_overwrite() {
         kind: TokenKind::SingleUse,
     };
     // Re-inserting same token should conflict
-    let result = TokenRepo::insert(&repo, token, data2, Utc::now()).await;
+    let result = TokenRepo::insert_token(&repo, token, data2, Utc::now()).await;
     assert!(matches!(result, Err(RepoError::Conflict)));
 }
 
@@ -408,14 +412,14 @@ async fn test_admin_repo_revoke_already_revoked() {
     let (repo, _dir) = setup().await;
     let admin_id = UserId::new();
     let other_id = UserId::new();
-    UserRepo::insert(
+    UserRepo::insert_user(
         &repo,
         create_test_user(admin_id, "admin"),
         create_action_record(admin_id),
     )
     .await
     .unwrap();
-    UserRepo::insert(
+    UserRepo::insert_user(
         &repo,
         create_test_user(other_id, "other"),
         create_action_record(admin_id),
@@ -423,7 +427,7 @@ async fn test_admin_repo_revoke_already_revoked() {
     .await
     .unwrap();
 
-    AdminRepo::grant(
+    AdminRepo::grant_admin(
         &repo,
         admin_id,
         "hash".to_string(),
@@ -432,7 +436,7 @@ async fn test_admin_repo_revoke_already_revoked() {
     .await
     .unwrap();
 
-    AdminRepo::revoke(&repo, admin_id, create_action_record(other_id))
+    AdminRepo::revoke_admin(&repo, admin_id, create_action_record(other_id))
         .await
         .unwrap();
 
@@ -440,7 +444,7 @@ async fn test_admin_repo_revoke_already_revoked() {
     // DieselRepo::revoke updates where revoked_at IS NULL.
     // If already revoked, no row matches, execute(conn) returns 0.
     // map_diesel_error might not return error for 0 rows updated unless specified.
-    let result = AdminRepo::revoke(&repo, admin_id, create_action_record(other_id)).await;
+    let result = AdminRepo::revoke_admin(&repo, admin_id, create_action_record(other_id)).await;
     // Actually, SQL trigger prevent_admin_revocation_rules Rule 0: OLD.revoked_at IS NOT NULL RAISE ABORT.
     // But the WHERE clause in DieselRepo::revoke prevents it from matching already revoked row.
     // So it should just do nothing and return Ok(()).
@@ -451,14 +455,14 @@ async fn test_admin_repo_revoke_already_revoked() {
 async fn test_admin_repo_self_revocation_forbidden() {
     let (repo, _dir) = setup().await;
     let admin_id = UserId::new();
-    UserRepo::insert(
+    UserRepo::insert_user(
         &repo,
         create_test_user(admin_id, "admin"),
         create_action_record(admin_id),
     )
     .await
     .unwrap();
-    AdminRepo::grant(
+    AdminRepo::grant_admin(
         &repo,
         admin_id,
         "hash".to_string(),
@@ -468,7 +472,7 @@ async fn test_admin_repo_self_revocation_forbidden() {
     .unwrap();
 
     // Self revocation
-    let result = AdminRepo::revoke(&repo, admin_id, create_action_record(admin_id)).await;
+    let result = AdminRepo::revoke_admin(&repo, admin_id, create_action_record(admin_id)).await;
     assert!(result.is_err());
 }
 
@@ -477,7 +481,7 @@ async fn test_user_repo_update_mutable_fields() {
     let (repo, _dir) = setup().await;
     let user_id = UserId::new();
     let mut user = create_test_user(user_id, "alice");
-    UserRepo::insert(&repo, user.clone(), create_action_record(user_id))
+    UserRepo::insert_user(&repo, user.clone(), create_action_record(user_id))
         .await
         .unwrap();
 
@@ -485,11 +489,11 @@ async fn test_user_repo_update_mutable_fields() {
     user.balance = Amount(1000);
     user.comments = "Updated comments".to_string();
 
-    UserRepo::update(&repo, user.clone())
+    UserRepo::update_user(&repo, user.clone())
         .await
         .expect("update failed");
 
-    let retrieved = UserRepo::get(&repo, &user_id).await.unwrap();
+    let retrieved = UserRepo::get_user(&repo, &user_id).await.unwrap();
     assert_eq!(retrieved.name, "Alice Updated");
     assert_eq!(retrieved.balance, Amount(1000));
     assert_eq!(retrieved.comments, "Updated comments");
