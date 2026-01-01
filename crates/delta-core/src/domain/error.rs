@@ -25,4 +25,7 @@ pub enum DomainError {
 
     #[error("invalid domain state")]
     InvalidDomainState,
+
+    #[error("string could not be parsed as ident")]
+    InvalidIdent,
 }

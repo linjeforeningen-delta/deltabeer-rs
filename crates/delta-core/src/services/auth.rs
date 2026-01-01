@@ -1,14 +1,8 @@
 use crate::domain::{DomainError, UserId};
-use crate::ports::{AdminRepo, Clock, TokenRepo, UserRepo};
+use crate::services::context::{HasAdmins, HasClock, HasTokens, HasUsers};
 use chrono::{DateTime, Utc};
 
-struct Ctx<'a> {
-    users: &'a dyn UserRepo,
-    admins: &'a dyn AdminRepo,
-    clock: &'a dyn Clock,
-    token: &'a dyn TokenRepo,
-}
-
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AdminToken(pub String);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -23,11 +17,14 @@ pub struct TokenData {
     pub kind: TokenKind,
 }
 
-fn issue_admin_pass(
+pub fn issue_admin_pass<T>(
     user_id: UserId,
     password: String,
-    ctx: &Ctx<'_>,
-) -> Result<AdminToken, DomainError> {
+    ctx: &T,
+) -> Result<AdminToken, DomainError>
+where
+    T: HasTokens + HasClock + HasUsers + HasAdmins,
+{
     // check if user is admin
     // verify password against stored hash
     // issue single use token (e.g., JWT or random string)
@@ -40,7 +37,10 @@ fn issue_admin_pass(
     todo!()
 }
 
-fn issue_admin_session(token: AdminToken, ctx: &Ctx<'_>) -> Result<AdminToken, DomainError> {
+pub fn issue_admin_session<T>(token: AdminToken, ctx: &T) -> Result<AdminToken, DomainError>
+where
+    T: HasTokens + HasClock,
+{
     // 1. validate token
     // 2. ensure NOT expired
     // 3. ensure single_use == true ← important
@@ -53,7 +53,10 @@ fn issue_admin_session(token: AdminToken, ctx: &Ctx<'_>) -> Result<AdminToken, D
     todo!()
 }
 
-fn validate_authorization(token: AdminToken, ctx: &Ctx<'_>) -> Result<UserId, DomainError> {
+pub fn validate_authorization<T>(token: AdminToken, ctx: &T) -> Result<UserId, DomainError>
+where
+    T: HasTokens + HasClock,
+{
     // validate token
     // return user id if valid
     // deletes expired tokens or single use tokens after validation

@@ -1,25 +1,18 @@
-use crate::domain::{DomainError, Role, UserId};
-use crate::ports::{AdminRepo, Clock, UserRepo};
-use chrono::{DateTime, NaiveDate, Utc};
+use crate::domain::{ActionRecord, Amount, Role, User, UserId, UserIdent};
+use crate::ports::RepoError;
+use crate::services::context::{Ctx, HasClock, HasUsers};
+use crate::services::ServiceError;
+use chrono::NaiveDate;
 
-struct Ctx<'a> {
-    users: &'a dyn UserRepo,
-    admins: &'a dyn AdminRepo,
-    clock: &'a dyn Clock,
-}
-
-pub struct Ident<'a>(pub &'a str);
-fn resolve_user(ident: Ident<'_>, ctx: &Ctx<'_>) -> Result<UserId, DomainError> {
-    // find user by ident
-    // parse ident to correct type
-    // match type:
-    //   username -> resolve username to user id
-    //   card -> resolve card number to user id
-    //   id -> return user id
-    // NEEDS: UserRepo.get_by_username(username) -> Result<User, RepoError>
-    //        UserRepo.get_by_card(card_number) -> Result<User, RepoError>
-    //        UserRepo.get(id) -> Result<User, RepoError>
-    todo!()
+pub async fn resolve_user<T>(ident: UserIdent, ctx: &T) -> Result<UserId, ServiceError>
+where
+    T: HasUsers,
+{
+    Ok(match ident {
+        UserIdent::Id(id) => ctx.users().get(&id).await.map(|u| u.id)?,
+        UserIdent::Card(card) => ctx.users().get_by_card(card).await.map(|u| u.id)?,
+        UserIdent::Username(name) => ctx.users().get_by_name(&name).await.map(|u| u.id)?,
+    })
 }
 
 pub struct CreateUser {
@@ -29,26 +22,46 @@ pub struct CreateUser {
     pub birthdate: NaiveDate,
 }
 
-pub async fn create_user(req: CreateUser, ctx: &Ctx<'_>) -> Result<UserId, DomainError> {
-    // Create a new user in the system
-    // Validate username uniqueness
-    // Validate card number uniqueness
-    // Validate birthdate (user is adult)
-    // Sets defaults for other fields
-    // Persist user
-    // defaults:
-    //   role = User
-    //   balance = 0
-    //   spent = 0
-    //   comments = ""
-    // NEEDS: UserRepo.insert(user) -> Result<UserId, RepoError>
-    //        UserRepo.get(id) -> Result<User, RepoError>
-    //        UserRepo.get_by_username(username) -> Result<User, RepoError>
-    //        UserRepo.get_by_card(card_number) -> Result<User, RepoError>
-    todo!()
+const MAX_RETRIES: usize = 3;
+
+pub async fn create_user<T>(req: CreateUser, actor: UserId, ctx: &T) -> Result<UserId, ServiceError>
+where
+    T: HasUsers + HasClock,
+{
+    if !User::is_adult(req.birthdate, ctx.clock().today()) {
+        return Err(ServiceError::Underage);
+    }
+
+    for _ in 0..MAX_RETRIES {
+        let id = UserId::new();
+
+        let user = User {
+            id: id.clone(),
+            name: req.name.clone(),
+            username: req.username.clone(),
+            card_number: req.card_number,
+            role: Role::User,
+            birthdate: req.birthdate,
+            comments: "".to_string(),
+            balance: Amount(0),
+            spent: Amount(0),
+        };
+
+        let record = ActionRecord {
+            actor,
+            at: ctx.clock().now(),
+        };
+
+        match ctx.users().insert(user, record).await {
+            Ok(()) => return Ok(id),
+            Err(RepoError::Conflict) => continue,
+            Err(e) => return Err(ServiceError::from(e)),
+        }
+    }
+    Err(ServiceError::Conflict)
 }
 
-pub struct PartialUser {
+pub struct UpdateUser {
     pub name: Option<String>,
     pub username: Option<String>,
     pub card_number: Option<u32>,
@@ -56,35 +69,13 @@ pub struct PartialUser {
 
 pub async fn update_user(
     user_id: UserId,
-    req: PartialUser,
+    req: UpdateUser,
     ctx: &Ctx<'_>,
-) -> Result<UserId, DomainError> {
-    // get user by id
-    // update user fields
-    // validate username uniqueness
-    // validate card number uniqueness
-    // persist user
-    // NEEDS: UserRepo.update(user) -> Result<(), RepoError>
-    //        UserRepo.get(id) -> Result<User, RepoError>
-    //        UserRepo.get_by_username(username) -> Result<User, RepoError>
-    //        UserRepo.get_by_card(card_number) -> Result<User, RepoError>
-    todo!()
-}
-
-pub async fn change_user_role(
-    user_id: UserId,
-    new_role: Role,
-    admin_password: Option<String>,
-    ctx: &Ctx<'_>,
-) -> Result<(), DomainError> {
-    // get user by id
-    // parse new_role to Role enum
-    // update user role
-    // if change to admin, persist in AdminRepo with password as well
-    // persist user
-    // NEEDS: UserRepo.update(user) -> Result<(), RepoError>
-    //        UserRepo.get(id) -> Result<User, RepoError>
-    //        AdminRepo.insert(admin) -> Result<(), RepoError>
-    //        AdminRepo.delete(user_id) -> Result<(), RepoError>
-    todo!()
+) -> Result<(), ServiceError> {
+    let mut user = ctx.users().get(&user_id).await?;
+    user.name = req.name.unwrap_or(user.name);
+    user.username = req.username.unwrap_or(user.username);
+    user.card_number = req.card_number.unwrap_or(user.card_number);
+    ctx.users().update(user.clone()).await?;
+    Ok(())
 }

@@ -2,6 +2,7 @@ use crate::domain::user::UserId;
 use crate::domain::DomainError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::ops::Add;
 use uuid::Uuid;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
@@ -36,6 +37,21 @@ pub enum Approval {
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Serialize, Deserialize)]
 pub struct Amount(pub u32);
 
+impl Amount {
+    pub fn checked_sub(self, rhs: Amount) -> Result<Amount, DomainError> {
+        self.0
+            .checked_sub(rhs.0)
+            .map(Amount)
+            .ok_or(DomainError::InsufficientBalance)
+    }
+}
+impl Add for Amount {
+    type Output = Amount;
+
+    fn add(self, rhs: Amount) -> Amount {
+        Amount(self.0 + rhs.0)
+    }
+}
 impl TryFrom<i64> for Amount {
     type Error = DomainError;
 
