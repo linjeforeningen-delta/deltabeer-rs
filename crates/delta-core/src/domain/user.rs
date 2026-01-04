@@ -23,12 +23,6 @@ impl fmt::Display for Role {
 #[serde(transparent)]
 pub struct UserId(pub Uuid);
 
-impl UserId {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
-
 impl TryFrom<&str> for UserId {
     type Error = uuid::Error;
     fn try_from(value: &str) -> Result<Self, Self::Error> {

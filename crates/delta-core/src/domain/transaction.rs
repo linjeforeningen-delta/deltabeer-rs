@@ -1,5 +1,5 @@
-use crate::domain::DomainError;
 use crate::domain::user::UserId;
+use crate::domain::DomainError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::ops::Add;
@@ -8,12 +8,6 @@ use uuid::Uuid;
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 #[serde(transparent)]
 pub struct TransactionId(pub Uuid);
-
-impl TransactionId {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
 
 impl TryFrom<&str> for TransactionId {
     type Error = uuid::Error;

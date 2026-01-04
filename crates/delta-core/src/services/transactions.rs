@@ -1,10 +1,9 @@
 use crate::domain::{Amount, Transaction, UserId};
-use crate::ports::{RepoError, TokenRepo, TransactionRepo, UserRepo};
+use crate::ports::{TokenRepo, TransactionRepo, UserRepo};
 use crate::services::auth::validate_authorization;
 use crate::services::context::Ctx;
 use crate::services::{auth::AdminToken, ServiceError};
 
-const MAX_RETRIES: usize = 3;
 pub async fn spend<R>(
     user_id: UserId,
     amount: Amount,
@@ -13,16 +12,12 @@ pub async fn spend<R>(
 where
     R: TransactionRepo + UserRepo,
 {
-    for _ in 0..MAX_RETRIES {
-        match ctx.repo.spend(user_id, amount, ctx.clock.now()).await {
-            Ok(tx) => {
-                return Ok(tx);
-            }
-            Err(RepoError::Conflict) => continue,
-            Err(e) => return Err(ServiceError::from(e)),
-        }
-    }
-    Err(ServiceError::Conflict)
+    let tx_id = ctx.ids.generate_transaction_id();
+    let tx = ctx
+        .repo
+        .spend(tx_id, user_id, amount, ctx.clock.now())
+        .await?;
+    Ok(tx)
 }
 
 pub async fn top_up<R>(
@@ -35,19 +30,11 @@ where
     R: TransactionRepo + UserRepo + TokenRepo,
 {
     let admin_id = validate_authorization(token, ctx)?;
+    let tx_id = ctx.ids.generate_transaction_id();
 
-    for _ in 0..MAX_RETRIES {
-        match ctx
-            .repo
-            .top_up(user_id, amount, &admin_id, ctx.clock.now())
-            .await
-        {
-            Ok(tx) => {
-                return Ok(tx);
-            }
-            Err(RepoError::Conflict) => continue,
-            Err(e) => return Err(ServiceError::from(e)),
-        }
-    }
-    Err(ServiceError::Conflict)
+    let tx = ctx
+        .repo
+        .top_up(tx_id, user_id, amount, &admin_id, ctx.clock.now())
+        .await?;
+    Ok(tx)
 }

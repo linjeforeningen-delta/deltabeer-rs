@@ -1,7 +1,7 @@
 use crate::domain::{ActionRecord, Amount, Role, User, UserId, UserIdent};
-use crate::ports::{RepoError, UserRepo};
-use crate::services::ServiceError;
+use crate::ports::{Clock, IdGenerator, UserRepo};
 use crate::services::context::Ctx;
+use crate::services::ServiceError;
 use chrono::NaiveDate;
 
 pub async fn resolve_user<R>(ident: UserIdent, ctx: &Ctx<'_, R>) -> Result<UserId, ServiceError>
@@ -22,8 +22,6 @@ pub struct CreateUser {
     pub birthdate: NaiveDate,
 }
 
-const MAX_RETRIES: usize = 3;
-
 pub async fn create_user<R>(
     req: CreateUser,
     actor: UserId,
@@ -36,33 +34,25 @@ where
         return Err(ServiceError::Underage);
     }
 
-    for _ in 0..MAX_RETRIES {
-        let id = UserId::new();
+    let dt = ctx.clock.now();
+    let id = ctx.ids.generate_user_id();
 
-        let user = User {
-            id: id.clone(),
-            name: req.name.clone(),
-            username: req.username.clone(),
-            card_number: req.card_number,
-            role: Role::User,
-            birthdate: req.birthdate,
-            comments: "".to_string(),
-            balance: Amount(0),
-            spent: Amount(0),
-        };
+    let user = User {
+        id: id.clone(),
+        name: req.name.clone(),
+        username: req.username.clone(),
+        card_number: req.card_number,
+        role: Role::User,
+        birthdate: req.birthdate,
+        comments: "".to_string(),
+        balance: Amount(0),
+        spent: Amount(0),
+    };
 
-        let record = ActionRecord {
-            actor,
-            at: ctx.clock.now(),
-        };
+    let record = ActionRecord { actor, at: dt };
 
-        match ctx.repo.insert_user(user, record).await {
-            Ok(()) => return Ok(id),
-            Err(RepoError::Conflict) => continue,
-            Err(e) => return Err(ServiceError::from(e)),
-        }
-    }
-    Err(ServiceError::Conflict)
+    ctx.repo.insert_user(user, record).await?;
+    Ok(id)
 }
 
 pub struct UpdateUser {

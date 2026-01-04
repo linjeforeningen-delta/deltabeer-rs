@@ -1,11 +1,14 @@
 mod common;
 
 use chrono::{Duration, NaiveDate, Utc};
-use delta_core::domain::{ActionRecord, Amount, Role, Transaction, User, UserId};
+use delta_core::domain::{
+    ActionRecord, AdminGrantId, Amount, Role, Transaction, TransactionId, User, UserId,
+};
 use delta_core::ports::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use storage_diesel::DieselRepo;
 use tempfile::TempDir;
+use uuid::Uuid;
 
 async fn setup() -> (DieselRepo, TempDir) {
     let dir = tempfile::tempdir().unwrap();
@@ -42,7 +45,7 @@ fn create_action_record(actor: UserId) -> ActionRecord {
 #[tokio::test]
 async fn test_user_repo_insert_and_get() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     let user = create_test_user(user_id, "alice");
     let record = create_action_record(user_id);
 
@@ -60,7 +63,7 @@ async fn test_user_repo_insert_and_get() {
 #[tokio::test]
 async fn test_user_repo_get_by_name_and_card() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     let user = create_test_user(user_id, "bob");
     let record = create_action_record(user_id);
 
@@ -82,7 +85,7 @@ async fn test_user_repo_get_by_name_and_card() {
 #[tokio::test]
 async fn test_user_repo_update() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     let mut user = create_test_user(user_id, "charlie");
     let record = create_action_record(user_id);
 
@@ -106,7 +109,8 @@ async fn test_user_repo_update() {
 #[tokio::test]
 async fn test_admin_repo_grant_and_get() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
+    let admin_grant_id = AdminGrantId(Uuid::now_v7());
     let user = create_test_user(user_id, "admin_user");
     let record = create_action_record(user_id);
 
@@ -114,9 +118,15 @@ async fn test_admin_repo_grant_and_get() {
         .await
         .expect("insert user failed");
 
-    AdminRepo::grant_admin(&repo, user_id, "hashed_password".to_string(), record)
-        .await
-        .expect("grant failed");
+    AdminRepo::grant_admin(
+        &repo,
+        admin_grant_id,
+        user_id,
+        "hashed_password".to_string(),
+        record,
+    )
+    .await
+    .expect("grant failed");
 
     let hash = AdminRepo::get_admin(&repo, user_id)
         .await
@@ -127,9 +137,10 @@ async fn test_admin_repo_grant_and_get() {
 #[tokio::test]
 async fn test_admin_repo_revoke() {
     let (repo, _dir) = setup().await;
-    let admin_id = UserId::new();
+    let admin_id = UserId(Uuid::now_v7());
+    let admin_grant_id = AdminGrantId(Uuid::now_v7());
     let admin_user = create_test_user(admin_id, "admin");
-    let other_id = UserId::new();
+    let other_id = UserId(Uuid::now_v7());
     let other_user = create_test_user(other_id, "other");
 
     UserRepo::insert_user(&repo, admin_user, create_action_record(admin_id))
@@ -141,6 +152,7 @@ async fn test_admin_repo_revoke() {
 
     AdminRepo::grant_admin(
         &repo,
+        admin_grant_id,
         admin_id,
         "pass".to_string(),
         create_action_record(admin_id),
@@ -160,14 +172,15 @@ async fn test_admin_repo_revoke() {
 #[tokio::test]
 async fn test_transaction_repo_spend_atomic() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
+    let tx_id = TransactionId(Uuid::now_v7());
     let mut user = create_test_user(user_id, "spender");
     user.balance = Amount(100);
     UserRepo::insert_user(&repo, user, create_action_record(user_id))
         .await
         .unwrap();
 
-    let tx = TransactionRepo::spend(&repo, user_id, Amount(40), Utc::now())
+    let tx = TransactionRepo::spend(&repo, tx_id, user_id, Amount(40), Utc::now())
         .await
         .expect("spend failed");
 
@@ -181,8 +194,10 @@ async fn test_transaction_repo_spend_atomic() {
 #[tokio::test]
 async fn test_transaction_repo_topup_atomic() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
-    let admin_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
+    let admin_id = UserId(Uuid::now_v7());
+    let admin_grant_id = AdminGrantId(Uuid::now_v7());
+    let tx_id = TransactionId(Uuid::now_v7());
     let user = create_test_user(user_id, "receiver");
     let admin_user = create_test_user(admin_id, "admin");
     let record = create_action_record(user_id);
@@ -193,11 +208,17 @@ async fn test_transaction_repo_topup_atomic() {
         .await
         .unwrap();
 
-    AdminRepo::grant_admin(&repo, admin_id, "hash".to_string(), admin_record)
-        .await
-        .unwrap();
+    AdminRepo::grant_admin(
+        &repo,
+        admin_grant_id,
+        admin_id,
+        "hash".to_string(),
+        admin_record,
+    )
+    .await
+    .unwrap();
 
-    let tx = TransactionRepo::top_up(&repo, user_id, Amount(100), &admin_id, Utc::now())
+    let tx = TransactionRepo::top_up(&repo, tx_id, user_id, Amount(100), &admin_id, Utc::now())
         .await
         .expect("topup failed");
 
@@ -212,7 +233,7 @@ async fn test_transaction_repo_topup_atomic() {
 #[tokio::test]
 async fn test_token_repo_session() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     UserRepo::insert_user(
         &repo,
         create_test_user(user_id, "user"),
@@ -242,7 +263,7 @@ async fn test_token_repo_session() {
 #[tokio::test]
 async fn test_token_repo_single_use() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     UserRepo::insert_user(
         &repo,
         create_test_user(user_id, "user"),
@@ -271,7 +292,7 @@ async fn test_token_repo_single_use() {
 #[tokio::test]
 async fn test_user_repo_conflict() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     let user = create_test_user(user_id, "alice");
     let record = create_action_record(user_id);
 
@@ -287,14 +308,14 @@ async fn test_user_repo_conflict() {
 #[tokio::test]
 async fn test_user_repo_not_found() {
     let (repo, _dir) = setup().await;
-    let result = UserRepo::get_user(&repo, &UserId::new()).await;
+    let result = UserRepo::get_user(&repo, &UserId(Uuid::now_v7())).await;
     assert!(matches!(result, Err(RepoError::NotFound)));
 }
 
 #[tokio::test]
 async fn test_admin_repo_get_not_found() {
     let (repo, _dir) = setup().await;
-    let result = AdminRepo::get_admin(&repo, UserId::new()).await;
+    let result = AdminRepo::get_admin(&repo, UserId(Uuid::now_v7())).await;
     assert!(matches!(result, Err(RepoError::NotFound)));
 }
 
@@ -308,13 +329,13 @@ async fn test_token_repo_get_not_found() {
 #[tokio::test]
 async fn test_user_repo_insert_duplicate_username() {
     let (repo, _dir) = setup().await;
-    let user1_id = UserId::new();
+    let user1_id = UserId(Uuid::now_v7());
     let user1 = create_test_user(user1_id, "alice");
     UserRepo::insert_user(&repo, user1, create_action_record(user1_id))
         .await
         .unwrap();
 
-    let user2_id = UserId::new();
+    let user2_id = UserId(Uuid::now_v7());
     let mut user2 = create_test_user(user2_id, "alice"); // same username
     user2.card_number = 9999; // different card number
     let result = UserRepo::insert_user(&repo, user2, create_action_record(user1_id)).await;
@@ -324,13 +345,13 @@ async fn test_user_repo_insert_duplicate_username() {
 #[tokio::test]
 async fn test_user_repo_insert_duplicate_card_number() {
     let (repo, _dir) = setup().await;
-    let user1_id = UserId::new();
+    let user1_id = UserId(Uuid::now_v7());
     let user1 = create_test_user(user1_id, "alice");
     UserRepo::insert_user(&repo, user1.clone(), create_action_record(user1_id))
         .await
         .unwrap();
 
-    let user2_id = UserId::new();
+    let user2_id = UserId(Uuid::now_v7());
     let mut user2 = create_test_user(user2_id, "bob");
     user2.card_number = user1.card_number; // same card number
     let result = UserRepo::insert_user(&repo, user2, create_action_record(user1_id)).await;
@@ -340,7 +361,7 @@ async fn test_user_repo_insert_duplicate_card_number() {
 #[tokio::test]
 async fn test_user_repo_update_immutable_fields_fail() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     let user = create_test_user(user_id, "alice");
     UserRepo::insert_user(&repo, user.clone(), create_action_record(user_id))
         .await
@@ -367,7 +388,7 @@ async fn test_user_repo_update_immutable_fields_fail() {
 #[tokio::test]
 async fn test_token_repo_overwrite() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     UserRepo::insert_user(
         &repo,
         create_test_user(user_id, "user"),
@@ -399,8 +420,9 @@ async fn test_token_repo_overwrite() {
 #[tokio::test]
 async fn test_admin_repo_revoke_already_revoked() {
     let (repo, _dir) = setup().await;
-    let admin_id = UserId::new();
-    let other_id = UserId::new();
+    let admin_id = UserId(Uuid::now_v7());
+    let admin_grant_id = AdminGrantId(Uuid::now_v7());
+    let other_id = UserId(Uuid::now_v7());
     UserRepo::insert_user(
         &repo,
         create_test_user(admin_id, "admin"),
@@ -418,6 +440,7 @@ async fn test_admin_repo_revoke_already_revoked() {
 
     AdminRepo::grant_admin(
         &repo,
+        admin_grant_id,
         admin_id,
         "hash".to_string(),
         create_action_record(admin_id),
@@ -443,7 +466,8 @@ async fn test_admin_repo_revoke_already_revoked() {
 #[tokio::test]
 async fn test_admin_repo_self_revocation_forbidden() {
     let (repo, _dir) = setup().await;
-    let admin_id = UserId::new();
+    let admin_id = UserId(Uuid::now_v7());
+    let admin_grant_id = AdminGrantId(Uuid::now_v7());
     UserRepo::insert_user(
         &repo,
         create_test_user(admin_id, "admin"),
@@ -453,6 +477,7 @@ async fn test_admin_repo_self_revocation_forbidden() {
     .unwrap();
     AdminRepo::grant_admin(
         &repo,
+        admin_grant_id,
         admin_id,
         "hash".to_string(),
         create_action_record(admin_id),
@@ -468,7 +493,7 @@ async fn test_admin_repo_self_revocation_forbidden() {
 #[tokio::test]
 async fn test_user_repo_update_mutable_fields() {
     let (repo, _dir) = setup().await;
-    let user_id = UserId::new();
+    let user_id = UserId(Uuid::now_v7());
     let mut user = create_test_user(user_id, "alice");
     UserRepo::insert_user(&repo, user.clone(), create_action_record(user_id))
         .await

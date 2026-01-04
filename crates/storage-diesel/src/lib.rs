@@ -12,7 +12,9 @@ use delta_core::ports::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRe
 use diesel::prelude::*;
 use thiserror::Error;
 
-use delta_core::domain::{ActionRecord, Amount, Transaction, TransactionId, User, UserId};
+use delta_core::domain::{
+    ActionRecord, AdminGrantId, Amount, Transaction, TransactionId, User, UserId,
+};
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sqlite::SqliteConnection;
@@ -165,6 +167,7 @@ impl AdminRepo for DieselRepo {
 
     async fn grant_admin(
         &self,
+        admin_grant_id: AdminGrantId,
         user_id_val: UserId,
         data: String,
         record: ActionRecord,
@@ -173,7 +176,7 @@ impl AdminRepo for DieselRepo {
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             diesel::insert_into(admins)
                 .values(&NewAdminGrant {
-                    id: uuid::Uuid::new_v4().to_string(),
+                    id: admin_grant_id.0.to_string(),
                     user_id: user_id_val.0.to_string(),
                     password_hash: data,
                     granted_at: record.at.timestamp(),
@@ -210,9 +213,10 @@ impl AdminRepo for DieselRepo {
 impl TransactionRepo for DieselRepo {
     async fn spend(
         &self,
+        tx_id: TransactionId,
         user_id_val: UserId,
         amount_val: Amount,
-        ts: DateTime<Utc>,
+        dt: DateTime<Utc>,
     ) -> Result<Transaction, RepoError> {
         use crate::schema::transactions::dsl::transactions;
         use crate::schema::users::dsl::*;
@@ -239,13 +243,11 @@ impl TransactionRepo for DieselRepo {
                     ))
                     .execute(conn)?;
 
-                let tx_id = TransactionId::new();
-
                 let tx = Transaction::Spend {
                     id: tx_id,
                     user_id: user_id_val,
                     amount: amount_val,
-                    ts,
+                    ts: dt,
                 };
 
                 diesel::insert_into(transactions)
@@ -258,10 +260,11 @@ impl TransactionRepo for DieselRepo {
 
     async fn top_up(
         &self,
+        tx_id: TransactionId,
         user_id_val: UserId,
         amount_val: Amount,
         approved_by_val: &UserId,
-        ts: DateTime<Utc>,
+        dt: DateTime<Utc>,
     ) -> Result<Transaction, RepoError> {
         use crate::schema::transactions::dsl::transactions;
         use crate::schema::users::dsl::*;
@@ -291,13 +294,11 @@ impl TransactionRepo for DieselRepo {
                     ))
                     .execute(conn)?;
 
-                let tx_id = TransactionId::new();
-
                 let tx = Transaction::TopUp {
                     id: tx_id,
                     user_id: user_id_val,
                     amount: amount_val,
-                    ts,
+                    ts: dt,
                     approved_by: approved_by_id,
                 };
 
