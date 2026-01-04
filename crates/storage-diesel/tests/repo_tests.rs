@@ -1,7 +1,7 @@
 mod common;
 
 use chrono::{Duration, NaiveDate, Utc};
-use delta_core::domain::{ActionRecord, Amount, Role, Transaction, TransactionId, User, UserId};
+use delta_core::domain::{ActionRecord, Amount, Role, Transaction, User, UserId};
 use delta_core::ports::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use storage_diesel::DieselRepo;
@@ -158,66 +158,55 @@ async fn test_admin_repo_revoke() {
 }
 
 #[tokio::test]
-async fn test_transaction_repo_insert_spend() {
+async fn test_transaction_repo_spend_atomic() {
     let (repo, _dir) = setup().await;
     let user_id = UserId::new();
-    let user = create_test_user(user_id, "spender");
+    let mut user = create_test_user(user_id, "spender");
+    user.balance = Amount(100);
     UserRepo::insert_user(&repo, user, create_action_record(user_id))
         .await
         .unwrap();
 
-    let tx = Transaction::Spend {
-        id: TransactionId::new(),
-        user_id,
-        amount: Amount(50),
-        ts: Utc::now(),
-    };
-
-    TransactionRepo::insert_transaction(&repo, tx)
+    let tx = TransactionRepo::spend(&repo, user_id, Amount(40), Utc::now())
         .await
-        .expect("insert spend failed");
+        .expect("spend failed");
+
+    assert!(matches!(tx, Transaction::Spend { amount, .. } if amount == Amount(40)));
+
+    let updated_user = UserRepo::get_user(&repo, &user_id).await.unwrap();
+    assert_eq!(updated_user.balance, Amount(60));
+    assert_eq!(updated_user.spent, Amount(40));
 }
 
 #[tokio::test]
-async fn test_transaction_repo_insert_topup() {
+async fn test_transaction_repo_topup_atomic() {
     let (repo, _dir) = setup().await;
     let user_id = UserId::new();
     let admin_id = UserId::new();
+    let user = create_test_user(user_id, "receiver");
+    let admin_user = create_test_user(admin_id, "admin");
+    let record = create_action_record(user_id);
+    let admin_record = create_action_record(admin_id);
 
-    UserRepo::insert_user(
-        &repo,
-        create_test_user(user_id, "user"),
-        create_action_record(user_id),
-    )
-    .await
-    .unwrap();
-    UserRepo::insert_user(
-        &repo,
-        create_test_user(admin_id, "admin"),
-        create_action_record(user_id),
-    )
-    .await
-    .unwrap();
-    AdminRepo::grant_admin(
-        &repo,
-        admin_id,
-        "pass".to_string(),
-        create_action_record(admin_id),
-    )
-    .await
-    .unwrap();
-
-    let tx = Transaction::TopUp {
-        id: TransactionId::new(),
-        user_id,
-        amount: Amount(100),
-        ts: Utc::now(),
-        approved_by: admin_id,
-    };
-
-    TransactionRepo::insert_transaction(&repo, tx)
+    UserRepo::insert_user(&repo, user, record).await.unwrap();
+    UserRepo::insert_user(&repo, admin_user, admin_record)
         .await
-        .expect("insert topup failed");
+        .unwrap();
+
+    AdminRepo::grant_admin(&repo, admin_id, "hash".to_string(), admin_record)
+        .await
+        .unwrap();
+
+    let tx = TransactionRepo::top_up(&repo, user_id, Amount(100), &admin_id, Utc::now())
+        .await
+        .expect("topup failed");
+
+    assert!(
+        matches!(tx, Transaction::TopUp { amount, approved_by, .. } if amount == Amount(100) && approved_by == admin_id)
+    );
+
+    let updated_user = UserRepo::get_user(&repo, &user_id).await.unwrap();
+    assert_eq!(updated_user.balance, Amount(100));
 }
 
 #[tokio::test]

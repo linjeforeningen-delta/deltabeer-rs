@@ -272,6 +272,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
+ "diesel",
  "serde",
  "thiserror",
  "uuid",

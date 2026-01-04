@@ -1,10 +1,8 @@
-use crate::domain::{Amount, Transaction, TransactionId, UserId};
+use crate::domain::{Amount, Transaction, UserId};
 use crate::ports::{RepoError, TokenRepo, TransactionRepo, UserRepo};
+use crate::services::auth::validate_authorization;
 use crate::services::context::Ctx;
-use crate::services::{
-    auth::{validate_authorization, AdminToken},
-    ServiceError,
-};
+use crate::services::{auth::AdminToken, ServiceError};
 
 const MAX_RETRIES: usize = 3;
 pub async fn spend<R>(
@@ -15,19 +13,9 @@ pub async fn spend<R>(
 where
     R: TransactionRepo + UserRepo,
 {
-    let user = ctx.repo.get_user(&user_id).await?.deduct_balance(amount)?;
-
-    // make this atomic
     for _ in 0..MAX_RETRIES {
-        let tx = Transaction::Spend {
-            id: TransactionId::new(),
-            user_id,
-            amount,
-            ts: ctx.clock.now(),
-        };
-        match ctx.repo.insert_transaction(tx.clone()).await {
-            Ok(()) => {
-                ctx.repo.update_user(user).await?;
+        match ctx.repo.spend(user_id, amount, ctx.clock.now()).await {
+            Ok(tx) => {
                 return Ok(tx);
             }
             Err(RepoError::Conflict) => continue,
@@ -46,21 +34,15 @@ pub async fn top_up<R>(
 where
     R: TransactionRepo + UserRepo + TokenRepo,
 {
-    let user = ctx.repo.get_user(&user_id).await?.add_balance(amount)?;
     let admin_id = validate_authorization(token, ctx)?;
 
-    // make this atomic
     for _ in 0..MAX_RETRIES {
-        let tx = Transaction::TopUp {
-            id: TransactionId::new(),
-            user_id,
-            amount,
-            ts: ctx.clock.now(),
-            approved_by: admin_id,
-        };
-        match ctx.repo.insert_transaction(tx.clone()).await {
-            Ok(()) => {
-                ctx.repo.update_user(user).await?;
+        match ctx
+            .repo
+            .top_up(user_id, amount, &admin_id, ctx.clock.now())
+            .await
+        {
+            Ok(tx) => {
                 return Ok(tx);
             }
             Err(RepoError::Conflict) => continue,

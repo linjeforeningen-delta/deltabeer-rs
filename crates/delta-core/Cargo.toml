@@ -8,6 +8,9 @@ authors.workspace = true
 [lib]
 name = "delta_core"
 
+[features]
+diesel = ["dep:diesel"]
+
 [dependencies]
 async-trait.workspace = true
 thiserror.workspace = true
@@ -15,3 +18,5 @@ anyhow.workspace = true
 uuid.workspace = true
 serde.workspace = true
 chrono.workspace = true
+
+diesel = { version = "2.3", optional = true }

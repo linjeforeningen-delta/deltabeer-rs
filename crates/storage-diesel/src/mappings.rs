@@ -88,8 +88,8 @@ impl TryFrom<&TransactionRow> for Transaction {
     }
 }
 
-impl From<Transaction> for NewTransaction {
-    fn from(value: Transaction) -> Self {
+impl From<&Transaction> for NewTransaction {
+    fn from(value: &Transaction) -> Self {
         match value {
             Transaction::TopUp {
                 id,

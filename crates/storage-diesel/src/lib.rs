@@ -12,7 +12,7 @@ use delta_core::ports::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRe
 use diesel::prelude::*;
 use thiserror::Error;
 
-use delta_core::domain::{ActionRecord, Transaction, User, UserId};
+use delta_core::domain::{ActionRecord, Amount, Transaction, TransactionId, User, UserId};
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sqlite::SqliteConnection;
@@ -44,26 +44,6 @@ impl DieselRepo {
 
     pub fn pool(&self) -> &SqlitePool {
         &self.pool
-    }
-}
-
-fn map_diesel_error(e: diesel::result::Error) -> RepoError {
-    match e {
-        diesel::result::Error::NotFound => {
-            tracing::info!("entity not found");
-            RepoError::NotFound
-        }
-        diesel::result::Error::DatabaseError(
-            diesel::result::DatabaseErrorKind::UniqueViolation,
-            _,
-        ) => {
-            tracing::warn!("conflict with existing data");
-            RepoError::Conflict
-        }
-        _ => {
-            tracing::error!(error = ?e, "storage layer failure");
-            RepoError::StorageFailure
-        }
     }
 }
 
@@ -100,8 +80,7 @@ impl UserRepo for DieselRepo {
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let row = users_with_role
                 .find(key.0.to_string())
-                .first::<UserWithRoleRow>(conn)
-                .map_err(map_diesel_error)?;
+                .first::<UserWithRoleRow>(conn)?;
 
             Ok(User::try_from(&row)?)
         })
@@ -113,8 +92,7 @@ impl UserRepo for DieselRepo {
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let row = users_with_role
                 .filter(username.eq(user_name))
-                .first::<UserWithRoleRow>(conn)
-                .map_err(map_diesel_error)?;
+                .first::<UserWithRoleRow>(conn)?;
 
             Ok(User::try_from(&row)?)
         })
@@ -125,8 +103,7 @@ impl UserRepo for DieselRepo {
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let row = users_with_role
                 .filter(card_number.eq(user_card_number as i64))
-                .first::<UserWithRoleRow>(conn)
-                .map_err(map_diesel_error)?;
+                .first::<UserWithRoleRow>(conn)?;
 
             Ok(User::try_from(&row)?)
         })
@@ -148,8 +125,7 @@ impl UserRepo for DieselRepo {
                     created_at: record.at.timestamp(),
                     created_by: record.actor.0.to_string(),
                 })
-                .execute(conn)
-                .map_err(map_diesel_error)?;
+                .execute(conn)?;
             Ok(())
         })
     }
@@ -166,8 +142,7 @@ impl UserRepo for DieselRepo {
                     balance.eq(i64::from(user.balance)),
                     spent.eq(i64::from(user.spent)),
                 ))
-                .execute(conn)
-                .map_err(map_diesel_error)?;
+                .execute(conn)?;
             Ok(())
         })
     }
@@ -182,8 +157,7 @@ impl AdminRepo for DieselRepo {
                 .filter(user_id.eq(user_id_val.0.to_string()))
                 .filter(revoked_at.is_null())
                 .select(password_hash)
-                .first::<String>(conn)
-                .map_err(map_diesel_error)?;
+                .first::<String>(conn)?;
 
             Ok(hash)
         })
@@ -205,8 +179,7 @@ impl AdminRepo for DieselRepo {
                     granted_at: record.at.timestamp(),
                     granted_by: record.actor.0.to_string(),
                 })
-                .execute(conn)
-                .map_err(map_diesel_error)?;
+                .execute(conn)?;
             Ok(())
         })
     }
@@ -227,8 +200,7 @@ impl AdminRepo for DieselRepo {
                 revoked_at.eq(record.at.timestamp()),
                 revoked_by.eq(record.actor.0.to_string()),
             ))
-            .execute(conn)
-            .map_err(map_diesel_error)?;
+            .execute(conn)?;
             Ok(())
         })
     }
@@ -236,14 +208,104 @@ impl AdminRepo for DieselRepo {
 
 #[async_trait]
 impl TransactionRepo for DieselRepo {
-    async fn insert_transaction(&self, tx: Transaction) -> Result<(), RepoError> {
-        use crate::schema::transactions::dsl::*;
+    async fn spend(
+        &self,
+        user_id_val: UserId,
+        amount_val: Amount,
+        ts: DateTime<Utc>,
+    ) -> Result<Transaction, RepoError> {
+        use crate::schema::transactions::dsl::transactions;
+        use crate::schema::users::dsl::*;
+        use crate::schema::users_with_role::dsl::users_with_role;
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
-            diesel::insert_into(transactions)
-                .values(&NewTransaction::from(tx))
-                .execute(conn)
-                .map_err(map_diesel_error)?;
-            Ok(())
+            conn.transaction::<_, RepoError, _>(|conn| {
+                let user = {
+                    // DB → row
+                    let row = users_with_role
+                        .find(user_id_val.0.to_string())
+                        .first::<UserWithRoleRow>(conn)?;
+
+                    // row → domain
+                    let user = User::try_from(&row)?;
+
+                    // business rule
+                    user.deduct_balance(amount_val).map_err(RepoError::from)?
+                };
+
+                diesel::update(users.find(user_id_val.0.to_string()))
+                    .set((
+                        balance.eq::<i64>(user.balance.into()),
+                        spent.eq::<i64>(user.spent.into()),
+                    ))
+                    .execute(conn)?;
+
+                let tx_id = TransactionId::new();
+
+                let tx = Transaction::Spend {
+                    id: tx_id,
+                    user_id: user_id_val,
+                    amount: amount_val,
+                    ts,
+                };
+
+                diesel::insert_into(transactions)
+                    .values(&NewTransaction::from(&tx))
+                    .execute(conn)?;
+                Ok(tx)
+            })
+        })
+    }
+
+    async fn top_up(
+        &self,
+        user_id_val: UserId,
+        amount_val: Amount,
+        approved_by_val: &UserId,
+        ts: DateTime<Utc>,
+    ) -> Result<Transaction, RepoError> {
+        use crate::schema::transactions::dsl::transactions;
+        use crate::schema::users::dsl::*;
+        use crate::schema::users_with_role::dsl::users_with_role;
+
+        let approved_by_id = *approved_by_val;
+
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            conn.transaction::<_, RepoError, _>(|conn| {
+                let user = {
+                    // DB → row
+                    let row = users_with_role
+                        .find(user_id_val.0.to_string())
+                        .first::<UserWithRoleRow>(conn)?;
+
+                    // row → domain
+                    let user = User::try_from(&row)?;
+
+                    // business rule
+                    user.add_balance(amount_val).map_err(RepoError::from)?
+                };
+
+                diesel::update(users.find(user_id_val.0.to_string()))
+                    .set((
+                        balance.eq::<i64>(user.balance.into()),
+                        spent.eq::<i64>(user.spent.into()),
+                    ))
+                    .execute(conn)?;
+
+                let tx_id = TransactionId::new();
+
+                let tx = Transaction::TopUp {
+                    id: tx_id,
+                    user_id: user_id_val,
+                    amount: amount_val,
+                    ts,
+                    approved_by: approved_by_id,
+                };
+
+                diesel::insert_into(transactions)
+                    .values(&NewTransaction::from(&tx))
+                    .execute(conn)?;
+                Ok(tx)
+            })
         })
     }
 }
@@ -266,8 +328,7 @@ impl TokenRepo for DieselRepo {
                     single_use: matches!(data.kind, TokenKind::SingleUse),
                     created_at: created_at_arg.timestamp(),
                 })
-                .execute(conn)
-                .map_err(map_diesel_error)?;
+                .execute(conn)?;
             Ok(())
         })
     }
@@ -278,8 +339,7 @@ impl TokenRepo for DieselRepo {
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let row = admin_tokens
                 .filter(token_col.eq(token_val))
-                .first::<AdminTokenRow>(conn)
-                .map_err(map_diesel_error)?;
+                .first::<AdminTokenRow>(conn)?;
 
             Ok(TokenData {
                 user_id: UserId::try_from(row.user_id.as_str()).map_err(|_| RepoError::Internal)?,

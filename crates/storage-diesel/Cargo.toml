@@ -15,8 +15,8 @@ tracing.workspace = true
 tokio.workspace = true
 
 r2d2 = "0.8"
-diesel = { version = "2.1", features = ["sqlite", "r2d2", "chrono", "uuid"] }
+diesel = { version = "2.3", features = ["sqlite", "r2d2", "chrono", "uuid"] }
 tempfile = "3.24.0"
 
-delta-core = { path = "../delta-core", package = "delta-core" }
+delta-core = { path = "../delta-core", features = ["diesel"] }
 
