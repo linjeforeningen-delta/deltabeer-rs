@@ -1,5 +1,5 @@
 use crate::domain::{Amount, Transaction, UserId};
-use crate::ports::{TokenRepo, TransactionRepo, UserRepo};
+use crate::ports::repo::{TokenRepo, TransactionRepo, UserRepo};
 use crate::services::auth::validate_authorization;
 use crate::services::context::Ctx;
 use crate::services::{auth::AdminToken, ServiceError};
@@ -29,7 +29,7 @@ pub async fn top_up<R>(
 where
     R: TransactionRepo + UserRepo + TokenRepo,
 {
-    let admin_id = validate_authorization(token, ctx)?;
+    let admin_id = validate_authorization(token, ctx).await?;
     let tx_id = ctx.ids.generate_transaction_id();
 
     let tx = ctx

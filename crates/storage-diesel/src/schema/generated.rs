@@ -2,11 +2,12 @@
 
 diesel::table! {
     admin_tokens (token) {
-        token -> Text,
+        token -> Binary,
         user_id -> Text,
         expires_at -> BigInt,
         single_use -> Bool,
         created_at -> BigInt,
+        expired -> Bool,
     }
 }
 

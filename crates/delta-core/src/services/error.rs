@@ -1,5 +1,6 @@
 use crate::domain::DomainError;
-use crate::ports::RepoError;
+use crate::ports::repo::RepoError;
+use crate::ports::TokenError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -49,7 +50,7 @@ impl From<DomainError> for ServiceError {
 
             DomainError::InvalidAmount | DomainError::InvalidIdent => ServiceError::InvalidInput,
 
-            DomainError::InvalidDomainState => ServiceError::Internal,
+            _ => ServiceError::Internal,
         }
     }
 }
@@ -64,6 +65,15 @@ impl From<RepoError> for ServiceError {
             RepoError::StorageFailure => ServiceError::StorageFailure,
 
             RepoError::Internal => ServiceError::Internal,
+        }
+    }
+}
+
+impl From<TokenError> for ServiceError {
+    fn from(err: TokenError) -> Self {
+        match err {
+            TokenError::InvalidToken => ServiceError::NotAuthorized,
+            TokenError::FailedToIssueToken => ServiceError::Internal,
         }
     }
 }

@@ -1,15 +1,37 @@
-use crate::ports::RepoError;
-use crate::services::auth::{AdminToken, TokenData};
+use crate::domain::UserId;
+use crate::ports::{Clock, TokenRepo};
+use crate::services::auth::{AdminToken, TokenKind};
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
+use chrono::Duration;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum TokenError {
+    #[error("Invalid token")]
+    InvalidToken,
+
+    #[error("Failed to issue token")]
+    FailedToIssueToken,
+}
 
 #[async_trait]
-pub trait TokenRepo {
-    async fn insert_token(
+pub(crate) trait TokenSource: Send + Sync {
+    async fn issue_token(
+        &self,
+        user_id: UserId,
+        ttl: Duration,
+        kind: TokenKind,
+        repo: &dyn TokenRepo,
+        clock: &dyn Clock,
+    ) -> Result<AdminToken, TokenError>;
+
+    async fn expire_token(&self, token: AdminToken, repo: &dyn TokenRepo)
+    -> Result<(), TokenError>;
+
+    async fn validate_token(
         &self,
         token: AdminToken,
-        data: TokenData,
-        created_at: DateTime<Utc>,
-    ) -> Result<(), RepoError>;
-    async fn get_token(&self, token: &AdminToken) -> Result<TokenData, RepoError>;
+        repo: &dyn TokenRepo,
+        clock: &dyn Clock,
+    ) -> Result<UserId, TokenError>;
 }

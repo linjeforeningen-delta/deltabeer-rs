@@ -1,5 +1,4 @@
 use chrono::{DateTime, NaiveDate, Utc};
-use delta_core::domain::Amount;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -117,6 +116,7 @@ pub struct StatsSummaryDto {
 
 #[derive(Serialize, ToSchema)]
 #[serde(transparent)]
+#[schema(example = "SGl0aGVyZUl0c0FCYXNlNjRVcmxTYWZlU3RyaW5n")]
 pub struct AdminTokenDto(pub String);
 
 #[derive(Deserialize, ToSchema)]

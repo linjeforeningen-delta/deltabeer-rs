@@ -1,5 +1,5 @@
 use crate::domain::{Amount, Transaction, TransactionId, UserId};
-use crate::ports::{RepoError, UserRepo};
+use crate::ports::repo::{RepoError, UserRepo};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 

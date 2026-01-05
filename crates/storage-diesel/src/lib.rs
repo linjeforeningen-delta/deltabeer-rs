@@ -8,16 +8,17 @@ use crate::models::{
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use delta_core::ports::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
+use delta_core::ports::repo::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
 use diesel::prelude::*;
 use thiserror::Error;
 
 use delta_core::domain::{
-    ActionRecord, AdminGrantId, Amount, Transaction, TransactionId, User, UserId,
+    ActionRecord, AdminGrantId, Amount, PasswordHash, Transaction, TransactionId, User, UserId,
 };
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sqlite::SqliteConnection;
+use diesel::OptionalExtension;
 
 pub type SqlitePool = Pool<ConnectionManager<SqliteConnection>>;
 
@@ -152,7 +153,7 @@ impl UserRepo for DieselRepo {
 
 #[async_trait]
 impl AdminRepo for DieselRepo {
-    async fn get_admin(&self, user_id_val: UserId) -> Result<String, RepoError> {
+    async fn get_admin(&self, user_id_val: UserId) -> Result<PasswordHash, RepoError> {
         use crate::schema::admins::dsl::*;
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let hash = admins
@@ -161,7 +162,7 @@ impl AdminRepo for DieselRepo {
                 .select(password_hash)
                 .first::<String>(conn)?;
 
-            Ok(hash)
+            Ok(PasswordHash::parse(&hash)?)
         })
     }
 
@@ -169,7 +170,7 @@ impl AdminRepo for DieselRepo {
         &self,
         admin_grant_id: AdminGrantId,
         user_id_val: UserId,
-        data: String,
+        password_hash_val: PasswordHash,
         record: ActionRecord,
     ) -> Result<(), RepoError> {
         use crate::schema::admins::dsl::*;
@@ -178,7 +179,7 @@ impl AdminRepo for DieselRepo {
                 .values(&NewAdminGrant {
                     id: admin_grant_id.0.to_string(),
                     user_id: user_id_val.0.to_string(),
-                    password_hash: data,
+                    password_hash: password_hash_val.as_str().to_string(),
                     granted_at: record.at.timestamp(),
                     granted_by: record.actor.0.to_string(),
                 })
@@ -204,6 +205,20 @@ impl AdminRepo for DieselRepo {
                 revoked_by.eq(record.actor.0.to_string()),
             ))
             .execute(conn)?;
+            Ok(())
+        })
+    }
+
+    async fn update_admin_password(
+        &self,
+        user_id_val: UserId,
+        password_hash_val: PasswordHash,
+    ) -> Result<(), RepoError> {
+        use crate::schema::admins::dsl::*;
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            diesel::update(admins.filter(user_id.eq(user_id_val.0.to_string())))
+                .set(password_hash.eq(password_hash_val.as_str().to_string()))
+                .execute(conn)?;
             Ok(())
         })
     }
@@ -323,7 +338,7 @@ impl TokenRepo for DieselRepo {
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             diesel::insert_into(admin_tokens)
                 .values(&NewAdminToken {
-                    token: token_arg.0,
+                    token: token_arg.0.to_vec(),
                     user_id: data.user_id.0.to_string(),
                     expires_at: data.expires_at.timestamp(),
                     single_use: matches!(data.kind, TokenKind::SingleUse),
@@ -334,15 +349,29 @@ impl TokenRepo for DieselRepo {
         })
     }
 
-    async fn get_token(&self, token: &AdminToken) -> Result<TokenData, RepoError> {
-        use crate::schema::admin_tokens::dsl::{admin_tokens, token as token_col};
-        let token_val = token.0.clone();
+    async fn get_token(
+        &self,
+        token: &AdminToken,
+        dt: DateTime<Utc>,
+    ) -> Result<Option<TokenData>, RepoError> {
+        use crate::schema::admin_tokens::dsl::{
+            admin_tokens, expired, expires_at as expires_at_col, token as token_col,
+        };
+        let token_vec = token.0.to_vec();
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
-            let row = admin_tokens
-                .filter(token_col.eq(token_val))
-                .first::<AdminTokenRow>(conn)?;
+            let row_opt = admin_tokens
+                .filter(token_col.eq(token_vec))
+                .filter(expired.eq(false))
+                .filter(expires_at_col.gt(dt.timestamp()))
+                .first::<AdminTokenRow>(conn)
+                .optional()?;
 
-            Ok(TokenData {
+            let row = match row_opt {
+                Some(row) => row,
+                None => return Ok(None),
+            };
+
+            Ok(Some(TokenData {
                 user_id: UserId::try_from(row.user_id.as_str()).map_err(|_| RepoError::Internal)?,
                 expires_at: chrono::DateTime::from_timestamp(row.expires_at, 0)
                     .ok_or(RepoError::Internal)?,
@@ -351,7 +380,21 @@ impl TokenRepo for DieselRepo {
                 } else {
                     TokenKind::Session
                 },
-            })
+            }))
+        })
+    }
+
+    async fn expire_token(&self, token: &AdminToken) -> Result<(), RepoError> {
+        use crate::schema::admin_tokens::dsl::{admin_tokens, expired, token as token_col};
+        let token_vec = token.0.to_vec();
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            diesel::update(admin_tokens.filter(token_col.eq(token_vec)))
+                .set(
+                    // For simplicity, we just set the expiration time to the current time
+                    expired.eq(true),
+                )
+                .execute(conn)?;
+            Ok(())
         })
     }
 }

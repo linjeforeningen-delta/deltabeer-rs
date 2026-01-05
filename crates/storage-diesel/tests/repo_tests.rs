@@ -2,9 +2,10 @@ mod common;
 
 use chrono::{Duration, NaiveDate, Utc};
 use delta_core::domain::{
-    ActionRecord, AdminGrantId, Amount, Role, Transaction, TransactionId, User, UserId,
+    hash_password, ActionRecord, AdminGrantId, Amount, Role, Transaction, TransactionId, User,
+    UserId,
 };
-use delta_core::ports::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
+use delta_core::ports::repo::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use storage_diesel::DieselRepo;
 use tempfile::TempDir;
@@ -118,11 +119,12 @@ async fn test_admin_repo_grant_and_get() {
         .await
         .expect("insert user failed");
 
+    let password_hash = hash_password("hashed_password");
     AdminRepo::grant_admin(
         &repo,
         admin_grant_id,
         user_id,
-        "hashed_password".to_string(),
+        password_hash.clone(),
         record,
     )
     .await
@@ -131,7 +133,7 @@ async fn test_admin_repo_grant_and_get() {
     let hash = AdminRepo::get_admin(&repo, user_id)
         .await
         .expect("get admin failed");
-    assert_eq!(hash, "hashed_password");
+    assert_eq!(hash, password_hash);
 }
 
 #[tokio::test]
@@ -154,7 +156,7 @@ async fn test_admin_repo_revoke() {
         &repo,
         admin_grant_id,
         admin_id,
-        "pass".to_string(),
+        hash_password("pass"),
         create_action_record(admin_id),
     )
     .await
@@ -212,7 +214,7 @@ async fn test_transaction_repo_topup_atomic() {
         &repo,
         admin_grant_id,
         admin_id,
-        "hash".to_string(),
+        hash_password("hash"),
         admin_record,
     )
     .await
@@ -242,7 +244,7 @@ async fn test_token_repo_session() {
     .await
     .unwrap();
 
-    let token = AdminToken("session_token".to_string());
+    let token = AdminToken([1; 32]);
     let data = TokenData {
         user_id,
         expires_at: Utc::now() + Duration::hours(1),
@@ -253,9 +255,10 @@ async fn test_token_repo_session() {
         .await
         .expect("insert token failed");
 
-    let retrieved = TokenRepo::get_token(&repo, &token)
+    let retrieved = TokenRepo::get_token(&repo, &token, Utc::now())
         .await
-        .expect("get token failed");
+        .expect("get token failed")
+        .expect("token not found");
     assert_eq!(retrieved.user_id, user_id);
     assert_eq!(retrieved.kind, TokenKind::Session);
 }
@@ -272,7 +275,7 @@ async fn test_token_repo_single_use() {
     .await
     .unwrap();
 
-    let token = AdminToken("single_use_token".to_string());
+    let token = AdminToken([2; 32]);
     let data = TokenData {
         user_id,
         expires_at: Utc::now() + Duration::minutes(5),
@@ -283,9 +286,10 @@ async fn test_token_repo_single_use() {
         .await
         .expect("insert token failed");
 
-    let retrieved = TokenRepo::get_token(&repo, &token)
+    let retrieved = TokenRepo::get_token(&repo, &token, Utc::now())
         .await
-        .expect("get token failed");
+        .expect("get token failed")
+        .expect("token not found");
     assert_eq!(retrieved.kind, TokenKind::SingleUse);
 }
 
@@ -322,8 +326,8 @@ async fn test_admin_repo_get_not_found() {
 #[tokio::test]
 async fn test_token_repo_get_not_found() {
     let (repo, _dir) = setup().await;
-    let result = TokenRepo::get_token(&repo, &AdminToken("non_existent".to_string())).await;
-    assert!(matches!(result, Err(RepoError::NotFound)));
+    let result = TokenRepo::get_token(&repo, &AdminToken([3; 32]), Utc::now()).await;
+    assert!(matches!(result, Ok(None)));
 }
 
 #[tokio::test]
@@ -397,7 +401,7 @@ async fn test_token_repo_overwrite() {
     .await
     .unwrap();
 
-    let token = AdminToken("token".to_string());
+    let token = AdminToken([4; 32]);
     let data1 = TokenData {
         user_id,
         expires_at: Utc::now() + Duration::hours(1),
@@ -442,7 +446,7 @@ async fn test_admin_repo_revoke_already_revoked() {
         &repo,
         admin_grant_id,
         admin_id,
-        "hash".to_string(),
+        hash_password("pass"),
         create_action_record(admin_id),
     )
     .await
@@ -479,7 +483,7 @@ async fn test_admin_repo_self_revocation_forbidden() {
         &repo,
         admin_grant_id,
         admin_id,
-        "hash".to_string(),
+        hash_password("hash"),
         create_action_record(admin_id),
     )
     .await

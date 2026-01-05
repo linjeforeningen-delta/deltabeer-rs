@@ -27,7 +27,7 @@ impl From<DomainError> for RepoError {
             | DomainError::InvalidAmount
             | DomainError::Underage => RepoError::Conflict,
 
-            DomainError::InvalidDomainState | DomainError::InvalidIdent => RepoError::Internal,
+            _ => RepoError::Internal,
         }
     }
 }

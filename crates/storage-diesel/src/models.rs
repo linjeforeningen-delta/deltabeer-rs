@@ -119,17 +119,18 @@ pub struct NewTransaction {
 #[diesel(primary_key(token))]
 #[diesel(belongs_to(UserRow, foreign_key = user_id))]
 pub struct AdminTokenRow {
-    pub token: String,
+    pub token: Vec<u8>,
     pub user_id: String,
     pub expires_at: i64,
     pub single_use: bool,
     pub created_at: i64,
+    pub expired: bool,
 }
 
 #[derive(Insertable)]
 #[diesel(table_name = admin_tokens)]
 pub struct NewAdminToken {
-    pub token: String,
+    pub token: Vec<u8>,
     pub user_id: String,
     pub expires_at: i64,
     pub single_use: bool,

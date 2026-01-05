@@ -18,6 +18,7 @@ DROP TRIGGER IF EXISTS enforce_admin_revocation_rules;
 DROP TRIGGER IF EXISTS prevent_admin_token_delete;
 DROP TRIGGER IF EXISTS prevent_admin_token_identity_update;
 DROP TRIGGER IF EXISTS prevent_admin_token_expiry_extension;
+DROP TRIGGER IF EXISTS prevent_reactivating_expired_token;
 
 DROP TRIGGER IF EXISTS enforce_active_admin_on_transaction;
 

@@ -1,6 +1,6 @@
 use super::types::*;
+use base64::prelude::*;
 use delta_core::{domain::*, services::auth::AdminToken};
-use serde_json::map::Values;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -9,6 +9,8 @@ pub enum MappingError {
     UnexpectedApproval,
     #[error("TopUp transaction is missing approval")]
     MissingApproval,
+    #[error("Invalid token encoding")]
+    InvalidTokenEncoding,
 }
 
 impl From<&UserId> for UserIdDto {
@@ -160,6 +162,38 @@ impl TryFrom<TransactionDto> for Transaction {
 
 impl From<&AdminToken> for AdminTokenDto {
     fn from(value: &AdminToken) -> Self {
-        AdminTokenDto(value.0.clone())
+        AdminTokenDto(BASE64_URL_SAFE_NO_PAD.encode(value.0))
+    }
+}
+
+impl TryFrom<AdminTokenDto> for AdminToken {
+    type Error = MappingError;
+
+    fn try_from(value: AdminTokenDto) -> Result<Self, Self::Error> {
+        let bytes = BASE64_URL_SAFE_NO_PAD
+            .decode(value.0)
+            .map_err(|_| MappingError::InvalidTokenEncoding)?;
+        let bytes: [u8; 32] = bytes
+            .try_into()
+            .map_err(|_| MappingError::InvalidTokenEncoding)?;
+        Ok(AdminToken(bytes))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_admin_token_dto_mapping() {
+        let token = AdminToken([42; 32]);
+        let dto: AdminTokenDto = (&token).into();
+
+        // Check if it's base64 url safe no pad
+        // [42; 32] in base64 is "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio"
+        assert_eq!(dto.0, "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio");
+
+        let decoded: AdminToken = dto.try_into().unwrap();
+        assert_eq!(decoded, token);
     }
 }

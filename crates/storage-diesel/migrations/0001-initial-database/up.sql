@@ -154,11 +154,12 @@ END;
 -- admin_tokens
 -- =========================
 CREATE TABLE admin_tokens (
-                              token TEXT PRIMARY KEY NOT NULL,
+                              token BLOBa PRIMARY KEY NOT NULL,
                               user_id TEXT NOT NULL,
                               expires_at BIGINT NOT NULL,           -- unix timestamp
                               single_use BOOLEAN NOT NULL,
                               created_at BIGINT NOT NULL,            -- unix timestamp
+                              expired BOOLEAN NOT NULL DEFAULT FALSE,
 
                               FOREIGN KEY (user_id)
                                   REFERENCES users(id)
@@ -185,6 +186,14 @@ CREATE TRIGGER prevent_admin_token_expiry_extension
     WHEN NEW.expires_at > OLD.expires_at
 BEGIN
     SELECT RAISE(ABORT, 'token expiry cannot be extended');
+END;
+
+-- Prevent reactivating expired token
+CREATE TRIGGER  prevent_reactivating_expired_token
+    Before UPDATE OF expired ON admin_tokens
+    WHEN ( NEW.expired = FALSE AND OLD.expired = TRUE )
+BEGIN
+    SELECT RAISE(ABORT, 'expired tokens cannot be reactivated');
 END;
 
 -- =========================

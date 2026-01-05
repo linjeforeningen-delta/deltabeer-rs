@@ -28,4 +28,10 @@ pub enum DomainError {
 
     #[error("string could not be parsed as ident")]
     InvalidIdent,
+
+    #[error("invalid password hash")]
+    InvalidPasswordHash,
+
+    #[error("invalid password")]
+    InvalidPassword,
 }

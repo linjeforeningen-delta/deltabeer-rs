@@ -6,14 +6,14 @@ use crate::api::response::ApiResult;
 use crate::http::v1::types::UserDto;
 use crate::state::AppState;
 use axum::{
-    Extension, Router,
-    body::Body,
-    extract::{Json as JsonIn, Path, State},
+    body::Body, extract::{Json as JsonIn, Path, State},
     http::{Request, StatusCode},
     middleware,
     middleware::Next,
     response::Response,
     routing::{get, patch, post},
+    Extension,
+    Router,
 };
 
 use delta_core::domain::UserId;
@@ -61,12 +61,14 @@ pub async fn admin_auth_middleware(
         .and_then(|v| v.to_str().ok());
 
     let token = match auth_header.and_then(|h| h.strip_prefix("Bearer ")) {
-        Some(token) => token.to_string(),
+        Some(token) => token,
         None => return Err(StatusCode::UNAUTHORIZED),
     };
 
     // Wrap token (no validation yet)
-    let admin_token = AdminToken(token);
+    let admin_token: AdminToken = AdminTokenDto(token.to_string())
+        .try_into()
+        .map_err(|_| StatusCode::UNAUTHORIZED)?;
 
     // Validate token via core
     // let admin_id = state
