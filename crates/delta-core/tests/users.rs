@@ -1,0 +1,250 @@
+mod common;
+
+use chrono::NaiveDate;
+use common::TestEnv;
+use delta_core::domain::{Amount, Role, User, UserId};
+use delta_core::ports::repo::{AdminRepo, UserRepo};
+use delta_core::services::auth::issue_admin_pass;
+use delta_core::services::users::{create_user, resolve_user, update_user, CreateUser, UpdateUser};
+use rand_core::RngCore;
+use uuid::Uuid;
+
+async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
+    let mut os_rng = rand_core::OsRng;
+    let user = User {
+        id,
+        name: "Admin".to_string(),
+        username: format!("admin-{}", Uuid::now_v7()),
+        card_number: os_rng.next_u32(),
+        role: Role::Admin,
+        birthdate: chrono::NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+        comments: "".to_string(),
+        balance: Amount(0),
+        spent: Amount(0),
+    };
+    UserRepo::insert_user(
+        &env.repo,
+        user,
+        delta_core::domain::ActionRecord {
+            actor: id,
+            at: env.clock.0,
+        },
+    )
+    .await
+    .unwrap();
+    AdminRepo::grant_admin(
+        &env.repo,
+        delta_core::domain::AdminGrantId(Uuid::now_v7()),
+        id,
+        delta_core::domain::hash_password(pass),
+        delta_core::domain::ActionRecord {
+            actor: id,
+            at: env.clock.0,
+        },
+    )
+    .await
+    .unwrap();
+}
+
+#[tokio::test]
+async fn test_user_lifecycle() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+
+    let admin_id = UserId(Uuid::now_v7());
+    setup_admin(&env, admin_id, "admin").await;
+    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
+        .await
+        .unwrap();
+
+    let req = CreateUser {
+        name: "Alice".to_string(),
+        username: "alice".to_string(),
+        card_number: 111,
+        birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
+    };
+    let user_id = create_user(admin_token.clone(), req, &ctx).await.unwrap();
+
+    let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
+    assert_eq!(user.name, "Alice");
+    assert_eq!(user.balance, Amount(0));
+
+    let admin_token_2 = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
+        .await
+        .unwrap();
+
+    let up_req = UpdateUser {
+        name: Some("Alice Updated".to_string()),
+        username: None,
+        card_number: Some(222),
+    };
+    update_user(admin_token_2, user_id, up_req, &ctx)
+        .await
+        .unwrap();
+
+    let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
+    assert_eq!(user.name, "Alice Updated");
+    assert_eq!(user.card_number, 222);
+}
+
+#[tokio::test]
+async fn test_create_user_underage() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+
+    let admin_id = UserId(Uuid::now_v7());
+    setup_admin(&env, admin_id, "admin").await;
+    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
+        .await
+        .unwrap();
+
+    let req = CreateUser {
+        name: "Kid".to_string(),
+        username: "kid".to_string(),
+        card_number: 999,
+        birthdate: env.clock.0.date_naive() - chrono::Duration::days(10 * 365),
+    };
+    let res = create_user(admin_token, req, &ctx).await;
+    assert!(res.is_err());
+}
+
+#[tokio::test]
+async fn test_resolve_user_scenarios() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+
+    let user_id = UserId(Uuid::now_v7());
+    let user = User {
+        id: user_id,
+        name: "Bob".to_string(),
+        username: "bob123".to_string(),
+        card_number: 12345,
+        role: Role::User,
+        birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+        comments: "".to_string(),
+        balance: Amount(0),
+        spent: Amount(0),
+    };
+    UserRepo::insert_user(
+        &env.repo,
+        user,
+        delta_core::domain::ActionRecord {
+            actor: user_id,
+            at: env.clock.0,
+        },
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(
+        resolve_user(delta_core::domain::UserIdent::Id(user_id), &ctx)
+            .await
+            .unwrap(),
+        user_id
+    );
+    assert_eq!(
+        resolve_user(
+            delta_core::domain::UserIdent::Username("bob123".to_string()),
+            &ctx
+        )
+        .await
+        .unwrap(),
+        user_id
+    );
+    assert_eq!(
+        resolve_user(delta_core::domain::UserIdent::Card(12345), &ctx)
+            .await
+            .unwrap(),
+        user_id
+    );
+    assert!(
+        resolve_user(delta_core::domain::UserIdent::Card(999), &ctx)
+            .await
+            .is_err()
+    );
+}
+
+#[tokio::test]
+async fn test_update_user_partial() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+
+    let admin_id = UserId(Uuid::now_v7());
+    setup_admin(&env, admin_id, "admin").await;
+
+    let user_id = UserId(Uuid::now_v7());
+    let user = User {
+        id: user_id,
+        name: "Alice".to_string(),
+        username: "alice".to_string(),
+        card_number: 100,
+        role: Role::User,
+        birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
+        comments: "".to_string(),
+        balance: Amount(0),
+        spent: Amount(0),
+    };
+    UserRepo::insert_user(
+        &env.repo,
+        user,
+        delta_core::domain::ActionRecord {
+            actor: admin_id,
+            at: env.clock.0,
+        },
+    )
+    .await
+    .unwrap();
+
+    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
+        .await
+        .unwrap();
+
+    let up_req = UpdateUser {
+        name: None,
+        username: None,
+        card_number: Some(500),
+    };
+    update_user(admin_token, user_id, up_req, &ctx)
+        .await
+        .unwrap();
+
+    let updated = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
+    assert_eq!(updated.name, "Alice");
+    assert_eq!(updated.card_number, 500);
+}
+
+#[tokio::test]
+async fn test_create_user_unauthorized() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+
+    let req = CreateUser {
+        name: "Unauthorized".to_string(),
+        username: "unauth".to_string(),
+        card_number: 777,
+        birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+    };
+    let res = create_user(delta_core::services::auth::AdminToken([0u8; 32]), req, &ctx).await;
+    assert!(res.is_err());
+}
+
+#[tokio::test]
+async fn test_update_user_unauthorized() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+
+    let user_id = UserId(Uuid::now_v7());
+    let up_req = UpdateUser {
+        name: Some("New".to_string()),
+        username: None,
+        card_number: None,
+    };
+    let res = update_user(
+        delta_core::services::auth::AdminToken([0u8; 32]),
+        user_id,
+        up_req,
+        &ctx,
+    )
+    .await;
+    assert!(res.is_err());
+}

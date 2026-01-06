@@ -18,7 +18,9 @@ anyhow.workspace = true
 uuid.workspace = true
 serde.workspace = true
 chrono.workspace = true
-
 diesel = { version = "2.3", optional = true }
 argon2 = "0.5"
 rand_core = { version = "0.6", features = ["std"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

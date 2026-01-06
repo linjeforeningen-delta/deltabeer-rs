@@ -1,5 +1,5 @@
 pub mod auth;
-pub(crate) mod context;
+pub mod context;
 mod error;
 pub mod transactions;
 pub mod users;

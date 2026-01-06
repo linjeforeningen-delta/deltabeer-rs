@@ -15,7 +15,7 @@ pub enum TokenError {
 }
 
 #[async_trait]
-pub(crate) trait TokenSource: Send + Sync {
+pub trait TokenSource: Send + Sync {
     async fn issue_token(
         &self,
         user_id: UserId,

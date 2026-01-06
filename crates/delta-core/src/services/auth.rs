@@ -1,4 +1,4 @@
-use crate::domain::{hash_password, needs_rehash, verify_password, ActionRecord, UserId};
+use crate::domain::{hash_password, verify_password, ActionRecord, PasswordCheck, UserId};
 use crate::ports::repo::{AdminRepo, TokenRepo, UserRepo};
 use crate::ports::TokenError;
 use crate::services::context::Ctx;
@@ -14,6 +14,7 @@ pub enum TokenKind {
     Session,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TokenData {
     pub user_id: UserId,
     pub expires_at: DateTime<Utc>,
@@ -29,9 +30,11 @@ where
     R: AdminRepo,
 {
     let hash = ctx.repo.get_admin(user_id).await?;
-    verify_password(&password, &hash)?;
-    if needs_rehash(&hash) {
-        update_password(user_id, password, ctx).await?;
+    match verify_password(&password, &hash)? {
+        PasswordCheck::VerifiedAndNeedsRehash => {
+            update_password(user_id, password, ctx).await?;
+        }
+        PasswordCheck::Verified => {}
     }
     Ok(())
 }
@@ -151,4 +154,242 @@ where
     ctx.repo.update_admin_password(user_id, hash).await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::{Amount, Role, User, UserId};
+    use crate::ports::repo::{AdminRepo, RepoError, TokenRepo, UserRepo};
+    use crate::ports::{Clock, IdGenerator, TokenSource};
+    use crate::services::context::Ctx;
+    use async_trait::async_trait;
+    use chrono::{DateTime, NaiveDate, Utc};
+    use std::sync::Mutex;
+    use uuid::Uuid;
+
+    struct MockRepo {
+        admins: Mutex<std::collections::HashMap<UserId, String>>,
+    }
+
+    #[async_trait]
+    impl UserRepo for MockRepo {
+        async fn get_user(&self, key: &UserId) -> Result<User, RepoError> {
+            Ok(User {
+                id: *key,
+                name: "".to_string(),
+                username: "".to_string(),
+                card_number: 0,
+                role: Role::Admin,
+                birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+                comments: "".to_string(),
+                balance: Amount(0),
+                spent: Amount(0),
+            })
+        }
+        async fn get_user_by_name(&self, _name: &str) -> Result<User, RepoError> {
+            Err(RepoError::NotFound)
+        }
+        async fn get_user_by_card(&self, _card: u32) -> Result<User, RepoError> {
+            Err(RepoError::NotFound)
+        }
+        async fn insert_user(
+            &self,
+            _user: User,
+            _record: crate::domain::ActionRecord,
+        ) -> Result<(), RepoError> {
+            Ok(())
+        }
+        async fn update_user(&self, _user: User) -> Result<(), RepoError> {
+            Ok(())
+        }
+    }
+
+    #[async_trait]
+    impl AdminRepo for MockRepo {
+        async fn get_admin(&self, id: UserId) -> Result<crate::domain::PasswordHash, RepoError> {
+            self.admins
+                .lock()
+                .unwrap()
+                .get(&id)
+                .map(|h| crate::domain::PasswordHash(h.clone()))
+                .ok_or(RepoError::NotFound)
+        }
+        async fn grant_admin(
+            &self,
+            _admin_grant_id: crate::domain::AdminGrantId,
+            user_id: UserId,
+            password_hash: crate::domain::PasswordHash,
+            _record: crate::domain::ActionRecord,
+        ) -> Result<(), RepoError> {
+            self.admins.lock().unwrap().insert(user_id, password_hash.0);
+            Ok(())
+        }
+        async fn revoke_admin(
+            &self,
+            id: UserId,
+            _record: crate::domain::ActionRecord,
+        ) -> Result<(), RepoError> {
+            self.admins.lock().unwrap().remove(&id);
+            Ok(())
+        }
+        async fn update_admin_password(
+            &self,
+            id: UserId,
+            password_hash: crate::domain::PasswordHash,
+        ) -> Result<(), RepoError> {
+            self.admins.lock().unwrap().insert(id, password_hash.0);
+            Ok(())
+        }
+    }
+
+    #[async_trait]
+    impl TokenRepo for MockRepo {
+        async fn insert_token(
+            &self,
+            _token: AdminToken,
+            _data: TokenData,
+            _created_at: DateTime<Utc>,
+        ) -> Result<(), RepoError> {
+            Ok(())
+        }
+        async fn get_token(
+            &self,
+            _token: &AdminToken,
+            _dt: DateTime<Utc>,
+        ) -> Result<Option<TokenData>, RepoError> {
+            Ok(None)
+        }
+        async fn expire_token(&self, _token: &AdminToken) -> Result<(), RepoError> {
+            Ok(())
+        }
+    }
+
+    struct MockClock;
+    impl Clock for MockClock {
+        fn now(&self) -> DateTime<Utc> {
+            Utc::now()
+        }
+        fn today(&self) -> NaiveDate {
+            Utc::now().date_naive()
+        }
+    }
+
+    struct MockIds;
+    impl IdGenerator for MockIds {
+        fn generate_user_id(&self) -> UserId {
+            UserId(Uuid::nil())
+        }
+        fn generate_transaction_id(&self) -> crate::domain::TransactionId {
+            crate::domain::TransactionId(Uuid::nil())
+        }
+        fn generate_admin_grant_id(&self) -> crate::domain::AdminGrantId {
+            crate::domain::AdminGrantId(Uuid::nil())
+        }
+    }
+
+    struct MockTokens;
+    #[async_trait]
+    impl TokenSource for MockTokens {
+        async fn issue_token(
+            &self,
+            _user_id: UserId,
+            _ttl: chrono::Duration,
+            _kind: TokenKind,
+            _repo: &dyn TokenRepo,
+            _clock: &dyn Clock,
+        ) -> Result<AdminToken, crate::ports::TokenError> {
+            Ok(AdminToken([0; 32]))
+        }
+        async fn expire_token(
+            &self,
+            _token: AdminToken,
+            _repo: &dyn TokenRepo,
+        ) -> Result<(), crate::ports::TokenError> {
+            Ok(())
+        }
+        async fn validate_token(
+            &self,
+            _token: AdminToken,
+            _repo: &dyn TokenRepo,
+            _clock: &dyn Clock,
+        ) -> Result<UserId, crate::ports::TokenError> {
+            Ok(UserId(Uuid::nil()))
+        }
+    }
+
+    #[tokio::test]
+    async fn test_login_success() {
+        let user_id = UserId(Uuid::nil());
+        let password = "password123";
+        let hash = hash_password(password);
+
+        let mut admins = std::collections::HashMap::new();
+        admins.insert(user_id, hash.0);
+
+        let repo = MockRepo {
+            admins: Mutex::new(admins),
+        };
+        let clock = MockClock;
+        let ids = MockIds;
+        let tokens = MockTokens;
+        let ctx = Ctx {
+            repo: &repo,
+            clock: &clock,
+            ids: &ids,
+            tokens: &tokens,
+        };
+
+        let res = login(user_id, password.to_string(), &ctx).await;
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_login_wrong_password() {
+        let user_id = UserId(Uuid::nil());
+        let password = "password123";
+        let hash = hash_password(password);
+
+        let mut admins = std::collections::HashMap::new();
+        admins.insert(user_id, hash.0);
+
+        let repo = MockRepo {
+            admins: Mutex::new(admins),
+        };
+        let clock = MockClock;
+        let ids = MockIds;
+        let tokens = MockTokens;
+        let ctx = Ctx {
+            repo: &repo,
+            clock: &clock,
+            ids: &ids,
+            tokens: &tokens,
+        };
+
+        let res = login(user_id, "wrong".to_string(), &ctx).await;
+        assert!(res.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_grant_admin() {
+        let repo = MockRepo {
+            admins: Mutex::new(std::collections::HashMap::new()),
+        };
+        let clock = MockClock;
+        let ids = MockIds;
+        let tokens = MockTokens;
+        let ctx = Ctx {
+            repo: &repo,
+            clock: &clock,
+            ids: &ids,
+            tokens: &tokens,
+        };
+
+        let admin_token = AdminToken([0; 32]);
+        let user_id = UserId(Uuid::nil());
+        let res = grant_admin(admin_token, user_id, "newpass".to_string(), &ctx).await;
+        assert!(res.is_ok());
+
+        assert!(repo.admins.lock().unwrap().contains_key(&user_id));
+    }
 }
