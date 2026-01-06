@@ -1,16 +1,28 @@
 use axum::Router;
+use delta_core::infra::{clock::SystemClock, id::UuidIdGenerator, token::OpaqueTokenSource};
+use std::sync::Arc;
 use tokio::net::TcpListener;
-use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod api;
 mod http;
 mod state;
 
 use state::AppState;
+use storage_diesel::{create_pool, DieselRepo, DEV_SQLITE_PATH};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let app_state = AppState {};
+    let db_url = DEV_SQLITE_PATH;
+    let pool = create_pool(db_url)?;
+    let repo = DieselRepo::new(pool);
+
+    let app_state = AppState {
+        repo: Arc::new(repo),
+        clock: Arc::new(SystemClock),
+        ids: Arc::new(UuidIdGenerator),
+        tokens: Arc::new(OpaqueTokenSource),
+    };
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("tower_http=info,axum=info,server=debug"));
     tracing_subscriber::registry()

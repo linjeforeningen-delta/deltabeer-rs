@@ -10,6 +10,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use delta_core::ports::repo::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
 use diesel::prelude::*;
+use std::path::Path;
 use thiserror::Error;
 
 use delta_core::domain::{
@@ -27,6 +28,8 @@ pub enum PoolError {
     #[error("failed to create database pool")]
     Build(#[from] r2d2::Error),
 }
+
+pub const DEV_SQLITE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/data/dev.sqlite");
 
 pub fn create_pool(database_url: &str) -> Result<SqlitePool, PoolError> {
     let manager = ConnectionManager::<SqliteConnection>::new(database_url);

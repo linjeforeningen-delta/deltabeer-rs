@@ -1256,6 +1256,7 @@ dependencies = [
  "delta-core",
  "serde",
  "serde_json",
+ "storage-diesel",
  "thiserror",
  "tokio",
  "tower-http",
