@@ -159,7 +159,7 @@ mod tests {
     }
 
     struct MockTokens;
-    #[async_trait]
+    #[async_trait(?Send)]
     impl TokenSource for MockTokens {
         async fn issue_token(
             &self,

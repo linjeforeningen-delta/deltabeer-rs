@@ -3,7 +3,7 @@ use crate::ports::repo::RepoError;
 use async_trait::async_trait;
 
 #[async_trait]
-pub trait UserRepo: Send + Sync {
+pub trait UserRepo {
     async fn get_user(&self, key: &UserId) -> Result<User, RepoError>;
     async fn get_user_by_name(&self, name: &str) -> Result<User, RepoError>;
     async fn get_user_by_card(&self, card_number: u32) -> Result<User, RepoError>;

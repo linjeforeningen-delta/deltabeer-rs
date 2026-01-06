@@ -11,15 +11,15 @@ impl From<RepoError> for TokenError {
     }
 }
 
-pub struct OpaqueTokenSource {}
+pub struct OpaqueTokenSource;
 
-async fn generate_token() -> AdminToken {
+fn generate_token() -> AdminToken {
     let mut buf = [0u8; 32];
     OsRng.fill_bytes(&mut buf);
     AdminToken(buf)
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl TokenSource for OpaqueTokenSource {
     async fn issue_token(
         &self,
@@ -30,7 +30,7 @@ impl TokenSource for OpaqueTokenSource {
         clock: &dyn Clock,
     ) -> Result<AdminToken, TokenError> {
         let now = clock.now();
-        let token = generate_token().await;
+        let token = generate_token();
         let data = TokenData {
             user_id,
             expires_at: now + ttl,

@@ -1,6 +1,6 @@
 use crate::ports::{Clock, IdGenerator, TokenSource};
 
-pub struct Ctx<'a, R> {
+pub struct Ctx<'a, R: ?Sized> {
     pub repo: &'a R,
     pub clock: &'a dyn Clock,
     pub ids: &'a dyn IdGenerator,

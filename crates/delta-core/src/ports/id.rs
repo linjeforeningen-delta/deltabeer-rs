@@ -1,6 +1,6 @@
 use crate::domain::{AdminGrantId, TransactionId, UserId};
 
-pub trait IdGenerator: Send + Sync {
+pub trait IdGenerator {
     fn generate_user_id(&self) -> UserId;
     fn generate_transaction_id(&self) -> TransactionId;
     fn generate_admin_grant_id(&self) -> AdminGrantId;

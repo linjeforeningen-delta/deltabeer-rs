@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
 #[async_trait]
-pub trait TokenRepo: Send + Sync {
+pub trait TokenRepo {
     async fn insert_token(
         &self,
         token: AdminToken,

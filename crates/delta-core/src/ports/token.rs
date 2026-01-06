@@ -14,8 +14,8 @@ pub enum TokenError {
     FailedToIssueToken,
 }
 
-#[async_trait]
-pub trait TokenSource: Send + Sync {
+#[async_trait(?Send)]
+pub trait TokenSource {
     async fn issue_token(
         &self,
         user_id: UserId,
