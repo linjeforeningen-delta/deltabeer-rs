@@ -180,6 +180,12 @@ impl TryFrom<AdminTokenDto> for AdminToken {
     }
 }
 
+impl From<SpendRequestDto> for Amount {
+    fn from(value: SpendRequestDto) -> Self {
+        Amount(value.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

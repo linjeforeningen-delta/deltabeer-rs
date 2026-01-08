@@ -1,15 +1,20 @@
 mod doc;
+use axum::http::StatusCode;
 pub use doc::ApiDoc;
 
-use axum::{
-    Router,
-    extract::{Json as JsonIn, Path, State},
-    routing::{get, post},
-};
-
 use super::types::*;
+use crate::api::error::ApiError;
 use crate::api::response::ApiResult;
 use crate::state::AppState;
+use axum::response::IntoResponse;
+use axum::{
+    extract::{Json as JsonIn, Path, State}, routing::{get, post},
+    Json,
+    Router,
+};
+use delta_core::domain::{Amount, UserId, UserIdent};
+use delta_core::services;
+use uuid::Uuid;
 
 pub fn routes() -> Router<AppState> {
     Router::new()
@@ -21,6 +26,18 @@ pub fn routes() -> Router<AppState> {
                 .route("/{ident}", get(get_user))
                 .route("/{ident}/spend", post(spend)),
         )
+}
+
+fn parse_ident(ident: String) -> Option<UserIdent> {
+    Some(if let Ok(id) = Uuid::parse_str(&ident) {
+        UserIdent::Id(UserId(id))
+    } else if let Ok(card_number) = ident.parse::<u32>() {
+        UserIdent::Card(card_number)
+    } else if ident.is_ascii() {
+        UserIdent::Username(ident)
+    } else {
+        return None;
+    })
 }
 
 #[utoipa::path(
@@ -46,11 +63,16 @@ async fn get_users(State(state): State<AppState>) -> ApiResult<Vec<UserDto>> {
         (status = 200, description = "User identifier", body = UserIdDto)
     )
 )]
+#[axum::debug_handler]
 async fn resolve_user(
     State(state): State<AppState>,
     Path(ident): Path<String>,
 ) -> ApiResult<UserIdDto> {
-    todo!()
+    let user_ident = parse_ident(ident).ok_or(ApiError::InvalidUserIdentifier)?;
+
+    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
+
+    Ok((StatusCode::OK, Json(UserIdDto::from(&user_id))))
 }
 
 #[utoipa::path(
@@ -65,7 +87,11 @@ async fn resolve_user(
     )
 )]
 async fn get_user(State(state): State<AppState>, Path(ident): Path<String>) -> ApiResult<UserDto> {
-    todo!()
+    let user_ident = parse_ident(ident).ok_or(ApiError::InvalidUserIdentifier)?;
+    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
+    let user = services::users::view_user(user_id, &state.ctx()).await?;
+
+    Ok((StatusCode::OK, Json(UserDto::from(&user))))
 }
 
 #[utoipa::path(
@@ -85,5 +111,9 @@ async fn spend(
     Path(ident): Path<String>,
     JsonIn(payload): JsonIn<SpendRequestDto>,
 ) -> ApiResult<TransactionDto> {
-    todo!()
+    let user_ident = parse_ident(ident).ok_or(ApiError::InvalidUserIdentifier)?;
+    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
+    let amount = Amount::from(payload);
+    let transaction = services::transactions::spend(user_id, amount, &state.ctx()).await?;
+    Ok((StatusCode::OK, Json(TransactionDto::from(&transaction))))
 }

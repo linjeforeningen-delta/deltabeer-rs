@@ -19,15 +19,15 @@ fn generate_token() -> AdminToken {
     AdminToken(buf)
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl TokenSource for OpaqueTokenSource {
     async fn issue_token(
         &self,
         user_id: UserId,
         ttl: Duration,
         kind: TokenKind,
-        repo: &dyn TokenRepo,
-        clock: &dyn Clock,
+        repo: &(dyn TokenRepo + Sync),
+        clock: &(dyn Clock + Sync),
     ) -> Result<AdminToken, TokenError> {
         let now = clock.now();
         let token = generate_token();
@@ -46,7 +46,7 @@ impl TokenSource for OpaqueTokenSource {
     async fn expire_token(
         &self,
         token: AdminToken,
-        repo: &dyn TokenRepo,
+        repo: &(dyn TokenRepo + Sync),
     ) -> Result<(), TokenError> {
         repo.expire_token(&token)
             .await
@@ -57,8 +57,8 @@ impl TokenSource for OpaqueTokenSource {
     async fn validate_token(
         &self,
         token: AdminToken,
-        repo: &dyn TokenRepo,
-        clock: &dyn Clock,
+        repo: &(dyn TokenRepo + Sync),
+        clock: &(dyn Clock + Sync),
     ) -> Result<UserId, TokenError> {
         let now = clock.now();
         let data = repo

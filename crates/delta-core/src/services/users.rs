@@ -7,13 +7,20 @@ use chrono::NaiveDate;
 
 pub async fn resolve_user<R>(ident: UserIdent, ctx: &Ctx<'_, R>) -> Result<UserId, ServiceError>
 where
-    R: UserRepo,
+    R: UserRepo + ?Sized,
 {
     Ok(match ident {
         UserIdent::Id(id) => ctx.repo.get_user(&id).await.map(|u| u.id)?,
         UserIdent::Card(card) => ctx.repo.get_user_by_card(card).await.map(|u| u.id)?,
         UserIdent::Username(name) => ctx.repo.get_user_by_name(&name).await.map(|u| u.id)?,
     })
+}
+
+pub async fn view_user<R>(ident: UserId, ctx: &Ctx<'_, R>) -> Result<User, ServiceError>
+where
+    R: UserRepo + ?Sized,
+{
+    Ok(ctx.repo.get_user(&ident).await?)
 }
 
 pub struct CreateUser {
@@ -184,30 +191,30 @@ mod tests {
     }
 
     struct MockTokens;
-    #[async_trait(?Send)]
+    #[async_trait]
     impl TokenSource for MockTokens {
         async fn issue_token(
             &self,
             _user_id: UserId,
             _ttl: chrono::Duration,
             _kind: TokenKind,
-            _repo: &dyn TokenRepo,
-            _clock: &dyn Clock,
+            _repo: &(dyn TokenRepo + Sync),
+            _clock: &(dyn Clock + Sync),
         ) -> Result<AdminToken, crate::ports::TokenError> {
             Ok(AdminToken([0; 32]))
         }
         async fn expire_token(
             &self,
             _token: AdminToken,
-            _repo: &dyn TokenRepo,
+            _repo: &(dyn TokenRepo + Sync),
         ) -> Result<(), crate::ports::TokenError> {
             Ok(())
         }
         async fn validate_token(
             &self,
             _token: AdminToken,
-            _repo: &dyn TokenRepo,
-            _clock: &dyn Clock,
+            _repo: &(dyn TokenRepo + Sync),
+            _clock: &(dyn Clock + Sync),
         ) -> Result<UserId, crate::ports::TokenError> {
             Ok(UserId(Uuid::nil()))
         }

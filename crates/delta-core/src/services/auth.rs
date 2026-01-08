@@ -289,30 +289,30 @@ mod tests {
     }
 
     struct MockTokens;
-    #[async_trait(?Send)]
+    #[async_trait]
     impl TokenSource for MockTokens {
         async fn issue_token(
             &self,
             _user_id: UserId,
             _ttl: chrono::Duration,
             _kind: TokenKind,
-            _repo: &dyn TokenRepo,
-            _clock: &dyn Clock,
+            _repo: &(dyn TokenRepo + Sync),
+            _clock: &(dyn Clock + Sync),
         ) -> Result<AdminToken, crate::ports::TokenError> {
             Ok(AdminToken([0; 32]))
         }
         async fn expire_token(
             &self,
             _token: AdminToken,
-            _repo: &dyn TokenRepo,
+            _repo: &(dyn TokenRepo + Sync),
         ) -> Result<(), crate::ports::TokenError> {
             Ok(())
         }
         async fn validate_token(
             &self,
             _token: AdminToken,
-            _repo: &dyn TokenRepo,
-            _clock: &dyn Clock,
+            _repo: &(dyn TokenRepo + Sync),
+            _clock: &(dyn Clock + Sync),
         ) -> Result<UserId, crate::ports::TokenError> {
             Ok(UserId(Uuid::nil()))
         }

@@ -14,24 +14,27 @@ pub enum TokenError {
     FailedToIssueToken,
 }
 
-#[async_trait(?Send)]
-pub trait TokenSource {
+#[async_trait]
+pub trait TokenSource: Send + Sync {
     async fn issue_token(
         &self,
         user_id: UserId,
         ttl: Duration,
         kind: TokenKind,
-        repo: &dyn TokenRepo,
-        clock: &dyn Clock,
+        repo: &(dyn TokenRepo + Sync),
+        clock: &(dyn Clock + Sync),
     ) -> Result<AdminToken, TokenError>;
 
-    async fn expire_token(&self, token: AdminToken, repo: &dyn TokenRepo)
-    -> Result<(), TokenError>;
+    async fn expire_token(
+        &self,
+        token: AdminToken,
+        repo: &(dyn TokenRepo + Sync),
+    ) -> Result<(), TokenError>;
 
     async fn validate_token(
         &self,
         token: AdminToken,
-        repo: &dyn TokenRepo,
-        clock: &dyn Clock,
+        repo: &(dyn TokenRepo + Sync),
+        clock: &(dyn Clock + Sync),
     ) -> Result<UserId, TokenError>;
 }
