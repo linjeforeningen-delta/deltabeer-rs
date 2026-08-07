@@ -11,12 +11,12 @@ pub(crate) mod v1;
 
 use crate::http::v1::ApiDoc as V1ApiDoc;
 
-pub fn routes() -> Router<AppState> {
+pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
         // global (non-versioned) health
         .route("/health", get(health))
         // versioned API
-        .nest("/v1", v1::routes())
+        .nest("/v1", v1::routes(state.clone()))
         .merge(
             SwaggerUi::new("/docs") // UI at /docs
                 .url("/api-doc/openapi.json", ApiDoc::openapi()),
@@ -60,6 +60,6 @@ async fn health() -> ApiResult<HealthResponse> {
     ),
     nest(
         (path = "/v1", api = V1ApiDoc))
-    )
+)
 ]
 pub struct ApiDoc;

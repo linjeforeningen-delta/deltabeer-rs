@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
         .ok();
 
     let app = Router::new()
-        .merge(http::routes())
+        .merge(http::routes(app_state.clone()))
         .with_state(app_state) // attach state on the parent
         .layer(tower_http::trace::TraceLayer::new_for_http());
 

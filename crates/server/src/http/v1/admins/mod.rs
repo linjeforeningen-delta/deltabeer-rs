@@ -20,7 +20,7 @@ use delta_core::domain::UserId;
 use delta_core::services;
 use delta_core::services::auth::AdminToken;
 
-pub fn routes() -> Router<AppState> {
+pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/admins", get(get_admins))
         .nest(
@@ -37,13 +37,14 @@ pub fn routes() -> Router<AppState> {
                         .route("/{ident}/role", patch(update_role)),
                 ),
         )
-        .layer(middleware::from_fn(admin_auth_middleware))
+        .layer(middleware::from_fn_with_state(state, admin_auth_middleware))
 }
 
 #[derive(Clone)]
 pub struct AdminId(pub UserId);
 
 pub async fn admin_auth_middleware(
+    State(state): State<AppState>,
     mut req: Request<Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
@@ -72,13 +73,10 @@ pub async fn admin_auth_middleware(
         .map_err(|_| StatusCode::UNAUTHORIZED)?;
 
     // Validate token via core
-    // let admin_id = state
-    //     .services
-    //     .auth
-    //     .validate_authorization(admin_token)
-    //     .await
-    //     .map_err(|_| StatusCode::UNAUTHORIZED)?;
-    let admin_id = todo!();
+    let admin_id = services::auth::validate_authorization(admin_token, &state.ctx())
+        .await
+        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+
 
     // Attach admin identity to request
     req.extensions_mut().insert(AdminId(admin_id));
