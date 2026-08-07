@@ -15,10 +15,11 @@ use storage_diesel::{create_pool, DieselRepo, DEV_SQLITE_PATH};
 async fn main() -> anyhow::Result<()> {
     let db_url = DEV_SQLITE_PATH;
     let pool = create_pool(db_url)?;
-    let repo = DieselRepo::new(pool);
+    let repo = Arc::new(DieselRepo::new(pool));
 
     let app_state = AppState {
-        repo: Arc::new(repo),
+        repo: repo.clone(),
+        token_repo: repo.clone(),
         clock: Arc::new(SystemClock),
         ids: Arc::new(UuidIdGenerator),
         tokens: Arc::new(OpaqueTokenSource),

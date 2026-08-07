@@ -45,13 +45,13 @@ pub async fn issue_admin_pass<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<AdminToken, ServiceError>
 where
-    R: TokenRepo + AdminRepo + UserRepo,
+    R: AdminRepo + UserRepo + ?Sized,
 {
     login(user_id, password, ctx).await?;
     let ttl = chrono::Duration::seconds(15);
     let token = ctx
         .tokens
-        .issue_token(user_id, ttl, TokenKind::SingleUse, ctx.repo, ctx.clock)
+        .issue_token(user_id, ttl, TokenKind::SingleUse, ctx.token_repo, ctx.clock)
         .await?;
 
     Ok(token)
@@ -75,7 +75,7 @@ where
             user_id,
             chrono::Duration::minutes(3),
             TokenKind::Session,
-            ctx.repo,
+            ctx.token_repo,
             ctx.clock,
         )
         .await?;
@@ -94,11 +94,11 @@ pub async fn validate_authorization<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<UserId, ServiceError>
 where
-    R: TokenRepo,
+    R: ?Sized,
 {
     Ok(ctx
         .tokens
-        .validate_token(token, ctx.repo, ctx.clock)
+        .validate_token(token, ctx.token_repo, ctx.clock)
         .await?)
 }
 
@@ -335,6 +335,7 @@ mod tests {
         let tokens = MockTokens;
         let ctx = Ctx {
             repo: &repo,
+            token_repo: &repo,
             clock: &clock,
             ids: &ids,
             tokens: &tokens,
@@ -361,6 +362,7 @@ mod tests {
         let tokens = MockTokens;
         let ctx = Ctx {
             repo: &repo,
+            token_repo: &repo,
             clock: &clock,
             ids: &ids,
             tokens: &tokens,
@@ -380,6 +382,7 @@ mod tests {
         let tokens = MockTokens;
         let ctx = Ctx {
             repo: &repo,
+            token_repo: &repo,
             clock: &clock,
             ids: &ids,
             tokens: &tokens,

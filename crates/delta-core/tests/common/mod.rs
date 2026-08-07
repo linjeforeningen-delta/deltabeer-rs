@@ -224,6 +224,7 @@ impl TestEnv {
     pub fn ctx(&self) -> Ctx<'_, InMemoryRepo> {
         Ctx {
             repo: &self.repo,
+            token_repo: &self.repo,
             clock: &self.clock,
             ids: &self.ids,
             tokens: &self.tokens,

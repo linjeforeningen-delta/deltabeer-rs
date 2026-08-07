@@ -196,6 +196,7 @@ mod tests {
         let tokens = MockTokens;
         let ctx = Ctx {
             repo: &repo,
+            token_repo: &repo,
             clock: &clock,
             ids: &ids,
             tokens: &tokens,
@@ -219,6 +220,7 @@ mod tests {
         let tokens = MockTokens;
         let ctx = Ctx {
             repo: &repo,
+            token_repo: &repo,
             clock: &clock,
             ids: &ids,
             tokens: &tokens,
@@ -237,6 +239,7 @@ mod tests {
         let tokens = MockTokens;
         let ctx = Ctx {
             repo: &repo,
+            token_repo: &repo,
             clock: &clock,
             ids: &ids,
             tokens: &tokens,
