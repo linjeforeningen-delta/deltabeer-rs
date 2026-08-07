@@ -1,5 +1,5 @@
 use crate::domain::{ActionRecord, PasswordCheck, UserId, hash_password, verify_password};
-use crate::ports::repo::{AdminRepo, TokenRepo, UserRepo};
+use crate::ports::repo::{AdminRepo, UserRepo};
 use crate::services::ServiceError;
 use crate::services::context::Ctx;
 use chrono::{DateTime, Utc};
@@ -96,7 +96,7 @@ pub async fn grant_admin<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<(), ServiceError>
 where
-    R: TokenRepo + AdminRepo,
+    R: AdminRepo + ?Sized,
 {
     let now = ctx.clock.now();
     let hash = hash_password(&*password);
@@ -117,7 +117,7 @@ pub async fn revoke_admin<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<(), ServiceError>
 where
-    R: TokenRepo + AdminRepo,
+    R: AdminRepo + ?Sized,
 {
     let now = ctx.clock.now();
 

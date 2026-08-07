@@ -1,5 +1,5 @@
 use crate::domain::{Amount, Transaction, UserId};
-use crate::ports::repo::{TokenRepo, TransactionRepo, UserRepo};
+use crate::ports::repo::{TransactionRepo, UserRepo};
 use crate::services::ServiceError;
 use crate::services::context::Ctx;
 
@@ -26,7 +26,7 @@ pub async fn top_up<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<Transaction, ServiceError>
 where
-    R: TransactionRepo + UserRepo + TokenRepo,
+    R: TransactionRepo + ?Sized,
 {
     let tx_id = ctx.ids.generate_transaction_id();
 

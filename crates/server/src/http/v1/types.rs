@@ -62,9 +62,7 @@ pub struct UserCreateRequestDto {
     pub name: String,
     pub username: String,
     pub card_number: String,
-    pub role: RoleDto,
     pub birthdate: NaiveDate,
-    pub comments: String,
 }
 
 #[derive(Serialize, ToSchema)]

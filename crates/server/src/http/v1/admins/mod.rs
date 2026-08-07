@@ -2,6 +2,7 @@ mod doc;
 pub use doc::ApiDoc;
 
 use super::types::*;
+use crate::api::error::ApiError;
 use crate::api::response::ApiResult;
 use crate::http::v1::types::UserDto;
 use crate::state::AppState;
@@ -16,7 +17,7 @@ use axum::{
     routing::{get, patch, post},
 };
 
-use delta_core::domain::UserId;
+use delta_core::domain::{Amount, UserId, UserIdent};
 use delta_core::services;
 use delta_core::services::auth::AdminToken;
 
@@ -72,13 +73,14 @@ pub async fn admin_auth_middleware(
         .map_err(|_| StatusCode::UNAUTHORIZED)?;
 
     // Validate token via core
-    let admin_id = services::auth::validate_authorization(admin_token, &state.ctx())
+    let admin_id = services::auth::validate_authorization(admin_token.clone(), &state.ctx())
         .await
         .map_err(|_| StatusCode::UNAUTHORIZED)?;
 
 
     // Attach admin identity to request
     req.extensions_mut().insert(AdminId(admin_id));
+    req.extensions_mut().insert(admin_token);
 
     Ok(next.run(req).await)
 }
@@ -146,9 +148,16 @@ async fn login(
 )]
 async fn logout(
     State(state): State<AppState>,
-    Extension(AdminId(admin_id)): Extension<AdminId>,
+    Extension(AdminId(_admin_id)): Extension<AdminId>,
+    Extension(token): Extension<AdminToken>,
 ) -> ApiResult<()> {
-    todo!()
+    state
+        .ctx()
+        .token_repo
+        .expire_token(&token)
+        .await
+        .map_err(delta_core::services::ServiceError::from)?;
+    Ok((StatusCode::OK, Json(())))
 }
 
 #[utoipa::path(
@@ -165,7 +174,24 @@ async fn new_user(
     Extension(AdminId(admin_id)): Extension<AdminId>,
     JsonIn(payload): JsonIn<UserCreateRequestDto>,
 ) -> ApiResult<UserDto> {
-    todo!()
+    let card_number = payload
+        .card_number
+        .parse::<u32>()
+        .map_err(|_| ApiError::BadRequest("Invalid card number"))?;
+    let user_id = services::users::create_user(
+        admin_id,
+        services::users::CreateUser {
+            name: payload.name,
+            username: payload.username,
+            card_number,
+            birthdate: payload.birthdate,
+        },
+        &state.ctx(),
+    )
+        .await?;
+
+    let user = services::users::view_user(user_id, &state.ctx()).await?;
+    Ok((StatusCode::OK, Json(UserDto::from(&user))))
 }
 
 #[utoipa::path(
@@ -207,7 +233,17 @@ async fn topup(
     Path(ident): Path<String>,
     JsonIn(payload): JsonIn<TopupRequestDto>,
 ) -> ApiResult<TransactionDto> {
-    todo!()
+    let user_ident = UserIdent::try_from(ident.as_str())
+        .map_err(|_| ApiError::InvalidUserIdentifier)?;
+    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
+    let transaction = services::transactions::top_up(
+        user_id,
+        Amount(payload.0),
+        admin_id,
+        &state.ctx(),
+    )
+        .await?;
+    Ok((StatusCode::OK, Json(TransactionDto::from(&transaction))))
 }
 
 #[utoipa::path(

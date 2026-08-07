@@ -1,5 +1,5 @@
 use crate::domain::{ActionRecord, Amount, Role, User, UserId, UserIdent};
-use crate::ports::repo::{TokenRepo, UserRepo};
+use crate::ports::repo::UserRepo;
 use crate::services::ServiceError;
 use crate::services::context::Ctx;
 use chrono::NaiveDate;
@@ -49,7 +49,7 @@ pub async fn create_user<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<UserId, ServiceError>
 where
-    R: UserRepo + TokenRepo,
+    R: UserRepo + ?Sized,
 {
     if !User::is_adult(req.birthdate, ctx.clock.today()) {
         return Err(ServiceError::Underage);
@@ -89,7 +89,7 @@ pub async fn update_user<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<(), ServiceError>
 where
-    R: UserRepo + TokenRepo,
+    R: UserRepo + ?Sized,
 {
     let mut user = ctx.repo.get_user(&user_id).await?;
     user.name = req.name.unwrap_or(user.name);
