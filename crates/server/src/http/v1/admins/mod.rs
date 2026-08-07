@@ -10,7 +10,9 @@ use axum::{
     Extension,
     Json,
     Router,
-    body::Body, extract::{Json as JsonIn, Path, State}, http::{Request, StatusCode},
+    body::Body,
+    extract::{Json as JsonIn, Path, State},
+    http::{Request, StatusCode},
     middleware,
     middleware::Next,
     response::Response,
@@ -76,7 +78,6 @@ pub async fn admin_auth_middleware(
     let admin_id = services::auth::validate_authorization(admin_token.clone(), &state.ctx())
         .await
         .map_err(|_| StatusCode::UNAUTHORIZED)?;
-
 
     // Attach admin identity to request
     req.extensions_mut().insert(AdminId(admin_id));
@@ -212,7 +213,31 @@ async fn update_user(
     Path(ident): Path<String>,
     JsonIn(payload): JsonIn<UserPatchDto>,
 ) -> ApiResult<UserDto> {
-    todo!()
+    let user_ident =
+        UserIdent::try_from(ident.as_str()).map_err(|_| ApiError::InvalidUserIdentifier)?;
+    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
+    let card_number = payload
+        .card_number
+        .as_deref()
+        .map(str::parse::<u32>)
+        .transpose()
+        .map_err(|_| ApiError::BadRequest("Invalid card number"))?;
+
+    services::users::update_user(
+        admin_id,
+        user_id,
+        services::users::UpdateUser {
+            name: payload.name,
+            username: payload.username,
+            card_number,
+            comments: payload.comments,
+        },
+        &state.ctx(),
+    )
+        .await?;
+
+    let user = services::users::view_user(user_id, &state.ctx()).await?;
+    Ok((StatusCode::OK, Json(UserDto::from(&user))))
 }
 
 #[utoipa::path(

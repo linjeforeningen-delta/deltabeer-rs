@@ -80,6 +80,7 @@ pub struct UpdateUser {
     pub name: Option<String>,
     pub username: Option<String>,
     pub card_number: Option<u32>,
+    pub comments: Option<String>,
 }
 
 pub async fn update_user<R>(
@@ -95,6 +96,7 @@ where
     user.name = req.name.unwrap_or(user.name);
     user.username = req.username.unwrap_or(user.username);
     user.card_number = req.card_number.unwrap_or(user.card_number);
+    user.comments = req.comments.unwrap_or(user.comments);
     ctx.repo.update_user(user.clone()).await?;
     Ok(())
 }
@@ -344,6 +346,7 @@ mod tests {
             name: Some("New Name".to_string()),
             username: None,
             card_number: Some(999),
+            comments: None,
         };
 
         let admin_id = UserId(Uuid::now_v7());
