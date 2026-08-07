@@ -84,11 +84,8 @@ async fn test_transaction_flow() {
 
     let admin_id = UserId(Uuid::now_v7());
     setup_admin(&env, admin_id, "admin").await;
-    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
-        .await
-        .unwrap();
 
-    top_up(user_id, Amount(50), admin_token, &ctx)
+    top_up(user_id, Amount(50), admin_id, &ctx)
         .await
         .unwrap();
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
@@ -128,7 +125,7 @@ async fn test_multiple_transactions_consistency() {
         let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
             .await
             .unwrap();
-        top_up(user_id, Amount(20), admin_token, &ctx)
+        top_up(user_id, Amount(20), admin_id, &ctx)
             .await
             .unwrap();
     }
@@ -159,17 +156,11 @@ async fn test_revoked_admin_cannot_top_up() {
 
     let user_id = setup_user(&env, "Alice", 100).await;
 
-    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
-        .await
-        .unwrap();
-    assert!(top_up(user_id, Amount(10), admin_token, &ctx).await.is_ok());
+    assert!(top_up(user_id, Amount(10), admin_id, &ctx).await.is_ok());
 
     let root_id = UserId(Uuid::now_v7());
     setup_admin(&env, root_id, "root").await;
-    let root_token = issue_admin_pass(root_id, "root".to_string(), &ctx)
-        .await
-        .unwrap();
-    delta_core::services::auth::revoke_admin(root_token, admin_id, &ctx)
+    delta_core::services::auth::revoke_admin(root_id, admin_id, &ctx)
         .await
         .unwrap();
 
@@ -196,11 +187,8 @@ async fn test_top_up_non_existent_user() {
 
     let admin_id = UserId(Uuid::now_v7());
     setup_admin(&env, admin_id, "admin").await;
-    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
-        .await
-        .unwrap();
 
-    let res = top_up(UserId(Uuid::now_v7()), Amount(100), admin_token, &ctx).await;
+    let res = top_up(UserId(Uuid::now_v7()), Amount(100), admin_id, &ctx).await;
     assert!(res.is_err());
 }
 

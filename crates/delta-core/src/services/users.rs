@@ -31,15 +31,13 @@ pub struct CreateUser {
 }
 
 pub async fn create_user<R>(
-    token: AdminToken,
+    actor: UserId,
     req: CreateUser,
     ctx: &Ctx<'_, R>,
 ) -> Result<UserId, ServiceError>
 where
     R: UserRepo + TokenRepo,
 {
-    let actor = validate_authorization(token, ctx).await?;
-
     if !User::is_adult(req.birthdate, ctx.clock.today()) {
         return Err(ServiceError::Underage);
     }
@@ -72,7 +70,7 @@ pub struct UpdateUser {
 }
 
 pub async fn update_user<R>(
-    token: AdminToken,
+    actor: UserId,
     user_id: UserId,
     req: UpdateUser,
     ctx: &Ctx<'_, R>,
@@ -80,8 +78,6 @@ pub async fn update_user<R>(
 where
     R: UserRepo + TokenRepo,
 {
-    let _actor = validate_authorization(token, ctx).await?;
-
     let mut user = ctx.repo.get_user(&user_id).await?;
     user.name = req.name.unwrap_or(user.name);
     user.username = req.username.unwrap_or(user.username);
@@ -243,8 +239,8 @@ mod tests {
             birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
         };
 
-        let admin_token = AdminToken([0; 32]);
-        let res = create_user(admin_token, req, &ctx).await;
+        let admin_id = UserId(Uuid::now_v7());
+        let res = create_user(admin_id, req, &ctx).await;
         assert!(res.is_ok());
         let user_id = res.unwrap();
 
@@ -282,8 +278,8 @@ mod tests {
             birthdate: NaiveDate::from_ymd_opt(2010, 1, 1).unwrap(),
         };
 
-        let admin_token = AdminToken([0; 32]);
-        let res = create_user(admin_token, req, &ctx).await;
+        let admin_id = UserId(Uuid::now_v7());
+        let res = create_user(admin_id, req, &ctx).await;
         assert!(matches!(res, Err(ServiceError::Underage)));
     }
 
@@ -324,8 +320,8 @@ mod tests {
             card_number: Some(999),
         };
 
-        let admin_token = AdminToken([0; 32]);
-        let res = update_user(admin_token, user_id, req, &ctx).await;
+        let admin_id = UserId(Uuid::now_v7());
+        let res = update_user(admin_id, user_id, req, &ctx).await;
         assert!(res.is_ok());
 
         let updated_user = repo.get_user(&user_id).await.unwrap();

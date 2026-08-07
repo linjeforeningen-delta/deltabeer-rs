@@ -127,7 +127,8 @@ async fn login(
     State(state): State<AppState>,
     Extension(AdminId(admin_id)): Extension<AdminId>,
 ) -> ApiResult<AdminTokenDto> {
-    todo!()
+    let token = services::auth::issue_admin_session(admin_id, &state.ctx()).await?;
+    Ok((StatusCode::OK, Json(AdminTokenDto::from(&token))))
 }
 
 #[utoipa::path(

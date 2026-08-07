@@ -53,9 +53,6 @@ async fn test_user_lifecycle() {
 
     let admin_id = UserId(Uuid::now_v7());
     setup_admin(&env, admin_id, "admin").await;
-    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
-        .await
-        .unwrap();
 
     let req = CreateUser {
         name: "Alice".to_string(),
@@ -63,22 +60,18 @@ async fn test_user_lifecycle() {
         card_number: 111,
         birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
     };
-    let user_id = create_user(admin_token.clone(), req, &ctx).await.unwrap();
+    let user_id = create_user(admin_id, req, &ctx).await.unwrap();
 
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
     assert_eq!(user.name, "Alice");
     assert_eq!(user.balance, Amount(0));
-
-    let admin_token_2 = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
-        .await
-        .unwrap();
 
     let up_req = UpdateUser {
         name: Some("Alice Updated".to_string()),
         username: None,
         card_number: Some(222),
     };
-    update_user(admin_token_2, user_id, up_req, &ctx)
+    update_user(admin_id, user_id, up_req, &ctx)
         .await
         .unwrap();
 
@@ -94,9 +87,6 @@ async fn test_create_user_underage() {
 
     let admin_id = UserId(Uuid::now_v7());
     setup_admin(&env, admin_id, "admin").await;
-    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
-        .await
-        .unwrap();
 
     let req = CreateUser {
         name: "Kid".to_string(),
@@ -104,7 +94,7 @@ async fn test_create_user_underage() {
         card_number: 999,
         birthdate: env.clock.0.date_naive() - chrono::Duration::days(10 * 365),
     };
-    let res = create_user(admin_token, req, &ctx).await;
+    let res = create_user(admin_id, req, &ctx).await;
     assert!(res.is_err());
 }
 
@@ -195,16 +185,12 @@ async fn test_update_user_partial() {
     .await
     .unwrap();
 
-    let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
-        .await
-        .unwrap();
-
     let up_req = UpdateUser {
         name: None,
         username: None,
         card_number: Some(500),
     };
-    update_user(admin_token, user_id, up_req, &ctx)
+    update_user(admin_id, user_id, up_req, &ctx)
         .await
         .unwrap();
 
@@ -218,13 +204,15 @@ async fn test_create_user_unauthorized() {
     let env = TestEnv::new();
     let ctx = env.ctx();
 
+    let admin_id = UserId(Uuid::now_v7());
+
     let req = CreateUser {
         name: "Unauthorized".to_string(),
         username: "unauth".to_string(),
         card_number: 777,
         birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
     };
-    let res = create_user(delta_core::services::auth::AdminToken([0u8; 32]), req, &ctx).await;
+    let res = create_user(admin_id, req, &ctx).await;
     assert!(res.is_err());
 }
 
@@ -233,6 +221,7 @@ async fn test_update_user_unauthorized() {
     let env = TestEnv::new();
     let ctx = env.ctx();
 
+    let admin_id = UserId(Uuid::now_v7());
     let user_id = UserId(Uuid::now_v7());
     let up_req = UpdateUser {
         name: Some("New".to_string()),
@@ -240,7 +229,7 @@ async fn test_update_user_unauthorized() {
         card_number: None,
     };
     let res = update_user(
-        delta_core::services::auth::AdminToken([0u8; 32]),
+        admin_id,
         user_id,
         up_req,
         &ctx,

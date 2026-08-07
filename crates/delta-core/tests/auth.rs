@@ -83,7 +83,7 @@ async fn test_auth_flow() {
     .unwrap();
 
     let password = "secret-password".to_string();
-    grant_admin(root_token, user_id, password.clone(), &ctx)
+    grant_admin(root_id, user_id, password.clone(), &ctx)
         .await
         .unwrap();
 
@@ -101,10 +101,6 @@ async fn test_revoke_admin() {
 
     let root_id = UserId(Uuid::now_v7());
     setup_admin(&env, root_id, "root").await;
-
-    let root_token = issue_admin_pass(root_id, "root".to_string(), &ctx)
-        .await
-        .unwrap();
 
     let user_id = UserId(Uuid::now_v7());
     let user = User {
@@ -126,20 +122,17 @@ async fn test_revoke_admin() {
             at: Utc::now(),
         },
     )
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 
-    grant_admin(root_token.clone(), user_id, "pass".to_string(), &ctx)
+    grant_admin(root_id, user_id, "pass".to_string(), &ctx)
         .await
         .unwrap();
 
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
     assert_eq!(user.role, Role::Admin);
 
-    let root_token_2 = issue_admin_pass(root_id, "root".to_string(), &ctx)
-        .await
-        .unwrap();
-    delta_core::services::auth::revoke_admin(root_token_2, user_id, &ctx)
+    delta_core::services::auth::revoke_admin(root_id, user_id, &ctx)
         .await
         .unwrap();
 
@@ -158,15 +151,7 @@ async fn test_session_token_flow() {
     let admin_id = UserId(Uuid::now_v7());
     setup_admin(&env, admin_id, "admin-pass").await;
 
-    let pass_token = issue_admin_pass(admin_id, "admin-pass".to_string(), &ctx)
-        .await
-        .unwrap();
-
-    let session_token = issue_admin_session(pass_token.clone(), &ctx).await.unwrap();
-    assert_ne!(pass_token, session_token);
-
-    let validate_pass = validate_authorization(pass_token, &ctx).await;
-    assert!(validate_pass.is_err());
+    let session_token = issue_admin_session(admin_id, &ctx).await.unwrap();
 
     let validate_session = validate_authorization(session_token.clone(), &ctx).await;
     assert_eq!(validate_session.unwrap(), admin_id);
@@ -247,15 +232,12 @@ async fn test_grant_admin_already_admin() {
 
     let root_id = UserId(Uuid::now_v7());
     setup_admin(&env, root_id, "root").await;
-    let root_token = issue_admin_pass(root_id, "root".to_string(), &ctx)
-        .await
-        .unwrap();
 
     let admin_id = UserId(Uuid::now_v7());
     setup_admin(&env, admin_id, "admin").await;
 
     // Grant admin to someone who is already admin should work (idempotent/update password)
-    let res = grant_admin(root_token, admin_id, "new-pass".to_string(), &ctx).await;
+    let res = grant_admin(root_id, admin_id, "new-pass".to_string(), &ctx).await;
     assert!(res.is_ok());
 
     // Should be able to login with new pass
@@ -270,10 +252,8 @@ async fn test_session_token_expiration() {
     setup_admin(&env, admin_id, "admin-pass").await;
 
     let ctx = env.ctx();
-    let pass_token = issue_admin_pass(admin_id, "admin-pass".to_string(), &ctx)
-        .await
-        .unwrap();
-    let session_token = issue_admin_session(pass_token, &ctx).await.unwrap();
+
+    let session_token = issue_admin_session(admin_id, &ctx).await.unwrap();
 
     assert!(
         validate_authorization(session_token.clone(), &ctx)

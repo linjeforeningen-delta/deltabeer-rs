@@ -58,34 +58,22 @@ where
 }
 
 pub async fn issue_admin_session<R>(
-    token: AdminToken,
+    actor: UserId,
     ctx: &Ctx<'_, R>,
 ) -> Result<AdminToken, ServiceError>
 where
-    R: TokenRepo,
+    R: ?Sized,
 {
-    let now = ctx.clock.now();
-    let user_id = ctx
-        .tokens
-        .validate_token(token.clone(), ctx.repo, ctx.clock)
-        .await?;
     let new_token = ctx
         .tokens
         .issue_token(
-            user_id,
+            actor,
             chrono::Duration::minutes(3),
             TokenKind::Session,
             ctx.token_repo,
             ctx.clock,
         )
         .await?;
-    match ctx.tokens.expire_token(token, ctx.repo).await {
-        Ok(()) => {}
-        Err(TokenError::InvalidToken) => {
-            // benign: token already expired / invalid
-        }
-        Err(e) => return Err(e.into()),
-    }
     Ok(new_token)
 }
 
@@ -103,7 +91,7 @@ where
 }
 
 pub async fn grant_admin<R>(
-    token: AdminToken,
+    actor: UserId,
     user_id: UserId,
     password: String,
     ctx: &Ctx<'_, R>,
@@ -112,7 +100,6 @@ where
     R: TokenRepo + AdminRepo,
 {
     let now = ctx.clock.now();
-    let actor = validate_authorization(token, ctx).await?;
     let hash = hash_password(&*password);
 
     let grant_id = ctx.ids.generate_admin_grant_id();
@@ -126,7 +113,7 @@ where
 }
 
 pub async fn revoke_admin<R>(
-    token: AdminToken,
+    actor: UserId,
     user_id: UserId,
     ctx: &Ctx<'_, R>,
 ) -> Result<(), ServiceError>
@@ -134,7 +121,6 @@ where
     R: TokenRepo + AdminRepo,
 {
     let now = ctx.clock.now();
-    let actor = validate_authorization(token, ctx).await?;
 
     let record = ActionRecord { actor, at: now };
     ctx.repo.revoke_admin(user_id, record).await?;
@@ -388,9 +374,9 @@ mod tests {
             tokens: &tokens,
         };
 
-        let admin_token = AdminToken([0; 32]);
+        let actor_id = UserId(Uuid::nil());
         let user_id = UserId(Uuid::nil());
-        let res = grant_admin(admin_token, user_id, "newpass".to_string(), &ctx).await;
+        let res = grant_admin(actor_id, user_id, "newpass".to_string(), &ctx).await;
         assert!(res.is_ok());
 
         assert!(repo.admins.lock().unwrap().contains_key(&user_id));

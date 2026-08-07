@@ -23,18 +23,17 @@ where
 pub async fn top_up<R>(
     user_id: UserId,
     amount: Amount,
-    token: AdminToken,
+    actor: UserId,
     ctx: &Ctx<'_, R>,
 ) -> Result<Transaction, ServiceError>
 where
     R: TransactionRepo + UserRepo + TokenRepo,
 {
-    let admin_id = validate_authorization(token, ctx).await?;
     let tx_id = ctx.ids.generate_transaction_id();
 
     let tx = ctx
         .repo
-        .top_up(tx_id, user_id, amount, &admin_id, ctx.clock.now())
+        .top_up(tx_id, user_id, amount, &actor, ctx.clock.now())
         .await?;
     Ok(tx)
 }
@@ -246,8 +245,8 @@ mod tests {
         };
 
         let user_id = UserId(Uuid::nil());
-        let admin_token = AdminToken([0; 32]);
-        let res = top_up(user_id, Amount(100), admin_token, &ctx).await;
+        let admin_id = UserId(Uuid::nil());
+        let res = top_up(user_id, Amount(100), admin_id, &ctx).await;
         assert!(res.is_ok());
         let tx = res.unwrap();
         match tx {
