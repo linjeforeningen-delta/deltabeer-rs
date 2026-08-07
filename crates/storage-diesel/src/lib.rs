@@ -115,6 +115,33 @@ impl UserRepo for DieselRepo {
         })
     }
 
+    async fn list_users(&self) -> Result<Vec<User>, RepoError> {
+        use crate::schema::users_with_role::dsl::*;
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            let rows = users_with_role
+                .order(id)
+                .load::<UserWithRoleRow>(conn)?;
+            rows.iter()
+                .map(User::try_from)
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(RepoError::from)
+        })
+    }
+
+    async fn list_admins(&self) -> Result<Vec<User>, RepoError> {
+        use crate::schema::users_with_role::dsl::*;
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            let rows = users_with_role
+                .filter(role.eq("admin"))
+                .order(id)
+                .load::<UserWithRoleRow>(conn)?;
+            rows.iter()
+                .map(User::try_from)
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(RepoError::from)
+        })
+    }
+
     async fn insert_user(&self, user: User, record: ActionRecord) -> Result<(), RepoError> {
         use crate::schema::users::dsl::*;
         repo_call!(self.pool, |conn: &mut SqliteConnection| {

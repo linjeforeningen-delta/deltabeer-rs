@@ -59,6 +59,19 @@ impl UserRepo for InMemoryRepo {
             .cloned()
             .ok_or(RepoError::NotFound)
     }
+    async fn list_users(&self) -> Result<Vec<User>, RepoError> {
+        Ok(self.users.lock().unwrap().values().cloned().collect())
+    }
+    async fn list_admins(&self) -> Result<Vec<User>, RepoError> {
+        Ok(self
+            .users
+            .lock()
+            .unwrap()
+            .values()
+            .filter(|u| u.is_admin())
+            .cloned()
+            .collect())
+    }
     async fn insert_user(&self, user: User, _record: ActionRecord) -> Result<(), RepoError> {
         self.users.lock().unwrap().insert(user.id, user);
         Ok(())

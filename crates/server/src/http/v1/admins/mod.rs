@@ -95,7 +95,11 @@ pub async fn admin_auth_middleware(
     )
 )]
 async fn get_admins(State(state): State<AppState>) -> ApiResult<Vec<UserDto>> {
-    todo!()
+    let admins = services::users::list_admins(&state.ctx()).await?;
+    Ok((
+        StatusCode::OK,
+        Json(admins.iter().map(UserDto::from).collect()),
+    ))
 }
 
 #[utoipa::path(

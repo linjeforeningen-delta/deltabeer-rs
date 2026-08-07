@@ -178,6 +178,12 @@ mod tests {
         async fn get_user_by_card(&self, _card: u32) -> Result<User, RepoError> {
             Err(RepoError::NotFound)
         }
+        async fn list_users(&self) -> Result<Vec<User>, RepoError> {
+            Ok(Vec::new())
+        }
+        async fn list_admins(&self) -> Result<Vec<User>, RepoError> {
+            Ok(Vec::new())
+        }
         async fn insert_user(
             &self,
             _user: User,

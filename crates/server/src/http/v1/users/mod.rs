@@ -49,7 +49,11 @@ fn parse_ident(ident: String) -> Option<UserIdent> {
     )
 )]
 async fn get_users(State(state): State<AppState>) -> ApiResult<Vec<UserDto>> {
-    todo!()
+    let users = services::users::list_users(&state.ctx()).await?;
+    Ok((
+        StatusCode::OK,
+        Json(users.iter().map(UserDto::from).collect()),
+    ))
 }
 
 #[utoipa::path(
