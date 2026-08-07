@@ -2,14 +2,14 @@ use axum::Router;
 use delta_core::infra::{clock::SystemClock, id::UuidIdGenerator, token::OpaqueTokenSource};
 use std::sync::Arc;
 use tokio::net::TcpListener;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 mod api;
 mod http;
 mod state;
 
 use state::AppState;
-use storage_diesel::{create_pool, DieselRepo, DEV_SQLITE_PATH};
+use storage_diesel::{DEV_SQLITE_PATH, DieselRepo, create_pool};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

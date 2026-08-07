@@ -1,8 +1,7 @@
 use crate::domain::{ActionRecord, Amount, Role, User, UserId, UserIdent};
 use crate::ports::repo::{TokenRepo, UserRepo};
-use crate::services::auth::{validate_authorization, AdminToken};
-use crate::services::context::Ctx;
 use crate::services::ServiceError;
+use crate::services::context::Ctx;
 use chrono::NaiveDate;
 
 pub async fn resolve_user<R>(ident: UserIdent, ctx: &Ctx<'_, R>) -> Result<UserId, ServiceError>

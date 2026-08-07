@@ -4,8 +4,7 @@ use chrono::NaiveDate;
 use common::TestEnv;
 use delta_core::domain::{Amount, Role, User, UserId};
 use delta_core::ports::repo::{AdminRepo, UserRepo};
-use delta_core::services::auth::issue_admin_pass;
-use delta_core::services::users::{create_user, resolve_user, update_user, CreateUser, UpdateUser};
+use delta_core::services::users::{CreateUser, UpdateUser, create_user, resolve_user, update_user};
 use rand_core::RngCore;
 use uuid::Uuid;
 
@@ -30,8 +29,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
             at: env.clock.0,
         },
     )
-    .await
-    .unwrap();
+        .await
+        .unwrap();
     AdminRepo::grant_admin(
         &env.repo,
         delta_core::domain::AdminGrantId(Uuid::now_v7()),
@@ -42,8 +41,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
             at: env.clock.0,
         },
     )
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
@@ -123,8 +122,8 @@ async fn test_resolve_user_scenarios() {
             at: env.clock.0,
         },
     )
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 
     assert_eq!(
         resolve_user(delta_core::domain::UserIdent::Id(user_id), &ctx)
@@ -137,8 +136,8 @@ async fn test_resolve_user_scenarios() {
             delta_core::domain::UserIdent::Username("bob123".to_string()),
             &ctx
         )
-        .await
-        .unwrap(),
+            .await
+            .unwrap(),
         user_id
     );
     assert_eq!(
@@ -182,8 +181,8 @@ async fn test_update_user_partial() {
             at: env.clock.0,
         },
     )
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 
     let up_req = UpdateUser {
         name: None,
@@ -234,6 +233,6 @@ async fn test_update_user_unauthorized() {
         up_req,
         &ctx,
     )
-    .await;
+        .await;
     assert!(res.is_err());
 }

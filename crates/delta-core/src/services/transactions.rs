@@ -1,8 +1,7 @@
 use crate::domain::{Amount, Transaction, UserId};
 use crate::ports::repo::{TokenRepo, TransactionRepo, UserRepo};
-use crate::services::auth::validate_authorization;
+use crate::services::ServiceError;
 use crate::services::context::Ctx;
-use crate::services::{auth::AdminToken, ServiceError};
 
 pub async fn spend<R>(
     user_id: UserId,

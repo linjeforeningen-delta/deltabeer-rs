@@ -1,8 +1,7 @@
-use crate::domain::{hash_password, verify_password, ActionRecord, PasswordCheck, UserId};
+use crate::domain::{ActionRecord, PasswordCheck, UserId, hash_password, verify_password};
 use crate::ports::repo::{AdminRepo, TokenRepo, UserRepo};
-use crate::ports::TokenError;
-use crate::services::context::Ctx;
 use crate::services::ServiceError;
+use crate::services::context::Ctx;
 use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -27,7 +26,7 @@ pub async fn login<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<(), ServiceError>
 where
-    R: AdminRepo,
+    R: AdminRepo + ?Sized,
 {
     let hash = ctx.repo.get_admin(user_id).await?;
     match verify_password(&password, &hash)? {
@@ -133,7 +132,7 @@ pub async fn update_password<R>(
     ctx: &Ctx<'_, R>,
 ) -> Result<(), ServiceError>
 where
-    R: AdminRepo,
+    R: AdminRepo + ?Sized,
 {
     let hash = hash_password(&*new_password);
 

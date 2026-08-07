@@ -6,17 +6,18 @@ use crate::api::response::ApiResult;
 use crate::http::v1::types::UserDto;
 use crate::state::AppState;
 use axum::{
-    body::Body, extract::{Json as JsonIn, Path, State},
-    http::{Request, StatusCode},
+    Extension,
+    Json,
+    Router,
+    body::Body, extract::{Json as JsonIn, Path, State}, http::{Request, StatusCode},
     middleware,
     middleware::Next,
     response::Response,
     routing::{get, patch, post},
-    Extension,
-    Router,
 };
 
 use delta_core::domain::UserId;
+use delta_core::services;
 use delta_core::services::auth::AdminToken;
 
 pub fn routes() -> Router<AppState> {
@@ -89,7 +90,6 @@ pub async fn admin_auth_middleware(
     get,
     path = "",
     tag = "admins",
-
     responses(
         (status = 200, description = "List of admins", body = Vec<UserDto>)
     )
@@ -112,7 +112,11 @@ async fn pass(
     State(state): State<AppState>,
     JsonIn(payload): JsonIn<Credentials>,
 ) -> ApiResult<AdminTokenDto> {
-    todo!()
+    let admin_id = UserId::from(payload.user_id);
+    let password = payload.password;
+    let token = services::auth::issue_admin_pass(admin_id, password, &state.ctx()).await?;
+
+    Ok((StatusCode::OK, Json(AdminTokenDto::from(&token))))
 }
 
 #[utoipa::path(
