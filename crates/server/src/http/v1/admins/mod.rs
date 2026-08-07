@@ -48,7 +48,6 @@ pub async fn admin_auth_middleware(
     mut req: Request<Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    // todo!()
     let path = req.uri().path();
 
     // Allow unauthenticated access to /admins/pass
