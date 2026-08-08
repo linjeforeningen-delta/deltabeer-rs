@@ -5,6 +5,7 @@ members = ["crates/cli", "crates/delta-core",
     "crates/storage-diesel",
     "crates/server",
     "crates/cli",
+    "crates/tui",
 ]
 
 
@@ -26,3 +27,6 @@ async-trait = "0.1"
 thiserror = "2"
 dotenvy = "0.15"
 base64 = "0.22"
+ratatui = "0.29"
+crossterm = "0.28"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
