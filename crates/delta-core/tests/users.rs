@@ -69,6 +69,7 @@ async fn test_user_lifecycle() {
         name: Some("Alice Updated".to_string()),
         username: None,
         card_number: Some(222),
+        comments: Some("Updated comments".to_string()),
     };
     update_user(admin_id, user_id, up_req, &ctx)
         .await
@@ -77,6 +78,7 @@ async fn test_user_lifecycle() {
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
     assert_eq!(user.name, "Alice Updated");
     assert_eq!(user.card_number, 222);
+    assert_eq!(user.comments, "Updated comments");
 }
 
 #[tokio::test]
@@ -188,6 +190,7 @@ async fn test_update_user_partial() {
         name: None,
         username: None,
         card_number: Some(500),
+        comments: None,
     };
     update_user(admin_id, user_id, up_req, &ctx)
         .await
@@ -226,6 +229,7 @@ async fn test_update_user_unauthorized() {
         name: Some("New".to_string()),
         username: None,
         card_number: None,
+        comments: None,
     };
     let res = update_user(
         admin_id,
