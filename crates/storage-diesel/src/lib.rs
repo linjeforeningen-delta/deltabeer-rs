@@ -10,7 +10,6 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use delta_core::ports::repo::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
 use diesel::prelude::*;
-use std::path::Path;
 use thiserror::Error;
 
 use delta_core::domain::{
@@ -18,9 +17,9 @@ use delta_core::domain::{
     TransactionSource, User, UserId,
 };
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
+use diesel::OptionalExtension;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sqlite::SqliteConnection;
-use diesel::OptionalExtension;
 
 pub type SqlitePool = Pool<ConnectionManager<SqliteConnection>>;
 
@@ -119,9 +118,7 @@ impl UserRepo for DieselRepo {
     async fn list_users(&self) -> Result<Vec<User>, RepoError> {
         use crate::schema::users_with_role::dsl::*;
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
-            let rows = users_with_role
-                .order(id)
-                .load::<UserWithRoleRow>(conn)?;
+            let rows = users_with_role.order(id).load::<UserWithRoleRow>(conn)?;
             rows.iter()
                 .map(User::try_from)
                 .collect::<Result<Vec<_>, _>>()

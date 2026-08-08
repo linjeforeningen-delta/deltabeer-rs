@@ -30,8 +30,8 @@ async fn setup_user(env: &common::TestEnv, name: &str, balance: u32) -> UserId {
             at: env.clock.0,
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
     user_id
 }
 
@@ -56,8 +56,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
             at: env.clock.0,
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
     AdminRepo::grant_admin(
         &env.repo,
         delta_core::domain::AdminGrantId(Uuid::now_v7()),
@@ -68,8 +68,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
             at: env.clock.0,
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 }
 
 #[tokio::test]
@@ -87,9 +87,7 @@ async fn test_transaction_flow() {
     let admin_id = UserId(Uuid::now_v7());
     setup_admin(&env, admin_id, "admin").await;
 
-    top_up(user_id, Amount(50), admin_id, &ctx)
-        .await
-        .unwrap();
+    top_up(user_id, Amount(50), admin_id, &ctx).await.unwrap();
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
     assert_eq!(user.balance, Amount(110));
 }
@@ -127,9 +125,7 @@ async fn test_multiple_transactions_consistency() {
         let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
             .await
             .unwrap();
-        top_up(user_id, Amount(20), admin_id, &ctx)
-            .await
-            .unwrap();
+        top_up(user_id, Amount(20), admin_id, &ctx).await.unwrap();
     }
 
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();

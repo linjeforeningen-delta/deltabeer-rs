@@ -8,9 +8,9 @@ use crate::api::response::ApiResult;
 use crate::state::AppState;
 use axum::response::IntoResponse;
 use axum::{
-    extract::{Json as JsonIn, Path, State}, routing::{get, post},
-    Json,
-    Router,
+    Json, Router,
+    extract::{Json as JsonIn, Path, State},
+    routing::{get, post},
 };
 use delta_core::domain::{Amount, UserId, UserIdent};
 use delta_core::services;

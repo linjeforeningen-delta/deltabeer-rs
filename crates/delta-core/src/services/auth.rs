@@ -50,7 +50,13 @@ where
     let ttl = chrono::Duration::seconds(15);
     let token = ctx
         .tokens
-        .issue_token(user_id, ttl, TokenKind::SingleUse, ctx.token_repo, ctx.clock)
+        .issue_token(
+            user_id,
+            ttl,
+            TokenKind::SingleUse,
+            ctx.token_repo,
+            ctx.clock,
+        )
         .await?;
 
     Ok(token)

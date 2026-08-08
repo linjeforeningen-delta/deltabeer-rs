@@ -7,9 +7,7 @@ use crate::api::response::ApiResult;
 use crate::http::v1::types::UserDto;
 use crate::state::AppState;
 use axum::{
-    Extension,
-    Json,
-    Router,
+    Extension, Json, Router,
     body::Body,
     extract::{Json as JsonIn, Path, State},
     http::{Request, StatusCode},
@@ -190,7 +188,7 @@ async fn new_user(
         },
         &state.ctx(),
     )
-        .await?;
+    .await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(UserDto::from(&user))))
@@ -236,7 +234,7 @@ async fn update_user(
         },
         &state.ctx(),
     )
-        .await?;
+    .await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(UserDto::from(&user))))
@@ -260,16 +258,11 @@ async fn topup(
     Path(ident): Path<String>,
     JsonIn(payload): JsonIn<TopupRequestDto>,
 ) -> ApiResult<TransactionDto> {
-    let user_ident = UserIdent::try_from(ident.as_str())
-        .map_err(|_| ApiError::InvalidUserIdentifier)?;
+    let user_ident =
+        UserIdent::try_from(ident.as_str()).map_err(|_| ApiError::InvalidUserIdentifier)?;
     let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
-    let transaction = services::transactions::top_up(
-        user_id,
-        Amount(payload.0),
-        admin_id,
-        &state.ctx(),
-    )
-        .await?;
+    let transaction =
+        services::transactions::top_up(user_id, Amount(payload.0), admin_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(TransactionDto::from(&transaction))))
 }
 

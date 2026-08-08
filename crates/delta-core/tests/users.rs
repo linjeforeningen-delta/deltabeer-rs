@@ -30,8 +30,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
             at: env.clock.0,
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
     AdminRepo::grant_admin(
         &env.repo,
         delta_core::domain::AdminGrantId(Uuid::now_v7()),
@@ -42,8 +42,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
             at: env.clock.0,
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 }
 
 #[tokio::test]
@@ -74,9 +74,7 @@ async fn test_user_lifecycle() {
         card_number: Some(222),
         comments: Some("Updated comments".to_string()),
     };
-    update_user(admin_id, user_id, up_req, &ctx)
-        .await
-        .unwrap();
+    update_user(admin_id, user_id, up_req, &ctx).await.unwrap();
 
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
     assert_eq!(user.name, "Alice Updated");
@@ -129,8 +127,8 @@ async fn test_resolve_user_scenarios() {
             at: env.clock.0,
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     assert_eq!(
         resolve_user(delta_core::domain::UserIdent::Id(user_id), &ctx)
@@ -143,8 +141,8 @@ async fn test_resolve_user_scenarios() {
             delta_core::domain::UserIdent::Username("bob123".to_string()),
             &ctx
         )
-            .await
-            .unwrap(),
+        .await
+        .unwrap(),
         user_id
     );
     assert_eq!(
@@ -189,8 +187,8 @@ async fn test_update_user_partial() {
             at: env.clock.0,
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     let up_req = UpdateUser {
         name: None,
@@ -199,9 +197,7 @@ async fn test_update_user_partial() {
         card_number: Some(500),
         comments: None,
     };
-    update_user(admin_id, user_id, up_req, &ctx)
-        .await
-        .unwrap();
+    update_user(admin_id, user_id, up_req, &ctx).await.unwrap();
 
     let updated = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
     assert_eq!(updated.name, "Alice");
@@ -239,12 +235,6 @@ async fn test_update_user_unauthorized() {
         card_number: None,
         comments: None,
     };
-    let res = update_user(
-        admin_id,
-        user_id,
-        up_req,
-        &ctx,
-    )
-        .await;
+    let res = update_user(admin_id, user_id, up_req, &ctx).await;
     assert!(res.is_err());
 }

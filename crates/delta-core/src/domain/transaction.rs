@@ -1,5 +1,5 @@
-use crate::domain::user::UserId;
 use crate::domain::DomainError;
+use crate::domain::user::UserId;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::ops::Add;

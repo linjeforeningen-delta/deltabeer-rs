@@ -77,7 +77,7 @@ fn topup_requires_active_admin() {
         VALUES ('t1', 'u1', 'topup', 100, 'a1', 0)
     ",
     )
-        .execute(&mut conn);
+    .execute(&mut conn);
 
     assert!(result.is_err());
 }
@@ -103,7 +103,7 @@ fn spend_cannot_have_approved_by() {
         VALUES ('t1', 'u1', 'spend', 10, 'u1', 0)
     ",
     )
-        .execute(&mut conn);
+    .execute(&mut conn);
 
     assert!(result.is_err());
 }
@@ -125,7 +125,7 @@ fn transaction_source_is_restricted() {
         "INSERT INTO transactions (id, user_id, kind, amount, source, approved_by, created_at)
          VALUES ('t1', 'u1', 'spend', 10, 'imported', NULL, 0)",
     )
-        .execute(&mut conn);
+    .execute(&mut conn);
 
     assert!(result.is_err());
 }
@@ -152,7 +152,7 @@ fn approved_by_must_be_admin() {
         VALUES ('t1', 'u1', 'topup', 100, 'u2', 0)
     ",
     )
-        .execute(&mut conn);
+    .execute(&mut conn);
 
     assert!(result.is_err());
 }
@@ -179,8 +179,8 @@ fn active_admin_can_approve_topup() {
         VALUES ('g1', 'a1', 'hash', 0, 'a1')
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result = diesel::sql_query(
         "
@@ -188,7 +188,7 @@ fn active_admin_can_approve_topup() {
         VALUES ('t1', 'u1', 'topup', 100, 'a1', 0)
     ",
     )
-        .execute(&mut conn);
+    .execute(&mut conn);
 
     assert!(result.is_ok());
 }
@@ -214,8 +214,8 @@ fn cannot_delete_admin_user() {
         VALUES ('g1', 'a1', 'hash', 0, 'a1')
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result = diesel::sql_query("DELETE FROM users WHERE id = 'a1'").execute(&mut conn);
 
@@ -243,8 +243,8 @@ fn admin_cannot_revoke_themselves() {
         VALUES ('g1', 'a1', 'hash', 0, 'a1')
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result =
         diesel::sql_query("UPDATE admins SET revoked_at = 100, revoked_by = 'a1' WHERE id = 'g1'")
@@ -275,8 +275,8 @@ fn admin_revocation_must_be_complete() {
         VALUES ('g1', 'a1', 'hash', 0, 'a1')
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result =
         diesel::sql_query("UPDATE admins SET revoked_at = 100 WHERE id = 'g1'").execute(&mut conn);
@@ -338,8 +338,8 @@ fn admin_token_identity_is_immutable() {
         VALUES ('t1', 'u1', 100, 1, 0)
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result = diesel::sql_query("UPDATE admin_tokens SET token = 't2' WHERE token = 't1'")
         .execute(&mut conn);
@@ -371,8 +371,8 @@ fn admin_token_expiry_cannot_be_extended() {
         VALUES ('t1', 'u1', 100, 1, 0)
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     // Extending expiry should fail
     let result = diesel::sql_query("UPDATE admin_tokens SET expires_at = 200 WHERE token = 't1'")
@@ -428,8 +428,8 @@ fn transactions_are_immutable() {
         VALUES ('t1', 'u1', 'spend', 10, NULL, 0)
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result =
         diesel::sql_query("UPDATE transactions SET amount = 20 WHERE id = 't1'").execute(&mut conn);
@@ -460,8 +460,8 @@ fn only_one_active_admin_per_user() {
         VALUES ('g1', 'a1', 'hash', 0, 'a1')
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     // Trying to add another active admin record for same user should fail due to unique index
     let result = diesel::sql_query(
@@ -470,7 +470,7 @@ fn only_one_active_admin_per_user() {
         VALUES ('g2', 'a1', 'hash2', 10, 'a1')
     ",
     )
-        .execute(&mut conn);
+    .execute(&mut conn);
 
     assert!(result.is_err());
 }
@@ -543,8 +543,8 @@ fn admin_grant_records_are_immutable() {
         VALUES ('g1', 'a1', 'hash', 10, 'a1')
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result =
         diesel::sql_query("UPDATE admins SET granted_at = 20 WHERE id = 'g1'").execute(&mut conn);
@@ -576,7 +576,7 @@ fn transaction_amount_must_be_positive() {
         VALUES ('t1', 'u1', 'spend', -10, NULL, 0)
     ",
     )
-        .execute(&mut conn);
+    .execute(&mut conn);
 
     assert!(result.is_err());
 }
@@ -602,8 +602,8 @@ fn cannot_delete_admin_tokens() {
         VALUES ('t1', 'u1', 100, 1, 0)
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result =
         diesel::sql_query("DELETE FROM admin_tokens WHERE token = 't1'").execute(&mut conn);
@@ -631,8 +631,8 @@ fn admin_token_created_at_is_immutable() {
         VALUES ('t1', 'u1', 100, 1, 0)
     ",
     )
-        .execute(&mut conn)
-        .unwrap();
+    .execute(&mut conn)
+    .unwrap();
 
     let result = diesel::sql_query("UPDATE admin_tokens SET created_at = 10 WHERE token = 't1'")
         .execute(&mut conn);

@@ -5,12 +5,11 @@ use delta_core::services::context::Ctx;
 use std::sync::Arc;
 
 pub(crate) trait StateRepoBounds:
-AdminRepo + TransactionRepo + UserRepo + Send + Sync + 'static
-{}
+    AdminRepo + TransactionRepo + UserRepo + Send + Sync + 'static
+{
+}
 
-impl<T> StateRepoBounds for T
-where
-    T: AdminRepo + TransactionRepo + UserRepo + Send + Sync + 'static,
+impl<T> StateRepoBounds for T where T: AdminRepo + TransactionRepo + UserRepo + Send + Sync + 'static
 {}
 
 #[derive(Clone)]

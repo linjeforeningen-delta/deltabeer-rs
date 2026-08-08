@@ -5,7 +5,8 @@ use common::TestEnv;
 use delta_core::domain::{Amount, Role, User, UserId};
 use delta_core::ports::repo::{AdminRepo, UserRepo};
 use delta_core::services::auth::{
-    grant_admin, issue_admin_pass, issue_admin_session, login, update_password, validate_authorization,
+    grant_admin, issue_admin_pass, issue_admin_session, login, update_password,
+    validate_authorization,
 };
 use rand_core::RngCore;
 use uuid::Uuid;
@@ -31,8 +32,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
             at: Utc::now(),
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
     AdminRepo::grant_admin(
         &env.repo,
         delta_core::domain::AdminGrantId(Uuid::now_v7()),
@@ -43,8 +44,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
             at: Utc::now(),
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 }
 
 #[tokio::test]
@@ -54,7 +55,6 @@ async fn test_auth_flow() {
 
     let root_id = UserId(Uuid::now_v7());
     setup_admin(&env, root_id, "root").await;
-
 
     let user_id = UserId(Uuid::now_v7());
     let user = User {
@@ -77,8 +77,8 @@ async fn test_auth_flow() {
             at: Utc::now(),
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     let password = "secret-password".to_string();
     grant_admin(root_id, user_id, password.clone(), &ctx)
@@ -121,8 +121,8 @@ async fn test_revoke_admin() {
             at: Utc::now(),
         },
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     grant_admin(root_id, user_id, "pass".to_string(), &ctx)
         .await
