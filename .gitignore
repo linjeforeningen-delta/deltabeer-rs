@@ -10,5 +10,8 @@
 out
 gen
 
+# Database files
+.sqlite
+
 # Misc
 TODO.md
