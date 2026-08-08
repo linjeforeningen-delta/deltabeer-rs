@@ -67,6 +67,9 @@ impl TryFrom<&TransactionRow> for Transaction {
     type Error = MappingError;
 
     fn try_from(value: &TransactionRow) -> Result<Self, Self::Error> {
+        let source = TransactionSource::try_from(value.source.as_str())
+            .map_err(|_| MappingError::CorruptData)?;
+
         match (value.kind.as_str(), value.approved_by.clone()) {
             ("spend", None) => Ok(Transaction::Spend {
                 id: parse_id(&value.id)?,
@@ -74,6 +77,7 @@ impl TryFrom<&TransactionRow> for Transaction {
                 amount: Amount::try_from(value.amount)?,
                 ts: chrono::DateTime::from_timestamp(value.created_at, 0)
                     .ok_or(MappingError::CorruptData)?,
+                source,
             }),
             ("topup", Some(approver_id)) => Ok(Transaction::TopUp {
                 id: parse_id(&value.id)?,
@@ -82,6 +86,7 @@ impl TryFrom<&TransactionRow> for Transaction {
                 ts: chrono::DateTime::from_timestamp(value.created_at, 0)
                     .ok_or(MappingError::CorruptData)?,
                 approved_by: parse_id(&approver_id)?,
+                source,
             }),
             _ => Err(MappingError::CorruptData),
         }
@@ -97,11 +102,13 @@ impl From<&Transaction> for NewTransaction {
                 amount,
                 approved_by,
                 ts,
+                source,
             } => NewTransaction {
                 id: id.0.to_string(),
                 user_id: user_id.0.to_string(),
                 kind: "topup".to_string(),
                 amount: amount.0 as i64,
+                source: source.as_str().to_string(),
                 approved_by: Some(approved_by.0.to_string()),
                 created_at: ts.timestamp(),
             },
@@ -111,11 +118,13 @@ impl From<&Transaction> for NewTransaction {
                 user_id,
                 amount,
                 ts,
+                source,
             } => NewTransaction {
                 id: id.0.to_string(),
                 user_id: user_id.0.to_string(),
                 kind: "spend".to_string(),
                 amount: amount.0 as i64,
+                source: source.as_str().to_string(),
                 approved_by: None,
                 created_at: ts.timestamp(),
             },

@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
 use delta_core::domain::{
-    ActionRecord, AdminGrantId, Amount, PasswordHash, Role, Transaction, TransactionId, User,
-    UserId,
+    ActionRecord, AdminGrantId, Amount, PasswordHash, Role, Transaction, TransactionId,
+    TransactionSource, User, UserId,
 };
 use delta_core::infra::id::UuidIdGenerator;
 use delta_core::infra::token::OpaqueTokenSource;
@@ -178,6 +178,7 @@ impl TransactionRepo for InMemoryRepo {
             user_id,
             amount,
             ts,
+            source: TransactionSource::Live,
         };
         self.transactions.lock().unwrap().push(tx.clone());
         Ok(tx)
@@ -201,6 +202,7 @@ impl TransactionRepo for InMemoryRepo {
             amount,
             ts,
             approved_by: *approved_by,
+            source: TransactionSource::Live,
         };
         self.transactions.lock().unwrap().push(tx.clone());
         Ok(tx)

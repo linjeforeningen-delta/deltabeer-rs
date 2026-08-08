@@ -96,6 +96,7 @@ pub struct TransactionRow {
     pub user_id: String,
     pub kind: String,
     pub amount: i64,
+    pub source: String,
     pub approved_by: Option<String>,
     pub created_at: i64,
 }
@@ -107,6 +108,7 @@ pub struct NewTransaction {
     pub user_id: String,
     pub kind: String,
     pub amount: i64,
+    pub source: String,
     pub approved_by: Option<String>,
     pub created_at: i64,
 }

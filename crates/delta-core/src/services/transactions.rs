@@ -40,7 +40,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::{Amount, Transaction, TransactionId, UserId};
+    use crate::domain::{Amount, Transaction, TransactionId, TransactionSource, UserId};
     use crate::ports::repo::{RepoError, TokenRepo, TransactionRepo, UserRepo};
     use crate::ports::{Clock, IdGenerator, TokenSource};
     use crate::services::auth::{AdminToken, TokenData, TokenKind};
@@ -97,6 +97,7 @@ mod tests {
                 user_id: user,
                 amount,
                 ts,
+                source: TransactionSource::Live,
             })
         }
         async fn top_up(
@@ -113,6 +114,7 @@ mod tests {
                 amount,
                 ts,
                 approved_by: *approved_by,
+                source: TransactionSource::Live,
             })
         }
     }

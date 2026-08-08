@@ -22,6 +22,36 @@ pub enum TransactionKind {
     TopUp,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
+pub enum TransactionSource {
+    Live,
+    Migration,
+    Adjustment,
+}
+
+impl TransactionSource {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Live => "live",
+            Self::Migration => "migration",
+            Self::Adjustment => "adjustment",
+        }
+    }
+}
+
+impl TryFrom<&str> for TransactionSource {
+    type Error = ();
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "live" => Ok(Self::Live),
+            "migration" => Ok(Self::Migration),
+            "adjustment" => Ok(Self::Adjustment),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 pub enum Approval {
     NotRequired,
@@ -71,6 +101,7 @@ pub enum Transaction {
         user_id: UserId,
         amount: Amount,
         ts: DateTime<Utc>,
+        source: TransactionSource,
     },
     TopUp {
         id: TransactionId,
@@ -78,6 +109,7 @@ pub enum Transaction {
         amount: Amount,
         ts: DateTime<Utc>,
         approved_by: UserId,
+        source: TransactionSource,
     },
 }
 

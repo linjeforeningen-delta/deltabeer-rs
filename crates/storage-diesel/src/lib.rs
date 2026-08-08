@@ -14,7 +14,8 @@ use std::path::Path;
 use thiserror::Error;
 
 use delta_core::domain::{
-    ActionRecord, AdminGrantId, Amount, PasswordHash, Transaction, TransactionId, User, UserId,
+    ActionRecord, AdminGrantId, Amount, PasswordHash, Transaction, TransactionId,
+    TransactionSource, User, UserId,
 };
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -293,6 +294,7 @@ impl TransactionRepo for DieselRepo {
                     user_id: user_id_val,
                     amount: amount_val,
                     ts: dt,
+                    source: TransactionSource::Live,
                 };
 
                 diesel::insert_into(transactions)
@@ -345,6 +347,7 @@ impl TransactionRepo for DieselRepo {
                     amount: amount_val,
                     ts: dt,
                     approved_by: approved_by_id,
+                    source: TransactionSource::Live,
                 };
 
                 diesel::insert_into(transactions)

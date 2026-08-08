@@ -61,6 +61,7 @@ pub struct Transaction {
     pub amount: Amount,
     pub timestamp: DateTime<Utc>,
     pub approved_by: Option<Uuid>,
+    pub source: TransactionSource,
 }
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
@@ -68,6 +69,14 @@ pub struct Transaction {
 pub enum TransactionKind {
     Spend,
     TopUp,
+}
+#[allow(dead_code)]
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum TransactionSource {
+    Live,
+    Migration,
+    Adjustment,
 }
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]

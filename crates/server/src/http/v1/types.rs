@@ -74,6 +74,14 @@ pub enum TransactionKindDto {
 
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub enum TransactionSourceDto {
+    Live,
+    Migration,
+    Adjustment,
+}
+
+#[derive(Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct TransactionDto {
     pub id: TransactionIdDto,
     pub user_id: UserIdDto,
@@ -81,6 +89,7 @@ pub struct TransactionDto {
     pub amount: AmountDto,
     pub timestamp: DateTime<Utc>,
     pub approved_by: Option<UserIdDto>,
+    pub source: TransactionSourceDto,
 }
 
 #[derive(Deserialize, ToSchema)]

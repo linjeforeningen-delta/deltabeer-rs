@@ -93,6 +93,16 @@ impl From<&TransactionId> for TransactionIdDto {
     }
 }
 
+impl From<TransactionSource> for TransactionSourceDto {
+    fn from(value: TransactionSource) -> Self {
+        match value {
+            TransactionSource::Live => Self::Live,
+            TransactionSource::Migration => Self::Migration,
+            TransactionSource::Adjustment => Self::Adjustment,
+        }
+    }
+}
+
 impl From<TransactionIdDto> for TransactionId {
     fn from(value: TransactionIdDto) -> Self {
         TransactionId(value.0)
@@ -107,6 +117,7 @@ impl From<&Transaction> for TransactionDto {
                 user_id,
                 amount,
                 ts,
+                source,
             } => TransactionDto {
                 id: id.into(),
                 user_id: user_id.into(),
@@ -114,6 +125,7 @@ impl From<&Transaction> for TransactionDto {
                 amount: amount.into(),
                 timestamp: *ts,
                 approved_by: None,
+                source: (*source).into(),
             },
             Transaction::TopUp {
                 id,
@@ -121,6 +133,7 @@ impl From<&Transaction> for TransactionDto {
                 amount,
                 ts,
                 approved_by,
+                source,
             } => TransactionDto {
                 id: id.into(),
                 user_id: user_id.into(),
@@ -128,6 +141,7 @@ impl From<&Transaction> for TransactionDto {
                 amount: amount.into(),
                 timestamp: *ts,
                 approved_by: Some(approved_by.into()),
+                source: (*source).into(),
             },
         }
     }
@@ -143,6 +157,7 @@ impl TryFrom<TransactionDto> for Transaction {
                 user_id: dto.user_id.into(),
                 amount: dto.amount.into(),
                 ts: dto.timestamp,
+                source: TransactionSource::Live,
             }),
 
             (TransactionKindDto::TopUp, Some(approved_by)) => Ok(Transaction::TopUp {
@@ -151,6 +166,7 @@ impl TryFrom<TransactionDto> for Transaction {
                 amount: dto.amount.into(),
                 ts: dto.timestamp,
                 approved_by: approved_by.into(),
+                source: TransactionSource::Live,
             }),
 
             (TransactionKindDto::Spend, Some(_)) => Err(MappingError::UnexpectedApproval),

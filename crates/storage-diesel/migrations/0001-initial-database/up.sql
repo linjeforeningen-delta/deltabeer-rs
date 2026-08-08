@@ -119,6 +119,7 @@ CREATE TABLE transactions
     user_id     TEXT             NOT NULL,
     kind        TEXT             NOT NULL,
     amount      BIGINT           NOT NULL,
+    source      TEXT             NOT NULL DEFAULT 'live',
     approved_by TEXT,
     created_at  BIGINT           NOT NULL, -- unix timestamp
 
@@ -138,7 +139,8 @@ CREATE TABLE transactions
             (kind = 'spend' AND approved_by IS NULL)
             )
         ),
-    CHECK (amount >= 0)
+    CHECK (amount >= 0),
+    CHECK (source IN ('live', 'migration', 'adjustment'))
 );
 
 -- Prevent deletion of transaction history

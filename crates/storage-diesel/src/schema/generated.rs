@@ -29,6 +29,7 @@ diesel::table! {
         user_id -> Text,
         kind -> Text,
         amount -> BigInt,
+        source -> Text,
         approved_by -> Nullable<Text>,
         created_at -> BigInt,
     }
