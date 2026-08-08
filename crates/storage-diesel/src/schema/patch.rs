@@ -5,6 +5,7 @@ diesel::table! {
         id -> Text,
         name -> Text,
         username -> Text,
+        program -> Text,
         card_number -> BigInt,
         birthdate -> Text,
         comments -> Text,

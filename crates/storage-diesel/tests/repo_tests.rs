@@ -27,6 +27,7 @@ fn create_test_user(id: UserId, username: &str) -> User {
         id,
         name: format!("Name {}", username),
         username: username.to_string(),
+        program: "Test Program".to_string(),
         card_number,
         role: Role::User,
         birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),

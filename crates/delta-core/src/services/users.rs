@@ -39,6 +39,7 @@ where
 pub struct CreateUser {
     pub name: String,
     pub username: String,
+    pub program: String,
     pub card_number: u32,
     pub birthdate: NaiveDate,
 }
@@ -62,6 +63,7 @@ where
         id: id.clone(),
         name: req.name.clone(),
         username: req.username.clone(),
+        program: req.program.clone(),
         card_number: req.card_number,
         role: Role::User,
         birthdate: req.birthdate,
@@ -79,6 +81,7 @@ where
 pub struct UpdateUser {
     pub name: Option<String>,
     pub username: Option<String>,
+    pub program: Option<String>,
     pub card_number: Option<u32>,
     pub comments: Option<String>,
 }
@@ -95,6 +98,7 @@ where
     let mut user = ctx.repo.get_user(&user_id).await?;
     user.name = req.name.unwrap_or(user.name);
     user.username = req.username.unwrap_or(user.username);
+    user.program = req.program.unwrap_or(user.program);
     user.card_number = req.card_number.unwrap_or(user.card_number);
     user.comments = req.comments.unwrap_or(user.comments);
     ctx.repo.update_user(user.clone()).await?;
@@ -263,6 +267,7 @@ mod tests {
         let req = CreateUser {
             name: "John Doe".to_string(),
             username: "jdoe".to_string(),
+            program: "Computer Science".to_string(),
             card_number: 12345,
             birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
         };
@@ -302,6 +307,7 @@ mod tests {
         let req = CreateUser {
             name: "Young One".to_string(),
             username: "young".to_string(),
+            program: "Computer Science".to_string(),
             card_number: 54321,
             birthdate: NaiveDate::from_ymd_opt(2010, 1, 1).unwrap(),
         };
@@ -318,6 +324,7 @@ mod tests {
             id: user_id,
             name: "Old Name".to_string(),
             username: "old".to_string(),
+            program: "Old Program".to_string(),
             card_number: 1,
             role: Role::User,
             birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
@@ -345,6 +352,7 @@ mod tests {
         let req = UpdateUser {
             name: Some("New Name".to_string()),
             username: None,
+            program: Some("New Program".to_string()),
             card_number: Some(999),
             comments: None,
         };
@@ -356,6 +364,7 @@ mod tests {
         let updated_user = repo.get_user(&user_id).await.unwrap();
         assert_eq!(updated_user.name, "New Name");
         assert_eq!(updated_user.username, "old");
+        assert_eq!(updated_user.program, "New Program");
         assert_eq!(updated_user.card_number, 999);
     }
 }

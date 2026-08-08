@@ -164,6 +164,7 @@ mod tests {
                 id: *key,
                 name: "".to_string(),
                 username: "".to_string(),
+                program: "".to_string(),
                 card_number: 0,
                 role: Role::Admin,
                 birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),

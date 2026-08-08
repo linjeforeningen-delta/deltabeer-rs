@@ -10,6 +10,7 @@ CREATE TABLE users
     id          TEXT PRIMARY KEY NOT NULL,
     name        TEXT             NOT NULL,
     username    TEXT             NOT NULL UNIQUE,
+    program     TEXT             NOT NULL DEFAULT '',
     card_number BIGINT           NOT NULL UNIQUE,
     birthdate   TEXT             NOT NULL, -- YYYY-MM-DD
     comments    TEXT             NOT NULL DEFAULT '',

@@ -203,18 +203,22 @@ fn create_args(a: &[&str]) -> Result<CreateUser, anyhow::Error> {
     Ok(CreateUser {
         name: a
             .first()
-            .ok_or_else(|| anyhow::anyhow!("Use: name|username|card|YYYY-MM-DD"))?
+            .ok_or_else(|| anyhow::anyhow!("Use: name|username|program|card|YYYY-MM-DD"))?
             .to_string(),
         username: a
             .get(1)
             .ok_or_else(|| anyhow::anyhow!("missing username"))?
             .to_string(),
-        card_number: a
+        program: a
             .get(2)
+            .ok_or_else(|| anyhow::anyhow!("missing program"))?
+            .to_string(),
+        card_number: a
+            .get(3)
             .ok_or_else(|| anyhow::anyhow!("missing card"))?
             .to_string(),
         birthdate: NaiveDate::parse_from_str(
-            a.get(3)
+            a.get(4)
                 .ok_or_else(|| anyhow::anyhow!("missing birthdate"))?,
             "%Y-%m-%d",
         )?,
@@ -222,13 +226,15 @@ fn create_args(a: &[&str]) -> Result<CreateUser, anyhow::Error> {
 }
 fn update_args<'a>(a: &'a [&'a str]) -> Result<(&'a str, PatchUser), anyhow::Error> {
     Ok((
-        a.first()
-            .ok_or_else(|| anyhow::anyhow!("Use: identifier|name|username|card|comments"))?,
+        a.first().ok_or_else(|| {
+            anyhow::anyhow!("Use: identifier|name|username|program|card|comments")
+        })?,
         PatchUser {
             name: a.get(1).filter(|x| !x.is_empty()).map(|x| x.to_string()),
             username: a.get(2).filter(|x| !x.is_empty()).map(|x| x.to_string()),
-            card_number: a.get(3).filter(|x| !x.is_empty()).map(|x| x.to_string()),
-            comments: a.get(4).map(|x| x.to_string()),
+            program: a.get(3).filter(|x| !x.is_empty()).map(|x| x.to_string()),
+            card_number: a.get(4).filter(|x| !x.is_empty()).map(|x| x.to_string()),
+            comments: a.get(5).map(|x| x.to_string()),
         },
     ))
 }
@@ -447,8 +453,11 @@ async fn handle(a: &mut App, k: KeyEvent) -> bool {
         KeyCode::Char('u') => a.begin(Action::User, "identifier"),
         KeyCode::Char('s') => a.begin(Action::Spend, "identifier|amount"),
         KeyCode::Char('t') => a.begin(Action::Topup, "identifier|amount"),
-        KeyCode::Char('c') => a.begin(Action::Create, "name|username|card|YYYY-MM-DD"),
-        KeyCode::Char('e') => a.begin(Action::Update, "identifier|name|username|card|comments"),
+        KeyCode::Char('c') => a.begin(Action::Create, "name|username|program|card|YYYY-MM-DD"),
+        KeyCode::Char('e') => a.begin(
+            Action::Update,
+            "identifier|name|username|program|card|comments",
+        ),
         KeyCode::Char('a') => a.begin(Action::Role, "identifier|admin or identifier|user"),
         _ => {}
     }

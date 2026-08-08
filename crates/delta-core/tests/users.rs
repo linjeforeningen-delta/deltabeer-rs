@@ -14,6 +14,7 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
         id,
         name: "Admin".to_string(),
         username: format!("admin-{}", Uuid::now_v7()),
+        program: "Administration".to_string(),
         card_number: os_rng.next_u32(),
         role: Role::Admin,
         birthdate: chrono::NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
@@ -56,6 +57,7 @@ async fn test_user_lifecycle() {
     let req = CreateUser {
         name: "Alice".to_string(),
         username: "alice".to_string(),
+        program: "Computer Science".to_string(),
         card_number: 111,
         birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
     };
@@ -68,6 +70,7 @@ async fn test_user_lifecycle() {
     let up_req = UpdateUser {
         name: Some("Alice Updated".to_string()),
         username: None,
+        program: None,
         card_number: Some(222),
         comments: Some("Updated comments".to_string()),
     };
@@ -92,6 +95,7 @@ async fn test_create_user_underage() {
     let req = CreateUser {
         name: "Kid".to_string(),
         username: "kid".to_string(),
+        program: "Computer Science".to_string(),
         card_number: 999,
         birthdate: env.clock.0.date_naive() - chrono::Duration::days(10 * 365),
     };
@@ -109,6 +113,7 @@ async fn test_resolve_user_scenarios() {
         id: user_id,
         name: "Bob".to_string(),
         username: "bob123".to_string(),
+        program: "Computer Science".to_string(),
         card_number: 12345,
         role: Role::User,
         birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
@@ -168,6 +173,7 @@ async fn test_update_user_partial() {
         id: user_id,
         name: "Alice".to_string(),
         username: "alice".to_string(),
+        program: "Old Program".to_string(),
         card_number: 100,
         role: Role::User,
         birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
@@ -189,6 +195,7 @@ async fn test_update_user_partial() {
     let up_req = UpdateUser {
         name: None,
         username: None,
+        program: None,
         card_number: Some(500),
         comments: None,
     };
@@ -228,6 +235,7 @@ async fn test_update_user_unauthorized() {
     let up_req = UpdateUser {
         name: Some("New".to_string()),
         username: None,
+        program: None,
         card_number: None,
         comments: None,
     };

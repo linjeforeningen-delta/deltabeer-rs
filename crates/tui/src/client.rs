@@ -24,6 +24,7 @@ pub struct User {
     pub id: Uuid,
     pub name: String,
     pub username: String,
+    pub program: String,
     pub card_number: u32,
     pub role: Role,
     pub birthdate: NaiveDate,
@@ -105,6 +106,7 @@ pub struct Credentials {
 pub struct CreateUser {
     pub name: String,
     pub username: String,
+    pub program: String,
     pub card_number: String,
     pub birthdate: NaiveDate,
 }
@@ -113,6 +115,7 @@ pub struct CreateUser {
 pub struct PatchUser {
     pub name: Option<String>,
     pub username: Option<String>,
+    pub program: Option<String>,
     pub card_number: Option<String>,
     pub comments: Option<String>,
 }

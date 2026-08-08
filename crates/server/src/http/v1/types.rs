@@ -32,6 +32,7 @@ pub struct UserDto {
     pub name: String,
     #[schema(example = "adalov")]
     pub username: String,
+    pub program: String,
     #[schema(example = 123456)]
     pub card_number: u32,
     pub role: RoleDto,
@@ -50,6 +51,8 @@ pub struct UserPatchDto {
     pub name: Option<String>,
     #[schema(nullable, example = "adalov")]
     pub username: Option<String>,
+    #[schema(nullable, example = "computer science")]
+    pub program: Option<String>,
     #[schema(nullable, example = "123456")]
     pub card_number: Option<String>,
     #[schema(nullable, example = "Author of Note G")]
@@ -61,6 +64,7 @@ pub struct UserPatchDto {
 pub struct UserCreateRequestDto {
     pub name: String,
     pub username: String,
+    pub program: String,
     pub card_number: String,
     pub birthdate: NaiveDate,
 }

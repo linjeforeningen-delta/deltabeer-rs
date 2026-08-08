@@ -68,6 +68,7 @@ pub struct User {
     pub id: UserId,
     pub name: String,
     pub username: String,
+    pub program: String,
     pub card_number: u32,
     pub role: Role,
     pub birthdate: NaiveDate,

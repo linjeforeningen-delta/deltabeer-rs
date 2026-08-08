@@ -184,6 +184,7 @@ async fn new_user(
         services::users::CreateUser {
             name: payload.name,
             username: payload.username,
+            program: payload.program,
             card_number,
             birthdate: payload.birthdate,
         },
@@ -229,6 +230,7 @@ async fn update_user(
         services::users::UpdateUser {
             name: payload.name,
             username: payload.username,
+            program: payload.program,
             card_number,
             comments: payload.comments,
         },

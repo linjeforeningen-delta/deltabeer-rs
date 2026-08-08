@@ -151,6 +151,7 @@ impl UserRepo for DieselRepo {
                     id: user.id.0.to_string(),
                     name: user.name,
                     username: user.username,
+                    program: user.program,
                     card_number: user.card_number as i64,
                     birthdate: user.birthdate.format("%Y-%m-%d").to_string(),
                     comments: user.comments,
@@ -171,6 +172,7 @@ impl UserRepo for DieselRepo {
                 .set((
                     name.eq(user.name),
                     username.eq(user.username),
+                    program.eq(user.program),
                     card_number.eq(user.card_number as i64),
                     comments.eq(user.comments),
                     balance.eq(i64::from(user.balance)),

@@ -41,6 +41,7 @@ impl TryFrom<&UserWithRoleRow> for User {
             id: parse_id(&value.id)?,
             name: value.name.clone(),
             username: value.username.clone(),
+            program: value.program.clone(),
             card_number: value
                 .card_number
                 .try_into()
