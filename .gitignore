@@ -11,7 +11,7 @@ out
 gen
 
 # Database files
-.sqlite
+*.sqlite
 
 # Misc
 TODO.md
