@@ -104,12 +104,12 @@ pub async fn grant_admin<R>(
 where
     R: AdminRepo + ?Sized,
 {
-    let now = ctx.clock.now();
+    let dt = ctx.clock.now();
     let hash = hash_password(&*password);
 
-    let grant_id = ctx.ids.generate_admin_grant_id();
+    let grant_id = ctx.ids.generate_admin_grant_id(&dt);
 
-    let record = ActionRecord { actor, at: now };
+    let record = ActionRecord { actor, at: dt };
 
     ctx.repo
         .grant_admin(grant_id, user_id, hash, record)
@@ -275,13 +275,13 @@ mod tests {
 
     struct MockIds;
     impl IdGenerator for MockIds {
-        fn generate_user_id(&self) -> UserId {
+        fn generate_user_id(&self, _dt: &DateTime<Utc>) -> UserId {
             UserId(Uuid::nil())
         }
-        fn generate_transaction_id(&self) -> crate::domain::TransactionId {
+        fn generate_transaction_id(&self, _dt: &DateTime<Utc>) -> crate::domain::TransactionId {
             crate::domain::TransactionId(Uuid::nil())
         }
-        fn generate_admin_grant_id(&self) -> crate::domain::AdminGrantId {
+        fn generate_admin_grant_id(&self, _dt: &DateTime<Utc>) -> crate::domain::AdminGrantId {
             crate::domain::AdminGrantId(Uuid::nil())
         }
     }

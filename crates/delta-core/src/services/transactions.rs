@@ -11,7 +11,8 @@ pub async fn spend<R>(
 where
     R: TransactionRepo + UserRepo + ?Sized,
 {
-    let tx_id = ctx.ids.generate_transaction_id();
+    let dt = ctx.clock.now();
+    let tx_id = ctx.ids.generate_transaction_id(&dt);
     let tx = ctx
         .repo
         .spend(tx_id, user_id, amount, ctx.clock.now())
@@ -28,12 +29,10 @@ pub async fn top_up<R>(
 where
     R: TransactionRepo + ?Sized,
 {
-    let tx_id = ctx.ids.generate_transaction_id();
+    let dt = ctx.clock.now();
+    let tx_id = ctx.ids.generate_transaction_id(&dt);
 
-    let tx = ctx
-        .repo
-        .top_up(tx_id, user_id, amount, &actor, ctx.clock.now())
-        .await?;
+    let tx = ctx.repo.top_up(tx_id, user_id, amount, &actor, dt).await?;
     Ok(tx)
 }
 
@@ -153,13 +152,13 @@ mod tests {
 
     struct MockIds;
     impl IdGenerator for MockIds {
-        fn generate_user_id(&self) -> UserId {
+        fn generate_user_id(&self, _dt: &DateTime<Utc>) -> UserId {
             UserId(Uuid::nil())
         }
-        fn generate_transaction_id(&self) -> TransactionId {
+        fn generate_transaction_id(&self, _dt: &DateTime<Utc>) -> TransactionId {
             TransactionId(Uuid::nil())
         }
-        fn generate_admin_grant_id(&self) -> crate::domain::AdminGrantId {
+        fn generate_admin_grant_id(&self, _dt: &DateTime<Utc>) -> crate::domain::AdminGrantId {
             crate::domain::AdminGrantId(Uuid::nil())
         }
     }

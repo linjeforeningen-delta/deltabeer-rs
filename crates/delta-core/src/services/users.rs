@@ -57,7 +57,7 @@ where
     }
 
     let dt = ctx.clock.now();
-    let id = ctx.ids.generate_user_id();
+    let id = ctx.ids.generate_user_id(&dt);
 
     let user = User {
         id: id.clone(),
@@ -207,13 +207,13 @@ mod tests {
 
     struct MockIds;
     impl IdGenerator for MockIds {
-        fn generate_user_id(&self) -> UserId {
+        fn generate_user_id(&self, _dt: &DateTime<Utc>) -> UserId {
             UserId(Uuid::nil())
         }
-        fn generate_transaction_id(&self) -> crate::domain::TransactionId {
+        fn generate_transaction_id(&self, _dt: &DateTime<Utc>) -> crate::domain::TransactionId {
             crate::domain::TransactionId(Uuid::nil())
         }
-        fn generate_admin_grant_id(&self) -> crate::domain::AdminGrantId {
+        fn generate_admin_grant_id(&self, _dt: &DateTime<Utc>) -> crate::domain::AdminGrantId {
             crate::domain::AdminGrantId(Uuid::nil())
         }
     }
