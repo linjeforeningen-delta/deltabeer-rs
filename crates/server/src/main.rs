@@ -37,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
         .with_state(app_state) // attach state on the parent
         .layer(tower_http::trace::TraceLayer::new_for_http());
 
-    let listener = TcpListener::bind("000.0.0.0:0").await?;
+    let listener = TcpListener::bind("000.0.0.0:3000").await?;
     let addr = listener.local_addr()?;
     tracing::info!("server started");
     tracing::info!(%addr, "Server listening on http://{addr}");

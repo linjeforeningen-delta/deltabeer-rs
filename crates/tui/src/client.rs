@@ -165,7 +165,8 @@ impl ApiClient {
                 .unwrap_or_else(|| "API request failed".into())
         )
     }
-    pub async fn login(&mut self, user_id: Uuid, password: String) -> Result<()> {
+    pub async fn login(&mut self, card_number: u32, password: String) -> Result<()> {
+        let user_id = self.resolve(&card_number.to_string()).await?;
         let pass_token: String = self
             .json(
                 self.request(Method::POST, "/v1/admins/pass")

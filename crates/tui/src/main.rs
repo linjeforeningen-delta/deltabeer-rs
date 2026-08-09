@@ -17,7 +17,6 @@ use ratatui::{
     widgets::{Block, Borders, Cell, Clear, List, ListItem, Paragraph, Row, Table, Tabs, Wrap},
 };
 use std::{io, time::Duration};
-use uuid::Uuid;
 
 #[derive(Clone, Copy, PartialEq)]
 enum Screen {
@@ -55,7 +54,7 @@ struct App {
     input: String,
     prompt: Option<(Action, String)>,
     login: bool,
-    login_id: String,
+    login_card: String,
     login_password: String,
     login_field: usize,
     status: String,
@@ -81,7 +80,7 @@ impl App {
             input: String::new(),
             prompt: None,
             login: false,
-            login_id: String::new(),
+            login_card: String::new(),
             login_password: String::new(),
             login_field: 0,
             status: "Connect to DeltaBeer admin API".into(),
@@ -364,22 +363,24 @@ async fn handle(a: &mut App, k: KeyEvent) -> bool {
             KeyCode::Tab => a.login_field = (a.login_field + 1) % 2,
             KeyCode::Backspace => {
                 if a.login_field == 0 {
-                    a.login_id.pop();
+                    a.login_card.pop();
                 } else {
                     a.login_password.pop();
                 }
             }
             KeyCode::Char(c) if !k.modifiers.contains(KeyModifiers::CONTROL) => {
                 if a.login_field == 0 {
-                    a.login_id.push(c)
+                    if c.is_ascii_digit() {
+                        a.login_card.push(c)
+                    }
                 } else {
                     a.login_password.push(c)
                 }
             }
             KeyCode::Enter => {
-                if let Ok(id) = Uuid::parse_str(&a.login_id) {
+                if let Ok(card_number) = a.login_card.parse::<u32>() {
                     a.busy = true;
-                    let r = a.api.login(id, a.login_password.clone()).await;
+                    let r = a.api.login(card_number, a.login_password.clone()).await;
                     a.busy = false;
                     match r {
                         Ok(()) => {
@@ -390,7 +391,7 @@ async fn handle(a: &mut App, k: KeyEvent) -> bool {
                         Err(e) => a.status = e.to_string(),
                     }
                 } else {
-                    a.status = "Enter a valid admin UUID".into()
+                    a.status = "Enter a valid admin card number".into()
                 }
             }
             _ => {}
@@ -433,7 +434,7 @@ async fn handle(a: &mut App, k: KeyEvent) -> bool {
         KeyCode::Char('l') => {
             let _ = a.api.logout().await;
             a.login = true;
-            a.login_id.clear();
+            a.login_card.clear();
             a.login_password.clear();
         }
         KeyCode::Char('b') => {
@@ -644,10 +645,10 @@ fn draw_general(f: &mut ratatui::Frame, area: Rect, a: &App) {
 fn draw_login(f: &mut ratatui::Frame, area: Rect, a: &App) {
     let p = centered(area, 60, 35);
     f.render_widget(Clear, p);
-    let id = if a.login_field == 0 {
-        format!("▸ {}", a.login_id)
+    let card = if a.login_field == 0 {
+        format!("▸ {}", a.login_card)
     } else {
-        a.login_id.clone()
+        a.login_card.clone()
     };
     let pw = if a.login_field == 1 {
         format!("▸ {}", "•".repeat(a.login_password.len()))
@@ -663,8 +664,8 @@ fn draw_login(f: &mut ratatui::Frame, area: Rect, a: &App) {
                     .add_modifier(Modifier::BOLD),
             ),
             Line::raw(""),
-            Line::raw("Admin UUID"),
-            Line::raw(id),
+            Line::raw("Admin card number"),
+            Line::raw(card),
             Line::raw("Password"),
             Line::raw(pw),
             Line::raw(""),
