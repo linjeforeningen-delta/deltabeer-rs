@@ -20,3 +20,19 @@ pub(crate) fn app_layout(area: Rect) -> AppLayout {
         footer: chunks[2],
     }
 }
+
+pub(crate) fn centered(
+    area: Rect,
+    width: u16,
+    height: u16,
+) -> Rect {
+    let width = width.min(area.width);
+    let height = height.min(area.height);
+
+    Rect {
+        x: area.x + area.width.saturating_sub(width) / 2,
+        y: area.y + area.height.saturating_sub(height) / 2,
+        width,
+        height,
+    }
+}
