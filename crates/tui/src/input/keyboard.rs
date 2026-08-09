@@ -46,26 +46,26 @@ fn map_key_home(
     _app: &App,
     _key: KeyEvent,
 ) -> Option<Message> {
-    todo!()
+    None
 }
 
 fn map_key_users(
     _app: &App,
     key: KeyEvent,
 ) -> Option<Message> {
-    todo!()
+    None
 }
 
 fn map_key_transactions(
     _app: &App,
     _key: KeyEvent,
 ) -> Option<Message> {
-    todo!()
+    None
 }
 
 fn map_key_stats(
     _app: &App,
     _key: KeyEvent,
 ) -> Option<Message> {
-    todo!()
+    None
 }
