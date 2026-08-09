@@ -1,3 +1,4 @@
+use crate::app::state::{Dialog, UserDialogState};
 use crate::app::{App, Message, Page};
 
 impl App {
@@ -11,6 +12,17 @@ impl App {
                 self.page = Page::Transactions;
             }
             Message::OpenStats => self.page = Page::Stats,
+
+            Message::CardScanned(card) => {
+                self.dialog = Some(Dialog::User(UserDialogState {
+                    card,
+                    amount: String::new(),
+                }));
+            }
+
+            Message::CloseDialog => {
+                self.dialog = None;
+            }
         }
     }
 }

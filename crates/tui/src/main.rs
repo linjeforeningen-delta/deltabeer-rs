@@ -41,7 +41,7 @@ fn run(
 
         if event::poll(Duration::from_millis(100))? {
             if let Event::Key(key) = event::read()? {
-                if let Some(message) = input::keyboard::map_key(key) {
+                if let Some(message) = input::keyboard::map_key(app, key) {
                     app.update(message);
                 }
             }

@@ -6,4 +6,7 @@ pub(crate) enum Message {
     OpenUsers,
     OpenTransactions,
     OpenStats,
+
+    CardScanned(String),
+    CloseDialog,
 }
