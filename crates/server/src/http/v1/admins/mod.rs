@@ -173,17 +173,13 @@ async fn new_user(
     Extension(AdminId(admin_id)): Extension<AdminId>,
     JsonIn(payload): JsonIn<UserCreateRequestDto>,
 ) -> ApiResult<UserDto> {
-    let card_number = payload
-        .card_number
-        .parse::<u32>()
-        .map_err(|_| ApiError::BadRequest("Invalid card number"))?;
     let user_id = services::users::create_user(
         admin_id,
         services::users::CreateUser {
             name: payload.name,
             username: payload.username,
             program: payload.program,
-            card_number,
+            card_number: payload.card_number,
             birthdate: payload.birthdate,
         },
         &state.ctx(),
@@ -215,13 +211,6 @@ async fn update_user(
     let user_ident =
         UserIdent::try_from(ident.as_str()).map_err(|_| ApiError::InvalidUserIdentifier)?;
     let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
-    let card_number = payload
-        .card_number
-        .as_deref()
-        .map(str::parse::<u32>)
-        .transpose()
-        .map_err(|_| ApiError::BadRequest("Invalid card number"))?;
-
     services::users::update_user(
         admin_id,
         user_id,
@@ -229,7 +218,7 @@ async fn update_user(
             name: payload.name,
             username: payload.username,
             program: payload.program,
-            card_number,
+            card_number: payload.card_number,
             comments: payload.comments,
         },
         &state.ctx(),

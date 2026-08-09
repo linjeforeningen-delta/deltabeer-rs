@@ -53,8 +53,8 @@ pub struct UserPatchDto {
     pub username: Option<String>,
     #[schema(nullable, example = "computer science")]
     pub program: Option<String>,
-    #[schema(nullable, example = "123456")]
-    pub card_number: Option<String>,
+    #[schema(nullable, example = 123456)]
+    pub card_number: Option<u32>,
     #[schema(nullable, example = "Author of Note G")]
     pub comments: Option<String>,
 }
@@ -65,7 +65,7 @@ pub struct UserCreateRequestDto {
     pub name: String,
     pub username: String,
     pub program: String,
-    pub card_number: String,
+    pub card_number: u32,
     pub birthdate: NaiveDate,
 }
 
