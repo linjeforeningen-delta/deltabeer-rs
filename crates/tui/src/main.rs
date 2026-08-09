@@ -36,15 +36,22 @@ fn run(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
     app: &mut App,
 ) -> Result<()> {
+    let mut input = input::Input::new();
+
+    
     while !app.should_quit {
         terminal.draw(|frame| ui::draw(frame, app))?;
 
-        if event::poll(Duration::from_millis(100))? {
+        if event::poll(Duration::from_millis(20))? {
             if let Event::Key(key) = event::read()? {
-                if let Some(message) = input::keyboard::map_key(app, key) {
+                for message in input.handle(app, key) {
                     app.update(message);
                 }
             }
+        }
+
+        for message in input.tick(app) {
+            app.update(message);
         }
     }
 
