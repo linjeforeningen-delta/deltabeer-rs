@@ -1,7 +1,8 @@
 pub(crate) mod layout;
 pub(crate) mod theme;
+pub mod pages;
 
-use crate::app::App;
+use crate::app::{App, Page};
 use ratatui::{
     Frame,
     style::Style,
@@ -20,10 +21,20 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
 
     frame.render_widget(header, areas.header);
 
-    frame.render_widget(
-        Paragraph::new("Main content"),
-        areas.body,
-    );
+    match app.page {
+        Page::Home => {
+            pages::home::draw(frame, areas.body, app, &theme);
+        }
+        Page::Users => {
+            pages::users::draw(frame, areas.body, app, &theme);
+        }
+        Page::Transactions => {
+            pages::transactions::draw(frame, areas.body, app, &theme);
+        }
+        Page::Stats => {
+            pages::stats::draw(frame, areas.body, app, &theme);
+        }
+    }
 
     let footer = Paragraph::new(app.status.as_str())
         .style(Style::default().fg(theme.accent))
