@@ -21,7 +21,7 @@ pub(crate) fn draw(
     let content = vec![
         Line::from("Card scanned"),
         Line::from(""),
-        Line::from(format!("Card: {}", state.card)),
+        Line::from(format!("Card: {}", state.user.card_number)),
         Line::from(""),
         Line::from("Amount:"),
         Line::from(state.amount.as_str()),

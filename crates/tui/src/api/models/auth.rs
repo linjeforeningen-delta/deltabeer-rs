@@ -13,11 +13,23 @@ pub struct Credentials {
 pub struct AdminToken(pub String);
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SessionToken(String);
+
+impl SessionToken {
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
 
 #[derive(Debug)]
 pub struct SingleUseToken(String);
+
+impl SingleUseToken {
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
 
 
 impl From<AdminToken> for SessionToken {

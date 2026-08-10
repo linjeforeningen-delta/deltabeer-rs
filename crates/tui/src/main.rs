@@ -3,7 +3,10 @@ mod ui;
 mod input;
 pub(crate) mod auth;
 pub mod api;
+mod runtime;
 
+use crate::api::client::ApiClient;
+use crate::input::Input;
 use anyhow::Result;
 use app::App;
 use crossterm::event::{self, Event};
@@ -12,9 +15,9 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
+use runtime::Runtime;
 use std::io;
 use std::time::Duration;
-
 
 fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>> {
     enable_raw_mode()?;
@@ -32,26 +35,21 @@ fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Re
 }
 
 
-fn run(
+async fn run(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
-    app: &mut App,
+    runtime: &mut Runtime,
 ) -> Result<()> {
-    let mut input = input::Input::new();
-
-    
-    while !app.should_quit {
-        terminal.draw(|frame| ui::draw(frame, app))?;
+    while !runtime.app.should_quit {
+        terminal.draw(|frame| ui::draw(frame, &runtime.app))?;
 
         if event::poll(Duration::from_millis(20))? {
             if let Event::Key(key) = event::read()? {
-                for message in input.handle(app, key) {
-                    app.update(message);
-                }
+                runtime.handle_key(key).await;
             }
         }
 
-        for message in input.tick(app) {
-            app.update(message);
+        for message in runtime.input.tick(&runtime.app) {
+            runtime.app.update(message);
         }
     }
 
@@ -59,11 +57,16 @@ fn run(
 }
 
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let mut terminal = init_terminal()?;
-    let mut app = App::new();
+    let mut runtime = Runtime::new(
+        App::new(),
+        ApiClient::new("http://localhost:3000"),
+        Input::new(),
+    );
 
-    let result = run(&mut terminal, &mut app);
+    let result = run(&mut terminal, &mut runtime).await;
 
     restore_terminal(&mut terminal)?;
     result

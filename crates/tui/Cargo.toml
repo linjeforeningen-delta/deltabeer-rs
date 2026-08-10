@@ -16,3 +16,5 @@ crossterm.workspace = true
 chrono.workspace = true
 serde.workspace = true
 uuid.workspace = true
+reqwest.workspace = true
+tokio = { version = "1.48.0", features = ["rt", "rt-multi-thread", "macros"] }

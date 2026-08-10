@@ -1,3 +1,5 @@
+use crate::api::models::user::User;
+
 #[derive(Debug)]
 pub(crate) enum Message {
     Quit,
@@ -8,5 +10,9 @@ pub(crate) enum Message {
     OpenStats,
 
     CardScanned(String),
+
+    UserLoaded(User),
+    UserLoadFailed(String),
+
     CloseDialog,
 }

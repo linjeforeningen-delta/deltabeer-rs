@@ -1,3 +1,4 @@
+use crate::api::models::user::User;
 use crate::auth::AuthState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -13,7 +14,7 @@ pub(crate) enum Dialog {
 }
 
 pub(crate) struct UserDialogState {
-    pub card: String,
+    pub user: User,
     pub amount: String,
 }
 
