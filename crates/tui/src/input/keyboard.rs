@@ -1,4 +1,4 @@
-use crate::app::{App, Message};
+use crate::app::{App, DialogMessage, InputMessage, Message, Page};
 use crossterm::event::{KeyCode, KeyEvent};
 
 pub(crate) fn map_key(
@@ -24,18 +24,18 @@ pub(crate) fn map_key(
 fn map_key_dialog(app: &App, key: KeyEvent) -> Option<Message> {
     match key.code {
         KeyCode::Char(c) if c.is_ascii_digit() => {
-            Some(Message::NumericInput(c))
+            Some(Message::Input(InputMessage::Numeric(c)))
         }
 
         KeyCode::Backspace => {
-            Some(Message::NumericBackspace)
+            Some(Message::Input(InputMessage::Backspace))
         }
 
         KeyCode::Enter => {
-            Some(Message::Submit)
+            Some(Message::Input(InputMessage::Submit))
         }
 
-        KeyCode::Esc => Some(Message::CloseDialog),
+        KeyCode::Esc => Some(Message::Dialog(DialogMessage::Close)),
 
         _ => None,
     }
@@ -45,10 +45,10 @@ fn map_key_base(app: &App, key: KeyEvent) -> Option<Message> {
     match key.code {
         KeyCode::Esc => Some(Message::Quit),
 
-        KeyCode::Char('1') => Some(Message::OpenHome),
-        KeyCode::Char('2') => Some(Message::OpenUsers),
-        KeyCode::Char('3') => Some(Message::OpenTransactions),
-        KeyCode::Char('4') => Some(Message::OpenStats),
+        KeyCode::Char('1') => Some(Message::Navigate(Page::Home)),
+        KeyCode::Char('2') => Some(Message::Navigate(Page::Users)),
+        KeyCode::Char('3') => Some(Message::Navigate(Page::Transactions)),
+        KeyCode::Char('4') => Some(Message::Navigate(Page::Stats)),
 
         _ => None,
     }

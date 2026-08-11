@@ -1,26 +1,53 @@
 use crate::api::models::transaction::Transaction;
 use crate::api::models::user::User;
+use crate::app::Page;
 
 #[derive(Debug)]
 pub(crate) enum Message {
     Quit,
 
-    OpenHome,
-    OpenUsers,
-    OpenTransactions,
-    OpenStats,
+    Navigate(Page),
 
     CardScanned(String),
 
-    UserLoaded(User),
-    UserLoadFailed(String),
+    Failed(AppError),
 
-    CloseDialog,
-    NumericBackspace,
+    User(UserMessage),
+    Dialog(DialogMessage),
+    Input(InputMessage),
+    Transaction(TransactionMessage),
+}
+
+
+#[derive(Debug)]
+pub(crate) enum AppError {
+    Api(String),
+    Validation(String),
+    Authentication(String),
+    SessionExpired,
+}
+
+
+#[derive(Debug)]
+pub(crate) enum UserMessage {
+    Loaded(User),
+    LoadFailed(String),
+}
+
+#[derive(Debug)]
+pub(crate) enum DialogMessage {
+    Close,
+}
+
+#[derive(Debug)]
+pub(crate) enum InputMessage {
+    Numeric(char),
+    Backspace,
     Submit,
-    NumericInput(char),
+}
 
+#[derive(Debug)]
+pub(crate) enum TransactionMessage {
     SpendSuccess(Transaction),
     SpendFailed(String),
 }
-
