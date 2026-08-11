@@ -48,11 +48,11 @@ pub(crate) fn draw(
             role
         )),
         Line::from(format!(
-            "Balance      {} coins",
+            "Balance      {} Δ¢",
             state.user.balance.0
         )),
         Line::from(format!(
-            "Spent        {} coins",
+            "Spent        {} Δ¢",
             state.user.spent.0
         )),
         Line::from(""),
