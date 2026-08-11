@@ -9,7 +9,6 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph},
 };
-
 pub(crate) fn draw(
     frame: &mut Frame,
     state: &UserDialogState,
@@ -18,11 +17,6 @@ pub(crate) fn draw(
     let area = centered(frame.area(), 56, 18);
 
     frame.render_widget(Clear, area);
-
-    let role = match state.user.role {
-        crate::api::models::user::Role::Admin => "Admin",
-        crate::api::models::user::Role::User => "User",
-    };
 
     let content = vec![
         Line::from(vec![
@@ -45,7 +39,7 @@ pub(crate) fn draw(
         )),
         Line::from(format!(
             "Role         {}",
-            role
+            state.user.role
         )),
         Line::from(format!(
             "Balance      {} Δ¢",
