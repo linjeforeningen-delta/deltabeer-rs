@@ -52,7 +52,7 @@ pub(crate) fn draw(
         Line::from(""),
         Line::from("Amount"),
         Line::styled(
-            format!("> {}", state.amount),
+            format!("> {:}", state.amount),
             Style::default().fg(theme.accent),
         ),
         Line::from(""),

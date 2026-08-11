@@ -15,4 +15,8 @@ pub(crate) enum Message {
     UserLoadFailed(String),
 
     CloseDialog,
+    NumericBackspace,
+    Submit,
+    NumericInput(char),
 }
+
