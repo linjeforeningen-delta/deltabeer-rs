@@ -5,7 +5,7 @@ pub(crate) fn map_key(
     app: &App,
     key: KeyEvent,
 ) -> Option<Message> {
-    if app.dialog.is_some() {
+    if !app.dialogs.is_empty() {
         return map_key_dialog(app, key);
     }
 

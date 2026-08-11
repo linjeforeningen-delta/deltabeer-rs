@@ -1,5 +1,5 @@
-use crate::api::models::user::User;
-use crate::app::NumericInput;
+use crate::app::Dialog;
+use crate::app::dialog::DialogOpenMode;
 use crate::auth::AuthState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -10,28 +10,11 @@ pub(crate) enum Page {
     Stats,
 }
 
-pub(crate) enum Dialog {
-    User(UserDialogState),
-}
-
-impl Dialog {
-    pub(crate) fn numeric_input_mut(&mut self) -> Option<&mut NumericInput> {
-        match self {
-            Dialog::User(state) => Some(&mut state.amount),
-            _ => None,
-        }
-    }
-}
-
-pub(crate) struct UserDialogState {
-    pub user: User,
-    pub amount: NumericInput,
-}
 
 pub(crate) struct App {
     pub auth: AuthState,
     pub page: Page,
-    pub dialog: Option<Dialog>,
+    pub dialogs: Vec<Dialog>,
     pub status: String,
     pub should_quit: bool,
 }
@@ -41,9 +24,31 @@ impl App {
         Self {
             auth: AuthState::Normal,
             page: Page::Home,
-            dialog: None,
+            dialogs: Vec::new(),
             status: "Ready for card".into(),
             should_quit: false,
+        }
+    }
+
+    pub(crate) fn open(
+        &mut self,
+        dialog: Dialog,
+        mode: DialogOpenMode,
+    ) {
+        match mode {
+            DialogOpenMode::Push => {
+                self.dialogs.push(dialog);
+            }
+
+            DialogOpenMode::ReplaceTop => {
+                self.dialogs.pop();
+                self.dialogs.push(dialog);
+            }
+
+            DialogOpenMode::Reset => {
+                self.dialogs.clear();
+                self.dialogs.push(dialog);
+            }
         }
     }
 }

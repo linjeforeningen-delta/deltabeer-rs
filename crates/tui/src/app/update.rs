@@ -1,7 +1,8 @@
 use crate::app::command::Command;
+use crate::app::dialog::DialogOpenMode;
 use crate::app::message::{DialogMessage, InputMessage};
-use crate::app::state::{Dialog, UserDialogState};
 use crate::app::{App, AppError, Message, NumericInput, TransactionMessage, UserMessage};
+use crate::app::{Dialog, UserDialogState};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<Command> {
@@ -71,10 +72,11 @@ impl App {
     fn update_user(&mut self, message: UserMessage) -> Option<Command> {
         match message {
             UserMessage::Loaded(user) => {
-                self.dialog = Some(Dialog::User(UserDialogState {
+                self.open(Dialog::User(UserDialogState {
                     user,
                     amount: NumericInput::new(),
-                }));
+                }),
+                          DialogOpenMode::Reset);
 
                 self.status = "User loaded".into();
                 None
@@ -90,7 +92,7 @@ impl App {
     fn update_dialog(&mut self, message: DialogMessage) -> Option<Command> {
         match message {
             DialogMessage::Close => {
-                self.dialog = None;
+                self.dialogs.pop();
                 None
             }
         }
@@ -99,7 +101,7 @@ impl App {
     fn update_input(&mut self, message: InputMessage) -> Option<Command> {
         match message {
             InputMessage::Numeric(c) => {
-                if let Some(dialog) = &mut self.dialog {
+                if let Some(dialog) = &mut self.dialogs.last_mut() {
                     if let Some(input) = dialog.numeric_input_mut() {
                         input.push(c);
                     }
@@ -109,7 +111,7 @@ impl App {
             }
 
             InputMessage::Backspace => {
-                if let Some(dialog) = &mut self.dialog {
+                if let Some(dialog) = &mut self.dialogs.last_mut() {
                     if let Some(input) = dialog.numeric_input_mut() {
                         input.backspace();
                     }
@@ -119,11 +121,11 @@ impl App {
             }
 
             InputMessage::Submit => {
-                match &mut self.dialog {
+                match &mut self.dialogs.last_mut() {
                     Some(Dialog::User(state)) => {
                         if let Some(amount) = state.amount.value() {
                             let user_id = state.user.id.clone();
-                            self.dialog = None;
+                            self.dialogs.pop();
                             Some(Command::Spend { user_id, amount })
                         } else {
                             self.status = "Invalid amount".into();
