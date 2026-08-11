@@ -6,7 +6,6 @@ use super::types::*;
 use crate::api::error::ApiError;
 use crate::api::response::ApiResult;
 use crate::state::AppState;
-use axum::response::IntoResponse;
 use axum::{
     Json, Router,
     extract::{Json as JsonIn, Path, State},
@@ -81,29 +80,27 @@ async fn resolve_user(
 
 #[utoipa::path(
     get,
-    path = "/{ident}",
+    path = "/{user_id}",
     tag = "users",
     params(
-        ("ident" = String, Path, description = "User identifier")
+        ("user_id" = String, Path, description = "User ID")
     ),
     responses(
         (status = 200, description = "Get single user", body = UserDto)
     )
 )]
-async fn get_user(State(state): State<AppState>, Path(ident): Path<String>) -> ApiResult<UserDto> {
-    let user_ident = parse_ident(ident).ok_or(ApiError::InvalidUserIdentifier)?;
-    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
-    let user = services::users::view_user(user_id, &state.ctx()).await?;
+async fn get_user(State(state): State<AppState>, Path(user_id): Path<UserIdDto>) -> ApiResult<UserDto> {
+    let user = services::users::view_user(UserId::from(user_id), &state.ctx()).await?;
 
     Ok((StatusCode::OK, Json(UserDto::from(&user))))
 }
 
 #[utoipa::path(
     post,
-    path = "/{ident}/spend",
+    path = "/{user_id}/spend",
     tag = "users",
     params(
-        ("ident" = String, Path, description = "User identifier")
+        ("user_id" = String, Path, description = "User ID")
     ),
     request_body = SpendRequestDto,
     responses(
@@ -112,12 +109,10 @@ async fn get_user(State(state): State<AppState>, Path(ident): Path<String>) -> A
 )]
 async fn spend(
     State(state): State<AppState>,
-    Path(ident): Path<String>,
+    Path(user_id): Path<UserIdDto>,
     JsonIn(payload): JsonIn<SpendRequestDto>,
 ) -> ApiResult<TransactionDto> {
-    let user_ident = parse_ident(ident).ok_or(ApiError::InvalidUserIdentifier)?;
-    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
     let amount = Amount::from(payload);
-    let transaction = services::transactions::spend(user_id, amount, &state.ctx()).await?;
+    let transaction = services::transactions::spend(UserId::from(user_id), amount, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(TransactionDto::from(&transaction))))
 }

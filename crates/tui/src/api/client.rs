@@ -120,12 +120,12 @@ impl ApiClient {
 impl ApiClient {
     pub(crate) async fn user(
         &self,
-        identifier: &str,
+        user_id: UserId,
     ) -> Result<User> {
         self.json(
             self.request(
                 Method::GET,
-                &format!("/v1/users/{identifier}"),
+                &format!("/v1/users/{user_id}"),
             ),
         )
             .await
@@ -153,13 +153,13 @@ impl ApiClient {
 
     pub(crate) async fn spend(
         &self,
-        identifier: &str,
+        user_id: &UserId,
         amount: u32,
     ) -> Result<Transaction> {
         self.json(
             self.request(
                 Method::POST,
-                &format!("/v1/users/{identifier}/spend"),
+                &format!("/v1/users/{user_id}/spend"),
             )
                 .json(&amount),
         )

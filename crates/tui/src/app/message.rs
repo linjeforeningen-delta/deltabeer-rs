@@ -1,3 +1,4 @@
+use crate::api::models::transaction::Transaction;
 use crate::api::models::user::User;
 
 #[derive(Debug)]
@@ -18,5 +19,8 @@ pub(crate) enum Message {
     NumericBackspace,
     Submit,
     NumericInput(char),
+
+    SpendSuccess(Transaction),
+    SpendFailed(String),
 }
 

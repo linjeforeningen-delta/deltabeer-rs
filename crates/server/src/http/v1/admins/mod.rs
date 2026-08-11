@@ -184,7 +184,7 @@ async fn new_user(
         },
         &state.ctx(),
     )
-    .await?;
+        .await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(UserDto::from(&user))))
@@ -205,12 +205,10 @@ async fn new_user(
 async fn update_user(
     State(state): State<AppState>,
     Extension(AdminId(admin_id)): Extension<AdminId>,
-    Path(ident): Path<String>,
+    Path(user_id): Path<UserIdDto>,
     JsonIn(payload): JsonIn<UserPatchDto>,
 ) -> ApiResult<UserDto> {
-    let user_ident =
-        UserIdent::try_from(ident.as_str()).map_err(|_| ApiError::InvalidUserIdentifier)?;
-    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
+    let user_id = UserId::from(user_id);
     services::users::update_user(
         admin_id,
         user_id,
@@ -223,7 +221,7 @@ async fn update_user(
         },
         &state.ctx(),
     )
-    .await?;
+        .await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(UserDto::from(&user))))

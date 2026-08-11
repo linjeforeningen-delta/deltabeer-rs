@@ -73,14 +73,32 @@ impl App {
 
                 None
             }
+
             Message::Submit => {
                 match &mut self.dialog {
                     Some(Dialog::User(state)) => {
-                        todo!("Implement spend command");
+                        if let Some(amount) = state.amount.value() {
+                            let user_id = state.user.id.clone();
+                            self.dialog = None;
+                            Some(Command::Spend { user_id, amount })
+                        } else {
+                            self.status = "Invalid amount".into();
+                            None
+                        }
                     }
 
                     _ => None,
                 }
+            }
+
+            Message::SpendSuccess(transaction) => {
+                self.status = "Spend successful".into();
+                None
+            }
+
+            Message::SpendFailed(error) => {
+                self.status = error;
+                None
             }
         }
     }
