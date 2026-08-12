@@ -23,8 +23,8 @@ pub(crate) fn map_key(
 
 fn map_key_dialog(app: &App, key: KeyEvent) -> Option<Message> {
     match key.code {
-        KeyCode::Char(c) if c.is_ascii_digit() => {
-            Some(Message::Input(InputMessage::Numeric(c)))
+        KeyCode::Char(c) => {
+            Some(Message::Input(InputMessage::Char(c)))
         }
 
         KeyCode::Backspace => {

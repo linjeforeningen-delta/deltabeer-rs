@@ -41,7 +41,7 @@ pub(crate) enum DialogMessage {
 
 #[derive(Debug)]
 pub(crate) enum InputMessage {
-    Numeric(char),
+    Char(char),
     Backspace,
     Submit,
 }

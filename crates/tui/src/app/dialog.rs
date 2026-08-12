@@ -1,5 +1,5 @@
 use crate::api::models::user::User;
-use crate::app::NumericInput;
+use crate::app::TextInput;
 
 
 pub(crate) enum Dialog {
@@ -7,7 +7,7 @@ pub(crate) enum Dialog {
 }
 
 impl Dialog {
-    pub(crate) fn numeric_input_mut(&mut self) -> Option<&mut NumericInput> {
+    pub(crate) fn input_mut(&mut self) -> Option<&mut TextInput> {
         match self {
             Dialog::User(state) => Some(&mut state.amount),
             _ => None,
@@ -17,7 +17,7 @@ impl Dialog {
 
 pub(crate) struct UserDialogState {
     pub user: User,
-    pub amount: NumericInput,
+    pub amount: TextInput,
 }
 
 pub(crate) enum DialogOpenMode {

@@ -1,7 +1,8 @@
 use crate::app::command::Command;
 use crate::app::dialog::DialogOpenMode;
+use crate::app::fields::input::InputConstraint;
 use crate::app::message::{DialogMessage, InputMessage};
-use crate::app::{App, AppError, Message, NumericInput, TransactionMessage, UserMessage};
+use crate::app::{App, AppError, Message, TextInput, TransactionMessage, UserMessage};
 use crate::app::{Dialog, UserDialogState};
 
 impl App {
@@ -74,7 +75,7 @@ impl App {
             UserMessage::Loaded(user) => {
                 self.open(Dialog::User(UserDialogState {
                     user,
-                    amount: NumericInput::new(),
+                    amount: TextInput::new(InputConstraint::Numeric),
                 }),
                           DialogOpenMode::Reset);
 
@@ -100,9 +101,9 @@ impl App {
 
     fn update_input(&mut self, message: InputMessage) -> Option<Command> {
         match message {
-            InputMessage::Numeric(c) => {
+            InputMessage::Char(c) => {
                 if let Some(dialog) = &mut self.dialogs.last_mut() {
-                    if let Some(input) = dialog.numeric_input_mut() {
+                    if let Some(input) = dialog.input_mut() {
                         input.push(c);
                     }
                 }
@@ -112,7 +113,7 @@ impl App {
 
             InputMessage::Backspace => {
                 if let Some(dialog) = &mut self.dialogs.last_mut() {
-                    if let Some(input) = dialog.numeric_input_mut() {
+                    if let Some(input) = dialog.input_mut() {
                         input.backspace();
                     }
                 }
