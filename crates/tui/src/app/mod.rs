@@ -4,6 +4,7 @@ mod update;
 mod command;
 pub(crate) mod fields;
 pub(crate) mod dialog;
+mod dialog_stack;
 
 pub(crate) use command::Command;
 pub(crate) use dialog::{Dialog, UserDialogState};

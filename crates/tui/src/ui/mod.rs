@@ -37,7 +37,7 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
         }
     }
 
-    if let Some(Dialog::User(state)) = &app.dialogs.last() {
+    if let Some(Dialog::User(state)) = &app.dialogs.active() {
         dialogs::user::draw(frame, state, &theme);
     }
 

@@ -73,11 +73,11 @@ impl App {
     fn update_user(&mut self, message: UserMessage) -> Option<Command> {
         match message {
             UserMessage::Loaded(user) => {
-                self.open(Dialog::User(UserDialogState {
+                self.dialogs.open(Dialog::User(UserDialogState {
                     user,
                     amount: TextInput::new(InputConstraint::Numeric),
                 }),
-                          DialogOpenMode::Reset);
+                                  DialogOpenMode::Reset);
 
                 self.status = "User loaded".into();
                 None
@@ -93,7 +93,7 @@ impl App {
     fn update_dialog(&mut self, message: DialogMessage) -> Option<Command> {
         match message {
             DialogMessage::Close => {
-                self.dialogs.pop();
+                self.dialogs.close();
                 None
             }
         }
@@ -102,7 +102,7 @@ impl App {
     fn update_input(&mut self, message: InputMessage) -> Option<Command> {
         match message {
             InputMessage::Char(c) => {
-                if let Some(dialog) = &mut self.dialogs.last_mut() {
+                if let Some(dialog) = &mut self.dialogs.active_mut() {
                     if let Some(input) = dialog.input_mut() {
                         input.push(c);
                     }
@@ -112,7 +112,7 @@ impl App {
             }
 
             InputMessage::Backspace => {
-                if let Some(dialog) = &mut self.dialogs.last_mut() {
+                if let Some(dialog) = &mut self.dialogs.active_mut() {
                     if let Some(input) = dialog.input_mut() {
                         input.backspace();
                     }
@@ -122,11 +122,11 @@ impl App {
             }
 
             InputMessage::Submit => {
-                match &mut self.dialogs.last_mut() {
+                match &mut self.dialogs.active_mut() {
                     Some(Dialog::User(state)) => {
                         if let Some(amount) = state.amount.value() {
                             let user_id = state.user.id.clone();
-                            self.dialogs.pop();
+                            self.dialogs.close();
                             Some(Command::Spend { user_id, amount })
                         } else {
                             self.status = "Invalid amount".into();
