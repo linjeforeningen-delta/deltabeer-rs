@@ -13,6 +13,15 @@ impl Dialog {
             _ => None,
         }
     }
+
+    pub(crate) fn handle_scan(
+        &mut self,
+        card: String,
+    ) -> Result<(), String> {
+        match self {
+            _ => Err(card),
+        }
+    }
 }
 
 pub(crate) struct UserDialogState {

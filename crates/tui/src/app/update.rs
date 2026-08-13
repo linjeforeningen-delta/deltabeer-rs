@@ -19,6 +19,22 @@ impl App {
             }
 
             Message::CardScanned(card) => {
+                let card = match self.dialogs.active_mut() {
+                    Some(dialog) => {
+                        match dialog.handle_scan(card) {
+                            Ok(()) => {
+                                self.status = "Card scanned".into();
+                                return None;
+                            }
+
+                            Err(card) => card,
+                        }
+                    }
+
+                    None => card,
+                };
+
+                self.status = "Looking up user...".into();
                 Some(Command::LookupUser(card))
             }
 
