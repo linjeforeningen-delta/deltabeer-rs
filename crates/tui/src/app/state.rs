@@ -1,4 +1,4 @@
-use crate::app::dialog_stack::DialogStack;
+use crate::app::dialog::DialogStack;
 use crate::auth::AuthState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

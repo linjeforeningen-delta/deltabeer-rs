@@ -1,9 +1,10 @@
 use crate::app::command::Command;
-use crate::app::dialog::DialogOpenMode;
 use crate::app::fields::input::InputConstraint;
 use crate::app::message::{DialogMessage, InputMessage};
-use crate::app::{App, AppError, Message, TextInput, TransactionMessage, UserMessage};
-use crate::app::{Dialog, UserDialogState};
+use crate::app::{
+    App, AppError, Dialog, DialogOpenMode, Message, TextInput, TransactionMessage, UserDialogState,
+    UserMessage,
+};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<Command> {

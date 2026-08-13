@@ -1,32 +1,29 @@
-use crate::app::Dialog;
-use crate::app::dialog::DialogOpenMode;
+use super::Dialog;
 
-pub struct DialogStack {
+pub(crate) enum DialogOpenMode {
+    Push,
+    ReplaceTop,
+    Reset,
+}
+
+pub(crate) struct DialogStack {
     stack: Vec<Dialog>,
 }
 
 impl DialogStack {
-    pub fn new() -> Self {
-        Self {
-            stack: Vec::new(),
-        }
+    pub(crate) fn new() -> Self {
+        Self { stack: Vec::new() }
     }
 
-    pub(crate) fn open(
-        &mut self,
-        dialog: Dialog,
-        mode: DialogOpenMode,
-    ) {
+    pub(crate) fn open(&mut self, dialog: Dialog, mode: DialogOpenMode) {
         match mode {
             DialogOpenMode::Push => {
                 self.stack.push(dialog);
             }
-
             DialogOpenMode::ReplaceTop => {
                 self.stack.pop();
                 self.stack.push(dialog);
             }
-
             DialogOpenMode::Reset => {
                 self.stack.clear();
                 self.stack.push(dialog);

@@ -1,6 +1,10 @@
-use crate::api::models::user::User;
+mod stack;
+mod user;
+
 use crate::app::TextInput;
 
+pub(crate) use stack::{DialogOpenMode, DialogStack};
+pub(crate) use user::UserDialogState;
 
 pub(crate) enum Dialog {
     User(UserDialogState),
@@ -14,23 +18,9 @@ impl Dialog {
         }
     }
 
-    pub(crate) fn handle_scan(
-        &mut self,
-        card: String,
-    ) -> Result<(), String> {
+    pub(crate) fn handle_scan(&mut self, card: String) -> Result<(), String> {
         match self {
             _ => Err(card),
         }
     }
-}
-
-pub(crate) struct UserDialogState {
-    pub user: User,
-    pub amount: TextInput,
-}
-
-pub(crate) enum DialogOpenMode {
-    Push,
-    ReplaceTop,
-    Reset,
 }
