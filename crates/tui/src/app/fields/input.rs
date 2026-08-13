@@ -48,7 +48,7 @@ impl TextInput {
         &self.value
     }
 
-    pub(crate) fn value(&self) -> Option<u32> {
+    pub(crate) fn as_u32(&self) -> Option<u32> {
         self.value.parse().ok()
     }
 

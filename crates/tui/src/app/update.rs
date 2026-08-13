@@ -1,10 +1,7 @@
 use crate::app::command::Command;
 use crate::app::fields::input::InputConstraint;
 use crate::app::message::{DialogMessage, InputMessage};
-use crate::app::{
-    App, AppError, Dialog, DialogOpenMode, Message, TextInput, TransactionMessage, UserDialogState,
-    UserMessage,
-};
+use crate::app::{App, AppError, AuthenticationMessage, Dialog, DialogOpenMode, Message, TextInput, TransactionMessage, UserDialogState, UserMessage};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<Command> {
@@ -57,6 +54,10 @@ impl App {
 
             Message::Transaction(message) => {
                 self.update_transaction(message)
+            }
+
+            Message::Authentication(message) => {
+                self.update_authentication(message)
             }
         }
     }
@@ -141,7 +142,7 @@ impl App {
             InputMessage::Submit => {
                 match &mut self.dialogs.active_mut() {
                     Some(Dialog::User(state)) => {
-                        if let Some(amount) = state.amount.value() {
+                        if let Some(amount) = state.amount.as_u32() {
                             let user_id = state.user.id.clone();
                             self.dialogs.close();
                             Some(Command::Spend { user_id, amount })
@@ -149,6 +150,12 @@ impl App {
                             self.status = "Invalid amount".into();
                             None
                         }
+                    }
+
+                    Some(Dialog::AdminAuth(state)) => {
+                        let identifier = state.card.clone();
+                        let password = state.password.as_str().to_string();
+                        Some(Command::RequestAdminAuth { identifier: identifier?, password })
                     }
 
                     _ => None,
@@ -166,6 +173,21 @@ impl App {
 
             TransactionMessage::SpendFailed(error) => {
                 self.status = error;
+                None
+            }
+        }
+    }
+
+    fn update_authentication(&mut self, message: AuthenticationMessage) -> Option<Command> {
+        match message {
+            AuthenticationMessage::SingleUseToken(token) => {
+                self.status = "Admin authentication successful".into();
+                self.dialogs.close();
+                None
+            }
+
+            AuthenticationMessage::AdminAuthFailed(error) => {
+                self.status = format!("Admin authentication failed: {}", error);
                 None
             }
         }

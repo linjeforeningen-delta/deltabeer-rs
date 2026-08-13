@@ -1,3 +1,4 @@
+use crate::api::models::auth::SingleUseToken;
 use crate::api::models::transaction::Transaction;
 use crate::api::models::user::User;
 use crate::app::Page;
@@ -16,6 +17,7 @@ pub(crate) enum Message {
     Dialog(DialogMessage),
     Input(InputMessage),
     Transaction(TransactionMessage),
+    Authentication(AuthenticationMessage),
 }
 
 
@@ -50,4 +52,10 @@ pub(crate) enum InputMessage {
 pub(crate) enum TransactionMessage {
     SpendSuccess(Transaction),
     SpendFailed(String),
+}
+
+#[derive(Debug)]
+pub(crate) enum AuthenticationMessage {
+    SingleUseToken(SingleUseToken),
+    AdminAuthFailed(String),
 }
