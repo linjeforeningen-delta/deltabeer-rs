@@ -37,6 +37,8 @@ fn map_key_dialog(app: &App, key: KeyEvent) -> Option<Message> {
 
         KeyCode::Esc => Some(Message::Dialog(DialogMessage::Close)),
 
+        KeyCode::F(1) => Some(Message::Dialog(DialogMessage::TopUp)),
+
         _ => None,
     }
 }

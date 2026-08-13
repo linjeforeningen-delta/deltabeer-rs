@@ -12,7 +12,6 @@ use crate::api::models::user::{User, UserId};
 pub(crate) struct ApiClient {
     http: Client,
     base: String,
-    session_token: Option<SessionToken>,
 }
 
 impl ApiClient {
@@ -20,41 +19,18 @@ impl ApiClient {
         Self {
             http: Client::new(),
             base: base.into().trim_end_matches('/').to_string(),
-            session_token: None,
         }
     }
 
-    pub(crate) fn set_session_token(
-        &mut self,
-        token: SessionToken,
-    ) {
-        self.session_token = Some(token);
-    }
-
-    pub(crate) fn clear_session_token(&mut self) {
-        self.session_token = None;
-    }
-
-    pub(crate) fn has_session(&self) -> bool {
-        self.session_token.is_some()
-    }
 
     fn request(
         &self,
         method: Method,
         path: &str,
     ) -> RequestBuilder {
-        let request = self
+        self
             .http
-            .request(method, format!("{}{}", self.base, path));
-
-        match &self.session_token {
-            Some(token) => {
-                request.bearer_auth(token.as_str())
-            }
-
-            None => request,
-        }
+            .request(method, format!("{}{}", self.base, path))
     }
 
     async fn json<T>(
@@ -218,37 +194,19 @@ pub(crate) enum Authorization<'a> {
 impl ApiClient {
     pub(crate) async fn top_up(
         &self,
-        identifier: &str,
+        user_id: UserId,
         amount: u32,
-        authorization: Authorization<'_>,
+        token: AdminToken,
     ) -> Result<Transaction> {
         let request = self
             .http
             .post(format!(
-                "{}/v1/admins/user_management/{identifier}/topup",
+                "{}/v1/admins/user_management/{user_id}/topup",
                 self.base
             ))
             .json(&amount);
 
-        let request = match authorization {
-            Authorization::Session => {
-                match &self.session_token {
-                    Some(token) => {
-                        request.bearer_auth(token.as_str())
-                    }
-
-                    None => {
-                        return Err(anyhow!(
-                            "No admin session is active"
-                        ));
-                    }
-                }
-            }
-
-            Authorization::SingleUse(token) => {
-                request.bearer_auth(token.as_str())
-            }
-        };
+        let request = request.bearer_auth(token.as_str());
 
         self.json(request).await
     }

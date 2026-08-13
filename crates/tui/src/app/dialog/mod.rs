@@ -1,15 +1,19 @@
 mod stack;
 mod user;
 mod admin_auth;
+mod topup;
 
 use crate::app::TextInput;
 
 pub(crate) use admin_auth::AdminAuthDialogState;
 pub(crate) use stack::{DialogOpenMode, DialogStack};
+pub(crate) use topup::TopUpDialogState;
 pub(crate) use user::UserDialogState;
+
 pub(crate) enum Dialog {
     User(UserDialogState),
     AdminAuth(AdminAuthDialogState),
+    TopUp(TopUpDialogState),
 }
 
 impl Dialog {
@@ -17,6 +21,7 @@ impl Dialog {
         match self {
             Dialog::User(state) => Some(&mut state.amount),
             Dialog::AdminAuth(state) => Some(&mut state.password),
+            Dialog::TopUp(state) => Some(&mut state.amount),
             _ => None,
         }
     }

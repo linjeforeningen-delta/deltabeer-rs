@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 
 pub(crate) struct AdminSession {
     admin: User,
-    token: SessionToken,
+    pub(crate) token: SessionToken,
     expires_at: DateTime<Utc>,
     last_validated_at: DateTime<Utc>,
 }

@@ -39,6 +39,7 @@ pub(crate) enum UserMessage {
 #[derive(Debug)]
 pub(crate) enum DialogMessage {
     Close,
+    TopUp,
 }
 
 #[derive(Debug)]
@@ -52,6 +53,8 @@ pub(crate) enum InputMessage {
 pub(crate) enum TransactionMessage {
     SpendSuccess(Transaction),
     SpendFailed(String),
+    TopUpSuccess(Transaction),
+    TopUpFailed(String),
 }
 
 #[derive(Debug)]

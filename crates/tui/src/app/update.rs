@@ -1,4 +1,6 @@
+use crate::app::admin_action::AdminAction;
 use crate::app::command::Command;
+use crate::app::dialog::TopUpDialogState;
 use crate::app::fields::input::InputConstraint;
 use crate::app::message::{DialogMessage, InputMessage};
 use crate::app::{App, AppError, AuthenticationMessage, Dialog, DialogOpenMode, Message, TextInput, TransactionMessage, UserDialogState, UserMessage};
@@ -114,6 +116,21 @@ impl App {
                 self.dialogs.close();
                 None
             }
+
+            DialogMessage::TopUp => {
+                match self.dialogs.active() {
+                    Some(Dialog::User(user_dialog)) => {
+                        self.dialogs.open(Dialog::TopUp(TopUpDialogState {
+                            user: user_dialog.user.clone(),
+                            amount: TextInput::new(InputConstraint::Numeric),
+                        }), DialogOpenMode::Push);
+
+                        self.status = "Topup dialog opened".into();
+                        None
+                    }
+                    _ => None,
+                }
+            }
         }
     }
 
@@ -158,6 +175,17 @@ impl App {
                         Some(Command::RequestAdminAuth { identifier: identifier?, password })
                     }
 
+                    Some(Dialog::TopUp(state)) => {
+                        if let Some(amount) = state.amount.as_u32() {
+                            let user = state.user.clone();
+                            self.dialogs.close();
+                            self.request_admin_action(AdminAction::TopUp { user_id: user.id, amount })
+                        } else {
+                            self.status = "Invalid amount".into();
+                            None
+                        }
+                    }
+
                     _ => None,
                 }
             }
@@ -175,6 +203,16 @@ impl App {
                 self.status = error;
                 None
             }
+
+            TransactionMessage::TopUpSuccess(transaction) => {
+                self.status = "Topup successful".into();
+                None
+            }
+
+            TransactionMessage::TopUpFailed(error) => {
+                self.status = error;
+                None
+            }
         }
     }
 
@@ -182,8 +220,7 @@ impl App {
         match message {
             AuthenticationMessage::SingleUseToken(token) => {
                 self.status = "Admin authentication successful".into();
-                self.dialogs.close();
-                None
+                self.complete_admin_auth(token)
             }
 
             AuthenticationMessage::AdminAuthFailed(error) => {

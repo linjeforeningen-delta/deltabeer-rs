@@ -37,8 +37,20 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
         }
     }
 
-    if let Some(Dialog::User(state)) = &app.dialogs.active() {
-        dialogs::user::draw(frame, state, &theme);
+    if let Some(dialog) = app.dialogs.active() {
+        match dialog {
+            Dialog::User(state) => {
+                dialogs::user::draw(frame, state, &theme);
+            }
+
+            Dialog::TopUp(state) => {
+                dialogs::topup::draw(frame, state, &theme);
+            }
+
+            Dialog::AdminAuth(state) => {
+                dialogs::admin_auth::draw(frame, state, &theme);
+            }
+        }
     }
 
     let footer = Paragraph::new(app.status.as_str())

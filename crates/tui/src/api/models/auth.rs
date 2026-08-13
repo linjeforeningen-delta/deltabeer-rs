@@ -12,6 +12,11 @@ pub struct Credentials {
 #[serde(transparent)]
 pub struct AdminToken(pub String);
 
+impl AdminToken {
+    pub(crate) fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct SessionToken(String);
@@ -40,6 +45,18 @@ impl From<AdminToken> for SessionToken {
 
 impl From<AdminToken> for SingleUseToken {
     fn from(token: AdminToken) -> Self {
+        Self(token.0)
+    }
+}
+
+impl From<SingleUseToken> for AdminToken {
+    fn from(token: SingleUseToken) -> Self {
+        Self(token.0)
+    }
+}
+
+impl From<SessionToken> for AdminToken {
+    fn from(token: SessionToken) -> Self {
         Self(token.0)
     }
 }

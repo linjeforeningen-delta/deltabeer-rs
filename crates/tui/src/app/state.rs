@@ -1,4 +1,8 @@
-use crate::app::dialog::DialogStack;
+use crate::api::models::auth::SingleUseToken;
+use crate::app::admin_action::AdminAction;
+use crate::app::dialog::{AdminAuthDialogState, DialogStack};
+use crate::app::fields::input::InputConstraint;
+use crate::app::{Command, Dialog, DialogOpenMode, TextInput};
 use crate::auth::AuthState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -15,6 +19,7 @@ pub(crate) struct App {
     pub page: Page,
     pub dialogs: DialogStack,
     pub status: String,
+    pending_admin_action: Option<AdminAction>,
     pub should_quit: bool,
 }
 
@@ -25,7 +30,50 @@ impl App {
             page: Page::Home,
             dialogs: DialogStack::new(),
             status: "Ready for card".into(),
+            pending_admin_action: None,
             should_quit: false,
         }
+    }
+
+    pub(crate) fn request_admin_action(
+        &mut self,
+        action: AdminAction,
+    ) -> Option<Command> {
+        match &self.auth {
+            AuthState::Admin(session) => {
+                return Some(
+                    action.into_command(session.token.clone().into())
+                );
+            }
+
+            AuthState::Normal => {
+                self.pending_admin_action = Some(action);
+                self.dialogs.open(
+                    Dialog::AdminAuth(
+                        AdminAuthDialogState {
+                            card: None,
+                            password: TextInput::new(InputConstraint::Any),
+                        }
+                    ),
+                    DialogOpenMode::Push,
+                );
+                None
+            }
+        }
+    }
+
+    pub(crate) fn complete_admin_auth(
+        &mut self,
+        token: SingleUseToken,
+    ) -> Option<Command> {
+        let action = self.pending_admin_action.take()?;
+
+        self.dialogs.close();
+
+        Some(
+            action.into_command(
+                token.into()
+            )
+        )
     }
 }

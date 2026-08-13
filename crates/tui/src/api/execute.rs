@@ -31,6 +31,13 @@ pub(crate) async fn execute_command(
             }
         }
 
+        Command::TopUp { user_id, amount, token } => {
+            match api.top_up(user_id, amount, token).await {
+                Ok(transaction) => Message::Transaction(TransactionMessage::TopUpSuccess(transaction)),
+                Err(error) => Message::Transaction(TransactionMessage::TopUpFailed(error.to_string())),
+            }
+        }
+
         Command::RequestAdminAuth { identifier, password } => {
             let user_id = match api.resolve_user(&identifier).await {
                 Ok(user_id) => user_id,
