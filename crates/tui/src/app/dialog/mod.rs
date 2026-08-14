@@ -31,7 +31,12 @@ pub(crate) trait DialogBehavior: Debug {
     }
 
     fn handle_key_inner(&mut self, key: KeyEvent) -> DialogResult<KeyEvent>;
-    fn handle_scan(&mut self, card: String) -> DialogResult<String>;
+    fn handle_scan(
+        &mut self,
+        card: String,
+    ) -> DialogResult<String> {
+        DialogResult::Unhandled(card)
+    }
 }
 
 

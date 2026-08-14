@@ -56,8 +56,4 @@ impl DialogBehavior for TopUpDialog {
             _ => DialogResult::Unhandled(key),
         }
     }
-
-    fn handle_scan(&mut self, card: String) -> DialogResult<String> {
-        DialogResult::Unhandled(card)
-    }
 }
