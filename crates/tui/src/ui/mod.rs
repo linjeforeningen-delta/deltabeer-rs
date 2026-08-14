@@ -1,9 +1,9 @@
 pub(crate) mod layout;
 pub(crate) mod theme;
 pub mod pages;
-mod dialogs;
+pub(crate) mod dialogs;
 
-use crate::app::{App, Dialog, Page};
+use crate::app::{App, Page};
 use ratatui::{
     Frame,
     style::Style,
@@ -38,19 +38,7 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
     }
 
     if let Some(dialog) = app.dialogs.active() {
-        match dialog {
-            Dialog::User(state) => {
-                dialogs::user::draw(frame, state, &theme);
-            }
-
-            Dialog::TopUp(state) => {
-                dialogs::topup::draw(frame, state, &theme);
-            }
-
-            Dialog::AdminAuth(state) => {
-                dialogs::admin_auth::draw(frame, state, &theme);
-            }
-        }
+        dialog.draw(frame, &theme);
     }
 
     let footer = Paragraph::new(app.status.as_str())

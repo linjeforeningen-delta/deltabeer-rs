@@ -1,9 +1,8 @@
 use crate::app::admin_action::AdminAction;
 use crate::app::command::Command;
-use crate::app::dialog::TopUpDialogState;
-use crate::app::fields::input::InputConstraint;
-use crate::app::message::{DialogMessage, InputMessage};
-use crate::app::{App, AppError, AuthenticationMessage, Dialog, DialogOpenMode, Message, TextInput, TransactionMessage, UserDialogState, UserMessage};
+use crate::app::dialog::DialogResult;
+use crate::app::message::Request;
+use crate::app::{App, AppError, Message};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<Command> {
@@ -22,12 +21,15 @@ impl App {
                 let card = match self.dialogs.active_mut() {
                     Some(dialog) => {
                         match dialog.handle_scan(card) {
-                            Ok(()) => {
-                                self.status = "Card scanned".into();
+                            DialogResult::Consumed => {
                                 return None;
                             }
 
-                            Err(card) => card,
+                            DialogResult::Message(message) => {
+                                return self.update(message);
+                            }
+
+                            DialogResult::Unhandled(card) => card,
                         }
                     }
 
@@ -39,49 +41,53 @@ impl App {
             }
 
             Message::Failed(error) => {
-                self.update_error(error)
+                self.handle_error(error)
             }
 
-            Message::User(message) => {
-                self.update_user(message)
+            Message::Status(status) => {
+                self.status = status;
+                None
             }
 
-            Message::Dialog(message) => {
-                self.update_dialog(message)
+            Message::Request(request) => {
+                self.handle_request(request)
             }
 
-            Message::Input(message) => {
-                self.update_input(message)
+            Message::DialogOpen { dialog, mode } => {
+                self.dialogs.open(dialog, mode);
+                None
             }
 
-            Message::Transaction(message) => {
-                self.update_transaction(message)
+            Message::DialogClose => {
+                self.dialogs.close();
+                None
             }
 
-            Message::Authentication(message) => {
-                self.update_authentication(message)
+            Message::AdminAuthenticated(token) => {
+                self.status = "Admin authentication successful".into();
+                self.complete_admin_auth(token)
             }
         }
     }
 
-    fn update_error(&mut self, error: AppError) -> Option<Command> {
+    fn handle_error(&mut self, error: AppError) -> Option<Command> {
         match error {
-            crate::app::AppError::Api(error) => {
+            AppError::Api(error) => {
                 self.status = format!("API Error: {}", error);
                 None
             }
 
-            crate::app::AppError::Validation(error) => {
+            AppError::Validation(error) => {
                 self.status = format!("Validation Error: {}", error);
                 None
             }
 
-            crate::app::AppError::Authentication(error) => {
+            AppError::Authentication(error) => {
                 self.status = format!("Authentication Error: {}", error);
                 None
             }
 
-            crate::app::AppError::SessionExpired => {
+            AppError::SessionExpired => {
                 self.status = "Session expired".into();
                 None
             }
@@ -90,142 +96,26 @@ impl App {
         }
     }
 
-    fn update_user(&mut self, message: UserMessage) -> Option<Command> {
-        match message {
-            UserMessage::Loaded(user) => {
-                self.dialogs.open(Dialog::User(UserDialogState {
-                    user,
-                    amount: TextInput::new(InputConstraint::Numeric),
-                }),
-                                  DialogOpenMode::Reset);
-
-                self.status = "User loaded".into();
-                None
+    fn handle_request(&mut self, request: Request) -> Option<Command> {
+        match request {
+            Request::LookupUser(card) => {
+                self.status = "Looking up user...".into();
+                Some(Command::LookupUser(card))
             }
 
-            UserMessage::LoadFailed(error) => {
-                self.status = error;
-                None
-            }
-        }
-    }
-
-    fn update_dialog(&mut self, message: DialogMessage) -> Option<Command> {
-        match message {
-            DialogMessage::Close => {
-                self.dialogs.close();
-                None
+            Request::Spend { user_id, amount } => {
+                self.status = "Spending...".into();
+                Some(Command::Spend { user_id, amount })
             }
 
-            DialogMessage::TopUp => {
-                match self.dialogs.active() {
-                    Some(Dialog::User(user_dialog)) => {
-                        self.dialogs.open(Dialog::TopUp(TopUpDialogState {
-                            user: user_dialog.user.clone(),
-                            amount: TextInput::new(InputConstraint::Numeric),
-                        }), DialogOpenMode::Push);
-
-                        self.status = "Topup dialog opened".into();
-                        None
-                    }
-                    _ => None,
-                }
-            }
-        }
-    }
-
-    fn update_input(&mut self, message: InputMessage) -> Option<Command> {
-        match message {
-            InputMessage::Char(c) => {
-                if let Some(dialog) = &mut self.dialogs.active_mut() {
-                    if let Some(input) = dialog.input_mut() {
-                        input.push(c);
-                    }
-                }
-
-                None
+            Request::TopUp { user_id, amount } => {
+                self.status = "Topping up...".into();
+                self.request_admin_action(AdminAction::TopUp { user_id, amount })
             }
 
-            InputMessage::Backspace => {
-                if let Some(dialog) = &mut self.dialogs.active_mut() {
-                    if let Some(input) = dialog.input_mut() {
-                        input.backspace();
-                    }
-                }
-
-                None
-            }
-
-            InputMessage::Submit => {
-                match &mut self.dialogs.active_mut() {
-                    Some(Dialog::User(state)) => {
-                        if let Some(amount) = state.amount.as_u32() {
-                            let user_id = state.user.id.clone();
-                            self.dialogs.close();
-                            Some(Command::Spend { user_id, amount })
-                        } else {
-                            self.status = "Invalid amount".into();
-                            None
-                        }
-                    }
-
-                    Some(Dialog::AdminAuth(state)) => {
-                        let identifier = state.card.clone();
-                        let password = state.password.as_str().to_string();
-                        Some(Command::RequestAdminAuth { identifier: identifier?, password })
-                    }
-
-                    Some(Dialog::TopUp(state)) => {
-                        if let Some(amount) = state.amount.as_u32() {
-                            let user = state.user.clone();
-                            self.dialogs.close();
-                            self.request_admin_action(AdminAction::TopUp { user_id: user.id, amount })
-                        } else {
-                            self.status = "Invalid amount".into();
-                            None
-                        }
-                    }
-
-                    _ => None,
-                }
-            }
-        }
-    }
-
-    fn update_transaction(&mut self, message: TransactionMessage) -> Option<Command> {
-        match message {
-            TransactionMessage::SpendSuccess(transaction) => {
-                self.status = "Spend successful".into();
-                None
-            }
-
-            TransactionMessage::SpendFailed(error) => {
-                self.status = error;
-                None
-            }
-
-            TransactionMessage::TopUpSuccess(transaction) => {
-                self.status = "Topup successful".into();
-                None
-            }
-
-            TransactionMessage::TopUpFailed(error) => {
-                self.status = error;
-                None
-            }
-        }
-    }
-
-    fn update_authentication(&mut self, message: AuthenticationMessage) -> Option<Command> {
-        match message {
-            AuthenticationMessage::SingleUseToken(token) => {
-                self.status = "Admin authentication successful".into();
-                self.complete_admin_auth(token)
-            }
-
-            AuthenticationMessage::AdminAuthFailed(error) => {
-                self.status = format!("Admin authentication failed: {}", error);
-                None
+            Request::AuthenticateAdmin { identifier, password } => {
+                self.status = "Authenticating admin...".into();
+                Some(Command::RequestAdminAuth { identifier, password })
             }
         }
     }

@@ -1,8 +1,8 @@
 use crate::api::models::auth::SingleUseToken;
 use crate::app::admin_action::AdminAction;
-use crate::app::dialog::{AdminAuthDialogState, DialogStack};
-use crate::app::fields::input::InputConstraint;
-use crate::app::{Command, Dialog, DialogOpenMode, TextInput};
+use crate::app::dialog::AdminAuthDialog;
+use crate::app::dialog::DialogStack;
+use crate::app::{Command, DialogOpenMode, Message};
 use crate::auth::AuthState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -48,16 +48,12 @@ impl App {
 
             AuthState::Normal => {
                 self.pending_admin_action = Some(action);
-                self.dialogs.open(
-                    Dialog::AdminAuth(
-                        AdminAuthDialogState {
-                            card: None,
-                            password: TextInput::new(InputConstraint::Any),
-                        }
-                    ),
-                    DialogOpenMode::Push,
-                );
-                None
+
+                self.update(
+                    Message::DialogOpen {
+                        dialog: Box::new(AdminAuthDialog::default()),
+                        mode: DialogOpenMode::Push,
+                    })
             }
         }
     }

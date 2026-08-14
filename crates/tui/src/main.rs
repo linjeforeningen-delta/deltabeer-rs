@@ -48,7 +48,7 @@ async fn run(
             }
         }
 
-        for message in runtime.input.tick(&runtime.app) {
+        for message in runtime.input.tick(&mut runtime.app) {
             runtime.app.update(message);
         }
     }

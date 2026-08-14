@@ -20,7 +20,7 @@ impl Input {
 
     pub(crate) fn handle(
         &mut self,
-        app: &App,
+        app: &mut App,
         key: KeyEvent,
     ) -> Vec<Message> {
         match self.scanner.handle(key) {
@@ -42,7 +42,7 @@ impl Input {
 
     pub(crate) fn tick(
         &mut self,
-        app: &App,
+        app: &mut App,
     ) -> Vec<Message> {
         match self.scanner.flush() {
             ScannerResult::NotScan(keys) => keys

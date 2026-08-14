@@ -3,33 +3,44 @@ mod user;
 mod admin_auth;
 mod topup;
 
-use crate::app::TextInput;
+use crate::app::Message;
+use crossterm::event::{KeyCode, KeyEvent};
+use std::fmt::Debug;
 
-pub(crate) use admin_auth::AdminAuthDialogState;
+use crate::ui::dialogs::DialogView;
+pub(crate) use admin_auth::AdminAuthDialog;
 pub(crate) use stack::{DialogOpenMode, DialogStack};
-pub(crate) use topup::TopUpDialogState;
-pub(crate) use user::UserDialogState;
+pub(crate) use topup::TopUpDialog;
+pub(crate) use user::UserDialog;
 
-pub(crate) enum Dialog {
-    User(UserDialogState),
-    AdminAuth(AdminAuthDialogState),
-    TopUp(TopUpDialogState),
+pub(crate) enum DialogResult<T> {
+    Consumed,
+    Message(Message),
+    Unhandled(T),
 }
 
-impl Dialog {
-    pub(crate) fn input_mut(&mut self) -> Option<&mut TextInput> {
-        match self {
-            Dialog::User(state) => Some(&mut state.amount),
-            Dialog::AdminAuth(state) => Some(&mut state.password),
-            Dialog::TopUp(state) => Some(&mut state.amount),
-            _ => None,
+pub(crate) trait DialogBehavior: Debug {
+    fn handle_key(&mut self, key: KeyEvent) -> DialogResult<KeyEvent> {
+        match key.code {
+            KeyCode::Esc => {
+                DialogResult::Message(Message::DialogClose)
+            }
+
+            _ => self.handle_key_inner(key),
         }
     }
 
-    pub(crate) fn handle_scan(&mut self, card: String) -> Result<(), String> {
-        match self {
-            Dialog::AdminAuth(state) => state.handle_scan(card),
-            _ => Err(card),
-        }
-    }
+    fn handle_key_inner(&mut self, key: KeyEvent) -> DialogResult<KeyEvent>;
+    fn handle_scan(&mut self, card: String) -> DialogResult<String>;
 }
+
+
+pub(crate) trait Dialog:
+DialogBehavior + DialogView + std::fmt::Debug
+{}
+
+impl<T> Dialog for T
+where
+    T: DialogBehavior + DialogView + std::fmt::Debug,
+{}
+

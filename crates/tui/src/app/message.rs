@@ -1,7 +1,6 @@
 use crate::api::models::auth::SingleUseToken;
-use crate::api::models::transaction::Transaction;
-use crate::api::models::user::User;
-use crate::app::Page;
+use crate::api::models::user::UserId;
+use crate::app::{Dialog, DialogOpenMode, Page};
 
 #[derive(Debug)]
 pub(crate) enum Message {
@@ -13,11 +12,17 @@ pub(crate) enum Message {
 
     Failed(AppError),
 
-    User(UserMessage),
-    Dialog(DialogMessage),
-    Input(InputMessage),
-    Transaction(TransactionMessage),
-    Authentication(AuthenticationMessage),
+    Status(String),
+
+    Request(Request),
+
+    DialogOpen {
+        dialog: Box<dyn Dialog>,
+        mode: DialogOpenMode,
+    },
+    DialogClose,
+
+    AdminAuthenticated(SingleUseToken),
 }
 
 
@@ -29,36 +34,11 @@ pub(crate) enum AppError {
     SessionExpired,
 }
 
-
 #[derive(Debug)]
-pub(crate) enum UserMessage {
-    Loaded(User),
-    LoadFailed(String),
+pub(crate) enum Request {
+    LookupUser(String),
+    Spend { user_id: UserId, amount: u32 },
+    TopUp { user_id: UserId, amount: u32 },
+    AuthenticateAdmin { identifier: String, password: String },
 }
 
-#[derive(Debug)]
-pub(crate) enum DialogMessage {
-    Close,
-    TopUp,
-}
-
-#[derive(Debug)]
-pub(crate) enum InputMessage {
-    Char(char),
-    Backspace,
-    Submit,
-}
-
-#[derive(Debug)]
-pub(crate) enum TransactionMessage {
-    SpendSuccess(Transaction),
-    SpendFailed(String),
-    TopUpSuccess(Transaction),
-    TopUpFailed(String),
-}
-
-#[derive(Debug)]
-pub(crate) enum AuthenticationMessage {
-    SingleUseToken(SingleUseToken),
-    AdminAuthFailed(String),
-}

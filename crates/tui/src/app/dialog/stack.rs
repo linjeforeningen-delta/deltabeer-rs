@@ -1,5 +1,6 @@
 use super::Dialog;
 
+#[derive(Debug)]
 pub(crate) enum DialogOpenMode {
     Push,
     ReplaceTop,
@@ -7,7 +8,7 @@ pub(crate) enum DialogOpenMode {
 }
 
 pub(crate) struct DialogStack {
-    stack: Vec<Dialog>,
+    stack: Vec<Box<dyn Dialog>>,
 }
 
 impl DialogStack {
@@ -15,7 +16,7 @@ impl DialogStack {
         Self { stack: Vec::new() }
     }
 
-    pub(crate) fn open(&mut self, dialog: Dialog, mode: DialogOpenMode) {
+    pub(crate) fn open(&mut self, dialog: Box<dyn Dialog>, mode: DialogOpenMode) {
         match mode {
             DialogOpenMode::Push => {
                 self.stack.push(dialog);
@@ -35,12 +36,14 @@ impl DialogStack {
         self.stack.pop();
     }
 
-    pub(crate) fn active(&self) -> Option<&Dialog> {
-        self.stack.last()
+    pub(crate) fn active(&self) -> Option<&(dyn Dialog + '_)> {
+        let dialog = self.stack.last()?;
+        Some(dialog.as_ref())
     }
 
-    pub(crate) fn active_mut(&mut self) -> Option<&mut Dialog> {
-        self.stack.last_mut()
+    pub(crate) fn active_mut(&mut self) -> Option<&mut (dyn Dialog + '_)> {
+        let dialog = self.stack.last_mut()?;
+        Some(dialog.as_mut())
     }
 
     pub(crate) fn is_empty(&self) -> bool {

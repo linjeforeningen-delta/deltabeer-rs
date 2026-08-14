@@ -1,5 +1,6 @@
 use crate::api::models::auth::Credentials;
-use crate::app::{AuthenticationMessage, TransactionMessage, UserMessage};
+use crate::app::dialog::UserDialog;
+use crate::app::{AppError, DialogOpenMode};
 use crate::{
     api::client::ApiClient,
     app::{Command, Message},
@@ -14,27 +15,30 @@ pub(crate) async fn execute_command(
             let user_id = match api.resolve_user(&identifier).await {
                 Ok(user_id) => user_id,
                 Err(error) => {
-                    return Message::User(UserMessage::LoadFailed(error.to_string()));
+                    return Message::Failed(AppError::Api(error.to_string()));
                 }
             };
 
             match api.user(user_id).await {
-                Ok(user) => Message::User(UserMessage::Loaded(user)),
-                Err(error) => Message::User(UserMessage::LoadFailed(error.to_string())),
+                Ok(user) => Message::DialogOpen {
+                    dialog: Box::new(UserDialog::new(user)),
+                    mode: DialogOpenMode::Reset,
+                },
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
 
         Command::Spend { user_id, amount } => {
             match api.spend(&user_id, amount).await {
-                Ok(transaction) => Message::Transaction(TransactionMessage::SpendSuccess(transaction)),
-                Err(error) => Message::Transaction(TransactionMessage::SpendFailed(error.to_string())),
+                Ok(transaction) => Message::Status(format!("Spent {} from user {}", amount, user_id)),
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
 
         Command::TopUp { user_id, amount, token } => {
             match api.top_up(user_id, amount, token).await {
-                Ok(transaction) => Message::Transaction(TransactionMessage::TopUpSuccess(transaction)),
-                Err(error) => Message::Transaction(TransactionMessage::TopUpFailed(error.to_string())),
+                Ok(transaction) => Message::Status(format!("Top up successful for user {}", user_id)),
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
 
@@ -42,13 +46,13 @@ pub(crate) async fn execute_command(
             let user_id = match api.resolve_user(&identifier).await {
                 Ok(user_id) => user_id,
                 Err(error) => {
-                    return Message::User(UserMessage::LoadFailed(error.to_string()));
+                    return Message::Failed(AppError::Api(error.to_string()));
                 }
             };
 
             match api.request_admin_token(&Credentials { user_id, password }).await {
-                Ok(token) => Message::Authentication(AuthenticationMessage::SingleUseToken(token)),
-                Err(error) => Message::Authentication(AuthenticationMessage::AdminAuthFailed(error.to_string())),
+                Ok(token) => Message::AdminAuthenticated(token),
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
     }

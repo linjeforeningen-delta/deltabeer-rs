@@ -20,7 +20,7 @@ impl Runtime {
         key: KeyEvent,
     ) {
         let messages =
-            self.input.handle(&self.app, key);
+            self.input.handle(&mut self.app, key);
 
         for message in messages {
             self.dispatch(message).await;
