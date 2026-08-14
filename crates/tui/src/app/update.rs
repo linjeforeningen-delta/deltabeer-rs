@@ -1,8 +1,8 @@
 use crate::app::admin_action::AdminAction;
 use crate::app::command::Command;
-use crate::app::dialog::DialogResult;
+use crate::app::dialog::{DialogResult, UserDialog};
 use crate::app::message::{Request, RequestResult};
-use crate::app::{App, AppError, Message};
+use crate::app::{App, AppError, DialogOpenMode, Message};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<Command> {
@@ -78,20 +78,25 @@ impl App {
         match result {
             RequestResult::UserLoaded(user) => {
                 self.status = format!("User {} loaded", user.name);
-                self.update(Message::OpenDialog {
-                    dialog: Box::new(crate::app::dialog::UserDialog::new(user)),
-                    mode: crate::app::DialogOpenMode::Reset,
-                })
+                self.dialogs.open(
+                    Box::new(UserDialog::new(user)),
+                    DialogOpenMode::Reset,
+                );
+
+                None
             }
 
             RequestResult::SpendSucceeded(transaction) => {
                 self.status = format!("Spent {:?} successfully", transaction.amount);
-                self.update(Message::CloseDialog)
+                self.dialogs.close();
+                None
             }
 
             RequestResult::TopUpSucceeded(transaction) => {
                 self.status = format!("Topped up {:?} successfully", transaction.amount);
-                self.update(Message::Request(Request::LookupUser(transaction.user_id.to_string())))
+                Some(Command::LookupUser(
+                    transaction.user_id.to_string()
+                ))
             }
 
             RequestResult::AdminAuthenticated(token) => {
