@@ -11,7 +11,7 @@ impl App {
                 self.handle_request(request)
             }
 
-            Message::RequestResult(result) => {
+            Message::Response(result) => {
                 self.handle_request_result(result)
             }
 

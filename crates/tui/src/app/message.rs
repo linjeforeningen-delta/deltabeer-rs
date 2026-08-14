@@ -6,7 +6,7 @@ use crate::app::{Dialog, DialogOpenMode, Page};
 #[derive(Debug)]
 pub(crate) enum Message {
     Request(Request),
-    RequestResult(RequestResult),
+    Response(RequestResult),
 
     Status(String),
     Failed(AppError),
