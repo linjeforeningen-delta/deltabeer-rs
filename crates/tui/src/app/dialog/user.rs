@@ -1,4 +1,5 @@
-use crate::api::models::user::User;
+use crate::api::models::user::{Role, User};
+use crate::app::dialog::menu::presets::admin_menu;
 use crate::app::dialog::topup::TopUpDialog;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
@@ -63,6 +64,18 @@ impl DialogBehavior for UserDialog {
                         mode: DialogOpenMode::Push,
                     }
                 )
+            }
+
+            KeyCode::Char('a') => {
+                if self.user.role == Role::Admin {
+                    return DialogResult::Message(
+                        Message::OpenDialog {
+                            dialog: Box::new(admin_menu(&self.user.id)),
+                            mode: DialogOpenMode::Push,
+                        }
+                    );
+                }
+                DialogResult::Unhandled(key)
             }
             _ => DialogResult::Unhandled(key),
         }
