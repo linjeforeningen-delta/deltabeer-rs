@@ -2,6 +2,7 @@ mod stack;
 mod user;
 mod admin_auth;
 mod topup;
+mod menu;
 
 use crate::app::Message;
 use crossterm::event::{KeyCode, KeyEvent};
@@ -9,6 +10,7 @@ use std::fmt::Debug;
 
 use crate::ui::dialogs::DialogView;
 pub(crate) use admin_auth::AdminAuthDialog;
+pub(crate) use menu::MenuDialog;
 pub(crate) use stack::{DialogOpenMode, DialogStack};
 pub(crate) use topup::TopUpDialog;
 pub(crate) use user::UserDialog;
