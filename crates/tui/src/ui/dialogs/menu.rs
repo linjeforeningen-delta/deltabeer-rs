@@ -1,6 +1,6 @@
 use ratatui::{
     Frame,
-    layout::{Alignment, Rect},
+    layout::Alignment,
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph},
@@ -45,7 +45,7 @@ impl DialogView for MenuDialog {
             .len()
             .saturating_add(4) as u16;
         let popup_area = centered(
-            Rect::new(0, 0, width, height),
+            frame.area(),
             width,
             height,
         );
