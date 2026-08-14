@@ -1,28 +1,41 @@
 use crate::api::models::auth::SingleUseToken;
-use crate::api::models::user::UserId;
+use crate::api::models::transaction::Transaction;
+use crate::api::models::user::{User, UserId};
 use crate::app::{Dialog, DialogOpenMode, Page};
 
 #[derive(Debug)]
 pub(crate) enum Message {
-    Quit,
-
-    Navigate(Page),
-
-    CardScanned(String),
-
-    Failed(AppError),
+    Request(Request),
+    RequestResult(RequestResult),
 
     Status(String),
+    Failed(AppError),
 
-    Request(Request),
-
-    DialogOpen {
+    OpenDialog {
         dialog: Box<dyn Dialog>,
         mode: DialogOpenMode,
     },
-    DialogClose,
+    CloseDialog,
 
+    CardScanned(String),
+    Navigate(Page),
+    Quit,
+}
+
+#[derive(Debug)]
+pub(crate) enum RequestResult {
+    UserLoaded(User),
+    SpendSucceeded(Transaction),
+    TopUpSucceeded(Transaction),
     AdminAuthenticated(SingleUseToken),
+}
+
+#[derive(Debug)]
+pub(crate) enum Request {
+    LookupUser(String),
+    Spend { user_id: UserId, amount: u32 },
+    TopUp { user_id: UserId, amount: u32 },
+    AuthenticateAdmin { identifier: String, password: String },
 }
 
 
@@ -34,11 +47,4 @@ pub(crate) enum AppError {
     SessionExpired,
 }
 
-#[derive(Debug)]
-pub(crate) enum Request {
-    LookupUser(String),
-    Spend { user_id: UserId, amount: u32 },
-    TopUp { user_id: UserId, amount: u32 },
-    AuthenticateAdmin { identifier: String, password: String },
-}
 

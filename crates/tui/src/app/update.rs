@@ -1,47 +1,18 @@
 use crate::app::admin_action::AdminAction;
 use crate::app::command::Command;
 use crate::app::dialog::DialogResult;
-use crate::app::message::Request;
+use crate::app::message::{Request, RequestResult};
 use crate::app::{App, AppError, Message};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<Command> {
         match message {
-            Message::Quit => {
-                self.should_quit = true;
-                None
+            Message::Request(request) => {
+                self.handle_request(request)
             }
 
-            Message::Navigate(page) => {
-                self.page = page;
-                None
-            }
-
-            Message::CardScanned(card) => {
-                let card = match self.dialogs.active_mut() {
-                    Some(dialog) => {
-                        match dialog.handle_scan(card) {
-                            DialogResult::Consumed => {
-                                return None;
-                            }
-
-                            DialogResult::Message(message) => {
-                                return self.update(message);
-                            }
-
-                            DialogResult::Unhandled(card) => card,
-                        }
-                    }
-
-                    None => card,
-                };
-
-                self.status = "Looking up user...".into();
-                Some(Command::LookupUser(card))
-            }
-
-            Message::Failed(error) => {
-                self.handle_error(error)
+            Message::RequestResult(result) => {
+                self.handle_request_result(result)
             }
 
             Message::Status(status) => {
@@ -49,22 +20,82 @@ impl App {
                 None
             }
 
-            Message::Request(request) => {
-                self.handle_request(request)
+            Message::Failed(error) => {
+                self.handle_error(error)
             }
 
-            Message::DialogOpen { dialog, mode } => {
+            Message::OpenDialog { dialog, mode } => {
                 self.dialogs.open(dialog, mode);
                 None
             }
 
-            Message::DialogClose => {
+            Message::CloseDialog => {
                 self.dialogs.close();
                 None
             }
 
-            Message::AdminAuthenticated(token) => {
-                self.status = "Admin authentication successful".into();
+            Message::CardScanned(card) => {
+                self.handle_card_scan(card)
+            }
+
+            Message::Navigate(page) => {
+                self.page = page;
+                None
+            }
+
+            Message::Quit => {
+                self.should_quit = true;
+                None
+            }
+        }
+    }
+
+    fn handle_request(&mut self, request: Request) -> Option<Command> {
+        match request {
+            Request::LookupUser(card) => {
+                self.status = "Looking up user...".into();
+                Some(Command::LookupUser(card))
+            }
+
+            Request::Spend { user_id, amount } => {
+                self.status = "Spending...".into();
+                Some(Command::Spend { user_id, amount })
+            }
+
+            Request::TopUp { user_id, amount } => {
+                self.status = "Topping up...".into();
+                self.request_admin_action(AdminAction::TopUp { user_id, amount })
+            }
+
+            Request::AuthenticateAdmin { identifier, password } => {
+                self.status = "Authenticating admin...".into();
+                Some(Command::RequestAdminAuth { identifier, password })
+            }
+        }
+    }
+
+    fn handle_request_result(&mut self, result: RequestResult) -> Option<Command> {
+        match result {
+            RequestResult::UserLoaded(user) => {
+                self.status = format!("User {} loaded", user.name);
+                self.update(Message::OpenDialog {
+                    dialog: Box::new(crate::app::dialog::UserDialog::new(user)),
+                    mode: crate::app::DialogOpenMode::Reset,
+                })
+            }
+
+            RequestResult::SpendSucceeded(transaction) => {
+                self.status = format!("Spent {:?} successfully", transaction.amount);
+                self.update(Message::CloseDialog)
+            }
+
+            RequestResult::TopUpSucceeded(transaction) => {
+                self.status = format!("Topped up {:?} successfully", transaction.amount);
+                self.update(Message::Request(Request::LookupUser(transaction.user_id.to_string())))
+            }
+
+            RequestResult::AdminAuthenticated(token) => {
+                self.status = "Admin authenticated".into();
                 self.complete_admin_auth(token)
             }
         }
@@ -96,27 +127,30 @@ impl App {
         }
     }
 
-    fn handle_request(&mut self, request: Request) -> Option<Command> {
-        match request {
-            Request::LookupUser(card) => {
-                self.status = "Looking up user...".into();
-                Some(Command::LookupUser(card))
+    fn handle_card_scan(
+        &mut self,
+        card: String,
+    ) -> Option<Command> {
+        let card = match self.dialogs.active_mut() {
+            Some(dialog) => {
+                match dialog.handle_scan(card) {
+                    DialogResult::Consumed => {
+                        return None;
+                    }
+
+                    DialogResult::Message(message) => {
+                        return self.update(message);
+                    }
+
+                    DialogResult::Unhandled(card) => card,
+                }
             }
 
-            Request::Spend { user_id, amount } => {
-                self.status = "Spending...".into();
-                Some(Command::Spend { user_id, amount })
-            }
+            None => card,
+        };
 
-            Request::TopUp { user_id, amount } => {
-                self.status = "Topping up...".into();
-                self.request_admin_action(AdminAction::TopUp { user_id, amount })
-            }
+        self.status = "Looking up user...".into();
 
-            Request::AuthenticateAdmin { identifier, password } => {
-                self.status = "Authenticating admin...".into();
-                Some(Command::RequestAdminAuth { identifier, password })
-            }
-        }
+        Some(Command::LookupUser(card))
     }
 }

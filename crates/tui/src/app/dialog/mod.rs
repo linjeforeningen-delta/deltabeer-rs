@@ -23,7 +23,7 @@ pub(crate) trait DialogBehavior: Debug {
     fn handle_key(&mut self, key: KeyEvent) -> DialogResult<KeyEvent> {
         match key.code {
             KeyCode::Esc => {
-                DialogResult::Message(Message::DialogClose)
+                DialogResult::Message(Message::CloseDialog)
             }
 
             _ => self.handle_key_inner(key),

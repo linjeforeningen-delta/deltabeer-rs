@@ -1,5 +1,5 @@
 mod state;
-mod message;
+pub(crate) mod message;
 mod update;
 mod command;
 pub(crate) mod fields;

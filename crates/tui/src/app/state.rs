@@ -50,7 +50,7 @@ impl App {
                 self.pending_admin_action = Some(action);
 
                 self.update(
-                    Message::DialogOpen {
+                    Message::OpenDialog {
                         dialog: Box::new(AdminAuthDialog::default()),
                         mode: DialogOpenMode::Push,
                     })

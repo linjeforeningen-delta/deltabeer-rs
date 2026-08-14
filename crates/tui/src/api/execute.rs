@@ -1,6 +1,6 @@
 use crate::api::models::auth::Credentials;
-use crate::app::dialog::UserDialog;
-use crate::app::{AppError, DialogOpenMode};
+use crate::app::message::RequestResult;
+use crate::app::AppError;
 use crate::{
     api::client::ApiClient,
     app::{Command, Message},
@@ -20,24 +20,21 @@ pub(crate) async fn execute_command(
             };
 
             match api.user(user_id).await {
-                Ok(user) => Message::DialogOpen {
-                    dialog: Box::new(UserDialog::new(user)),
-                    mode: DialogOpenMode::Reset,
-                },
+                Ok(user) => Message::RequestResult(RequestResult::UserLoaded(user)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
 
         Command::Spend { user_id, amount } => {
             match api.spend(&user_id, amount).await {
-                Ok(transaction) => Message::Status(format!("Spent {} from user {}", amount, user_id)),
+                Ok(transaction) => Message::RequestResult(RequestResult::SpendSucceeded(transaction)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
 
         Command::TopUp { user_id, amount, token } => {
             match api.top_up(user_id, amount, token).await {
-                Ok(transaction) => Message::Status(format!("Top up successful for user {}", user_id)),
+                Ok(transaction) => Message::RequestResult(RequestResult::TopUpSucceeded(transaction)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
@@ -51,7 +48,7 @@ pub(crate) async fn execute_command(
             };
 
             match api.request_admin_token(&Credentials { user_id, password }).await {
-                Ok(token) => Message::AdminAuthenticated(token),
+                Ok(token) => Message::RequestResult(RequestResult::AdminAuthenticated(token)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }

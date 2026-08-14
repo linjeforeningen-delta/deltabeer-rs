@@ -55,7 +55,7 @@ impl DialogBehavior for UserDialog {
 
             KeyCode::Char('t') => {
                 DialogResult::Message(
-                    Message::DialogOpen {
+                    Message::OpenDialog {
                         dialog: Box::new(TopUpDialog {
                             user: self.user.clone(),
                             amount: TextInput::new(InputConstraint::Numeric),
