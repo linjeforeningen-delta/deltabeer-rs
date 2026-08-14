@@ -1,4 +1,5 @@
 use anyhow::{Context, Result, anyhow};
+use chrono::NaiveDate;
 use reqwest::{Client, Method, RequestBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 
@@ -6,7 +7,7 @@ use crate::api::models::
 auth::SessionToken;
 use crate::api::models::auth::{AdminToken, Credentials, SingleUseToken};
 use crate::api::models::transaction::Transaction;
-use crate::api::models::user::{User, UserId};
+use crate::api::models::user::{User, UserCreateRequest, UserId};
 
 #[derive(Clone)]
 pub(crate) struct ApiClient {
@@ -207,6 +208,34 @@ impl ApiClient {
             .json(&amount);
 
         let request = request.bearer_auth(token.as_str());
+
+        self.json(request).await
+    }
+
+    pub(crate) async fn make_user(
+        &self,
+        name: String,
+        username: String,
+        program: String,
+        card_number: u32,
+        birthdate: NaiveDate,
+        token: AdminToken,
+    ) -> Result<User> {
+        let content = UserCreateRequest {
+            name,
+            username,
+            program,
+            card_number,
+            birthdate,
+        };
+        let request = self
+            .http
+            .post(format!(
+                "{}/v1/admins/user_management/create",
+                self.base
+            ))
+            .json(&content)
+            .bearer_auth(token.as_str());
 
         self.json(request).await
     }

@@ -5,6 +5,7 @@ pub(crate) mod user;
 pub(crate) mod admin_auth;
 pub(crate) mod topup;
 mod menu;
+mod make_user;
 
 pub(crate) trait DialogView {
     fn draw(

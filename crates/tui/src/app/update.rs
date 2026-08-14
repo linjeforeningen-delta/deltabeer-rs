@@ -71,6 +71,24 @@ impl App {
                 self.status = "Authenticating admin...".into();
                 Some(Command::RequestAdminAuth { identifier, password })
             }
+
+            Request::MakeUser {
+                name,
+                username,
+                program,
+                card_number,
+                birthdate,
+            } => {
+                self.status = "Creating user...".into();
+
+                self.request_admin_action(AdminAction::MakeUser {
+                    name,
+                    username,
+                    program,
+                    card_number,
+                    birthdate,
+                })
+            }
         }
     }
 
@@ -102,6 +120,14 @@ impl App {
             RequestResult::AdminAuthenticated(token) => {
                 self.status = "Admin authenticated".into();
                 self.complete_admin_auth(token)
+            }
+
+            RequestResult::MakeUserSucceeded(user) => {
+                self.status = format!("User {} created", user.name);
+                self.dialogs.close();
+                Some(Command::LookupUser(
+                    user.id.to_string()
+                ))
             }
         }
     }

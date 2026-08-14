@@ -49,7 +49,7 @@ impl DialogBehavior for MenuDialog {
         DialogResult::Message(
             Message::OpenDialog {
                 dialog: (option.next)(),
-                mode: DialogOpenMode::ReplaceTop,
+                mode: DialogOpenMode::Push,
             },
         )
     }

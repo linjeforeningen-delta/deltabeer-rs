@@ -2,6 +2,7 @@ use crate::api::models::auth::SingleUseToken;
 use crate::api::models::transaction::Transaction;
 use crate::api::models::user::{User, UserId};
 use crate::app::{Dialog, DialogOpenMode, Page};
+use chrono::NaiveDate;
 
 #[derive(Debug)]
 pub(crate) enum Message {
@@ -28,6 +29,7 @@ pub(crate) enum RequestResult {
     SpendSucceeded(Transaction),
     TopUpSucceeded(Transaction),
     AdminAuthenticated(SingleUseToken),
+    MakeUserSucceeded(User),
 }
 
 #[derive(Debug)]
@@ -36,6 +38,13 @@ pub(crate) enum Request {
     Spend { user_id: UserId, amount: u32 },
     TopUp { user_id: UserId, amount: u32 },
     AuthenticateAdmin { identifier: String, password: String },
+    MakeUser {
+        name: String,
+        username: String,
+        program: String,
+        card_number: u32,
+        birthdate: NaiveDate,
+    },
 }
 
 

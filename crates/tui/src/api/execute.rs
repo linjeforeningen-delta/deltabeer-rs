@@ -52,5 +52,19 @@ pub(crate) async fn execute_command(
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
+
+        Command::MakeUser {
+            name,
+            username,
+            program,
+            card_number,
+            birthdate,
+            token,
+        } => {
+            match api.make_user(name, username, program, card_number, birthdate, token).await {
+                Ok(user) => Message::Response(RequestResult::MakeUserSucceeded(user)),
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
+            }
+        }
     }
 }
