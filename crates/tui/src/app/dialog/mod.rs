@@ -41,11 +41,11 @@ pub(crate) trait DialogBehavior: Debug {
 
 
 pub(crate) trait Dialog:
-DialogBehavior + DialogView + std::fmt::Debug
+DialogBehavior + DialogView
 {}
 
 impl<T> Dialog for T
 where
-    T: DialogBehavior + DialogView + std::fmt::Debug,
+    T: DialogBehavior + DialogView,
 {}
 
