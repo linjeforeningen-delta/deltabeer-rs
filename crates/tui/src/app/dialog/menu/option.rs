@@ -16,13 +16,8 @@ impl fmt::Debug for MenuOption {
     }
 }
 
-
 impl MenuOption {
-    pub(crate) fn new<F>(
-        name: impl Into<String>,
-        key: char,
-        next: F,
-    ) -> Self
+    pub(crate) fn new<F>(name: impl Into<String>, key: char, next: F) -> Self
     where
         F: Fn() -> Box<dyn Dialog> + 'static,
     {

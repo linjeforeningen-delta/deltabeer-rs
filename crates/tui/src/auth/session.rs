@@ -8,4 +8,3 @@ pub(crate) struct AdminSession {
     expires_at: DateTime<Utc>,
     last_validated_at: DateTime<Utc>,
 }
-

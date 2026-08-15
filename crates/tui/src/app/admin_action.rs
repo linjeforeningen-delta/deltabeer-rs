@@ -3,7 +3,6 @@ use crate::api::models::user::UserId;
 use crate::app::Command;
 use chrono::NaiveDate;
 
-
 #[derive(Debug)]
 pub(crate) enum AdminAction {
     TopUp {
@@ -21,18 +20,13 @@ pub(crate) enum AdminAction {
 }
 
 impl AdminAction {
-    pub(crate) fn into_command(
-        self,
-        token: AdminToken,
-    ) -> Command {
+    pub(crate) fn into_command(self, token: AdminToken) -> Command {
         match self {
-            Self::TopUp { user_id, amount } => {
-                Command::TopUp {
-                    user_id,
-                    amount,
-                    token,
-                }
-            }
+            Self::TopUp { user_id, amount } => Command::TopUp {
+                user_id,
+                amount,
+                token,
+            },
 
             Self::MakeUser {
                 name,
@@ -40,16 +34,14 @@ impl AdminAction {
                 program,
                 card_number,
                 birthdate,
-            } => {
-                Command::MakeUser {
-                    name,
-                    username,
-                    program,
-                    card_number,
-                    birthdate,
-                    token,
-                }
-            }
+            } => Command::MakeUser {
+                name,
+                username,
+                program,
+                card_number,
+                birthdate,
+                token,
+            },
         }
     }
 }

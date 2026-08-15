@@ -35,9 +35,18 @@ pub(crate) enum RequestResult {
 #[derive(Debug)]
 pub(crate) enum Request {
     LookupUser(String),
-    Spend { user_id: UserId, amount: u32 },
-    TopUp { user_id: UserId, amount: u32 },
-    AuthenticateAdmin { identifier: String, password: String },
+    Spend {
+        user_id: UserId,
+        amount: u32,
+    },
+    TopUp {
+        user_id: UserId,
+        amount: u32,
+    },
+    AuthenticateAdmin {
+        identifier: String,
+        password: String,
+    },
     MakeUser {
         name: String,
         username: String,
@@ -47,7 +56,6 @@ pub(crate) enum Request {
     },
 }
 
-
 #[derive(Debug)]
 pub(crate) enum AppError {
     Api(String),
@@ -55,5 +63,3 @@ pub(crate) enum AppError {
     Authentication(String),
     SessionExpired,
 }
-
-

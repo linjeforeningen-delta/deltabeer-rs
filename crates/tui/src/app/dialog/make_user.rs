@@ -5,7 +5,6 @@ use crate::app::{AppError, Message, TextInput};
 use chrono::NaiveDate;
 use crossterm::event::{KeyCode, KeyEvent};
 
-
 #[derive(Debug)]
 pub(crate) struct MakeUserDialog {
     pub(crate) name: TextInput,
@@ -44,112 +43,77 @@ impl MakeUserDialog {
     }
 
     fn next_field(&mut self) {
-        self.active_field =
-            (self.active_field + 1) % 4;
+        self.active_field = (self.active_field + 1) % 4;
     }
 
     fn previous_field(&mut self) {
-        self.active_field =
-            self.active_field.checked_sub(1).unwrap_or(3);
+        self.active_field = self.active_field.checked_sub(1).unwrap_or(3);
     }
 
     fn submit(&self) -> DialogResult<KeyEvent> {
         let name = self.name.as_str().trim();
 
         if name.is_empty() {
-            return DialogResult::Message(
-                Message::Failed(
-                    AppError::Validation(
-                        "Name is required".into(),
-                    )
-                )
-            );
+            return DialogResult::Message(Message::Failed(AppError::Validation(
+                "Name is required".into(),
+            )));
         }
 
         let username = self.username.as_str().trim();
 
         if username.is_empty() {
-            return DialogResult::Message(
-                Message::Failed(
-                    AppError::Validation(
-                        "Username is required".into(),
-                    )
-                )
-            );
+            return DialogResult::Message(Message::Failed(AppError::Validation(
+                "Username is required".into(),
+            )));
         }
 
         let program = self.program.as_str().trim();
 
         if program.is_empty() {
-            return DialogResult::Message(
-                Message::Failed(
-                    AppError::Validation(
-                        "Program is required".into(),
-                    )
-                )
-            );
+            return DialogResult::Message(Message::Failed(AppError::Validation(
+                "Program is required".into(),
+            )));
         }
 
-        let birthdate = match NaiveDate::parse_from_str(
-            self.birthdate.as_str().trim(),
-            "%Y-%m-%d",
-        ) {
+        let birthdate = match NaiveDate::parse_from_str(self.birthdate.as_str().trim(), "%Y-%m-%d")
+        {
             Ok(date) => date,
 
             Err(_) => {
-                return DialogResult::Message(
-                    Message::Failed(
-                        AppError::Validation(
-                            "Birthdate must be YYYY-MM-DD".into(),
-                        )
-                    )
-                );
+                return DialogResult::Message(Message::Failed(AppError::Validation(
+                    "Birthdate must be YYYY-MM-DD".into(),
+                )));
             }
         };
 
         let Some(card) = &self.card else {
-            return DialogResult::Message(
-                Message::Failed(
-                    AppError::Validation(
-                        "Scan a card first".into(),
-                    )
-                )
-            );
+            return DialogResult::Message(Message::Failed(AppError::Validation(
+                "Scan a card first".into(),
+            )));
         };
 
         let card_number = match card.parse::<u32>() {
             Ok(card) => card,
 
             Err(_) => {
-                return DialogResult::Message(
-                    Message::Failed(
-                        AppError::Validation(
-                            "Invalid card number".into(),
-                        )
-                    )
-                );
+                return DialogResult::Message(Message::Failed(AppError::Validation(
+                    "Invalid card number".into(),
+                )));
             }
         };
 
-        DialogResult::Message(
-            Message::Request(
-                Request::MakeUser {
-                    name: name.to_owned(),
-                    username: username.to_owned(),
-                    program: program.to_owned(),
-                    card_number,
-                    birthdate,
-                }
-            )
-        )
+        DialogResult::Message(Message::Request(Request::MakeUser {
+            name: name.to_owned(),
+            username: username.to_owned(),
+            program: program.to_owned(),
+            card_number,
+            birthdate,
+        }))
     }
 }
 
 impl DialogBehavior for MakeUserDialog {
-    fn handle_key_inner(
-        &mut self,
-        key: KeyEvent,
-    ) -> DialogResult<KeyEvent> {
+    fn handle_key_inner(&mut self, key: KeyEvent) -> DialogResult<KeyEvent> {
         match key.code {
             KeyCode::Down => {
                 self.next_field();
@@ -171,18 +135,13 @@ impl DialogBehavior for MakeUserDialog {
                 DialogResult::Consumed
             }
 
-            KeyCode::Enter => {
-                self.submit()
-            }
+            KeyCode::Enter => self.submit(),
 
             _ => DialogResult::Unhandled(key),
         }
     }
 
-    fn handle_scan(
-        &mut self,
-        card: String,
-    ) -> DialogResult<String> {
+    fn handle_scan(&mut self, card: String) -> DialogResult<String> {
         self.card = Some(card);
         DialogResult::Consumed
     }

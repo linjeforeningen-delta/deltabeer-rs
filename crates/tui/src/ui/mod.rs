@@ -1,7 +1,7 @@
-pub(crate) mod layout;
-pub(crate) mod theme;
-pub mod pages;
 pub(crate) mod dialogs;
+pub(crate) mod layout;
+pub mod pages;
+pub(crate) mod theme;
 
 use crate::app::{App, Page};
 use ratatui::{

@@ -12,7 +12,7 @@ pub(crate) fn app_layout(area: Rect) -> AppLayout {
         Constraint::Min(1),
         Constraint::Length(3),
     ])
-        .split(area);
+    .split(area);
 
     AppLayout {
         header: chunks[0],
@@ -21,11 +21,7 @@ pub(crate) fn app_layout(area: Rect) -> AppLayout {
     }
 }
 
-pub(crate) fn centered(
-    area: Rect,
-    width: u16,
-    height: u16,
-) -> Rect {
+pub(crate) fn centered(area: Rect, width: u16, height: u16) -> Rect {
     let width = width.min(area.width);
     let height = height.min(area.height);
 

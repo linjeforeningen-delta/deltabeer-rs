@@ -1,9 +1,4 @@
-use crate::
-ui::{
-    dialogs::DialogView,
-    layout::centered,
-    theme::Theme,
-};
+use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::dialog::MakeUserDialog;
 use ratatui::{
@@ -15,27 +10,15 @@ use ratatui::{
 };
 
 impl DialogView for MakeUserDialog {
-    fn draw(
-        &self,
-        frame: &mut Frame,
-        theme: &Theme,
-    ) {
+    fn draw(&self, frame: &mut Frame, theme: &Theme) {
         let area = centered(frame.area(), 62, 20);
 
         frame.render_widget(Clear, area);
 
-        let card = self
-            .card
-            .as_deref()
-            .unwrap_or("Scan card");
+        let card = self.card.as_deref().unwrap_or("Scan card");
 
         let content = vec![
-            field_line(
-                "Name",
-                self.name.as_str(),
-                self.active_field == 0,
-                theme,
-            ),
+            field_line("Name", self.name.as_str(), self.active_field == 0, theme),
             field_line(
                 "Username",
                 self.username.as_str(),
@@ -56,14 +39,8 @@ impl DialogView for MakeUserDialog {
             ),
             Line::from(""),
             Line::from(vec![
-                Span::styled(
-                    "Card       ",
-                    Style::default().fg(theme.accent),
-                ),
-                Span::styled(
-                    card,
-                    Style::default().fg(theme.accent),
-                ),
+                Span::styled("Card       ", Style::default().fg(theme.accent)),
+                Span::styled(card, Style::default().fg(theme.accent)),
             ]),
             Line::from(""),
             Line::styled(
@@ -97,31 +74,20 @@ impl DialogView for MakeUserDialog {
         ];
 
         let popup = Paragraph::new(content)
-            .style(
-                Style::default()
-                    .fg(theme.accent),
-            )
+            .style(Style::default().fg(theme.accent))
             .block(
                 Block::default()
                     .title(" Create User ")
                     .title_alignment(Alignment::Center)
                     .borders(Borders::ALL)
-                    .border_style(
-                        Style::default()
-                            .fg(theme.border),
-                    ),
+                    .border_style(Style::default().fg(theme.border)),
             );
 
         frame.render_widget(popup, area);
     }
 }
 
-fn field_line<'a>(
-    label: &'a str,
-    value: &'a str,
-    active: bool,
-    theme: &Theme,
-) -> Line<'a> {
+fn field_line<'a>(label: &'a str, value: &'a str, active: bool, theme: &Theme) -> Line<'a> {
     let marker = if active { "> " } else { "  " };
 
     Line::from(vec![
@@ -132,14 +98,10 @@ fn field_line<'a>(
                     .fg(theme.accent)
                     .add_modifier(Modifier::BOLD)
             } else {
-                Style::default()
-                    .fg(theme.accent)
+                Style::default().fg(theme.accent)
             },
         ),
-        Span::styled(
-            format!("{label:<10}"),
-            Style::default().fg(theme.accent),
-        ),
+        Span::styled(format!("{label:<10}"), Style::default().fg(theme.accent)),
         Span::styled(
             value,
             if active {
@@ -147,8 +109,7 @@ fn field_line<'a>(
                     .fg(theme.accent)
                     .add_modifier(Modifier::BOLD)
             } else {
-                Style::default()
-                    .fg(theme.accent)
+                Style::default().fg(theme.accent)
             },
         ),
     ])

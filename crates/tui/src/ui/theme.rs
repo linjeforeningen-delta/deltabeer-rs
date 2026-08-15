@@ -7,14 +7,12 @@ pub struct Theme {
     pub title: Color,
 }
 
-
 pub fn theme(auth: &AuthState) -> Theme {
     match auth {
         AuthState::Normal => normal_theme(),
         AuthState::Admin(_) => admin_theme(),
     }
 }
-
 
 fn admin_theme() -> Theme {
     Theme {

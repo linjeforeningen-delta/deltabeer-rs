@@ -37,43 +37,29 @@ impl DialogBehavior for UserDialog {
 
             KeyCode::Enter => {
                 let Some(amount) = self.amount.as_u32() else {
-                    return DialogResult::Message(
-                        Message::Status(
-                            "Invalid amount".into()
-                        )
-                    );
+                    return DialogResult::Message(Message::Status("Invalid amount".into()));
                 };
 
-                DialogResult::Message(
-                    Message::Request(
-                        Request::Spend {
-                            user_id: self.user.id.clone(),
-                            amount,
-                        }
-                    )
-                )
+                DialogResult::Message(Message::Request(Request::Spend {
+                    user_id: self.user.id.clone(),
+                    amount,
+                }))
             }
 
-            KeyCode::Char('t') => {
-                DialogResult::Message(
-                    Message::OpenDialog {
-                        dialog: Box::new(TopUpDialog {
-                            user: self.user.clone(),
-                            amount: TextInput::new(InputConstraint::Numeric),
-                        }),
-                        mode: DialogOpenMode::Push,
-                    }
-                )
-            }
+            KeyCode::Char('t') => DialogResult::Message(Message::OpenDialog {
+                dialog: Box::new(TopUpDialog {
+                    user: self.user.clone(),
+                    amount: TextInput::new(InputConstraint::Numeric),
+                }),
+                mode: DialogOpenMode::Push,
+            }),
 
             KeyCode::Char('a') => {
                 if self.user.role == Role::Admin {
-                    return DialogResult::Message(
-                        Message::OpenDialog {
-                            dialog: Box::new(admin_menu(&self.user.id)),
-                            mode: DialogOpenMode::Push,
-                        }
-                    );
+                    return DialogResult::Message(Message::OpenDialog {
+                        dialog: Box::new(admin_menu(&self.user.id)),
+                        mode: DialogOpenMode::Push,
+                    });
                 }
                 DialogResult::Unhandled(key)
             }
@@ -81,4 +67,3 @@ impl DialogBehavior for UserDialog {
         }
     }
 }
-

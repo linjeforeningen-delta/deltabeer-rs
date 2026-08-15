@@ -36,7 +36,6 @@ impl SingleUseToken {
     }
 }
 
-
 impl From<AdminToken> for SessionToken {
     fn from(token: AdminToken) -> Self {
         Self(token.0)

@@ -1,9 +1,9 @@
-mod app;
-mod ui;
-mod input;
-pub(crate) mod auth;
 pub mod api;
+mod app;
+pub(crate) mod auth;
+mod input;
 mod runtime;
+mod ui;
 
 use crate::api::client::ApiClient;
 use crate::input::Input;
@@ -34,7 +34,6 @@ fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Re
     Ok(())
 }
 
-
 async fn run(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
     runtime: &mut Runtime,
@@ -55,7 +54,6 @@ async fn run(
 
     Ok(())
 }
-
 
 #[tokio::main]
 async fn main() -> Result<()> {

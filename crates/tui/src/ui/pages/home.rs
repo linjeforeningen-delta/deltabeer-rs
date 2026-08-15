@@ -1,7 +1,4 @@
-use crate::{
-    app::App,
-    ui::theme::Theme,
-};
+use crate::{app::App, ui::theme::Theme};
 use ratatui::{
     Frame,
     layout::Rect,
@@ -10,12 +7,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
 };
 
-pub(crate) fn draw(
-    frame: &mut Frame,
-    area: Rect,
-    _app: &App,
-    theme: &Theme,
-) {
+pub(crate) fn draw(frame: &mut Frame, area: Rect, _app: &App, theme: &Theme) {
     let content = vec![
         Line::from("Welcome to DeltaBeer"),
         Line::from(""),

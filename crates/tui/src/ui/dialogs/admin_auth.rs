@@ -10,26 +10,14 @@ use ratatui::{
 };
 
 impl DialogView for AdminAuthDialog {
-    fn draw(
-        &self,
-        frame: &mut Frame,
-        theme: &Theme,
-    ) {
+    fn draw(&self, frame: &mut Frame, theme: &Theme) {
         let area = centered(frame.area(), 56, 16);
 
         frame.render_widget(Clear, area);
 
-        let card = self
-            .card
-            .as_deref()
-            .unwrap_or("Scan admin card");
+        let card = self.card.as_deref().unwrap_or("Scan admin card");
 
-        let password = "•".repeat(
-            self.password
-                .as_str()
-                .chars()
-                .count()
-        );
+        let password = "•".repeat(self.password.as_str().chars().count());
 
         let content = vec![
             Line::styled(
@@ -40,16 +28,10 @@ impl DialogView for AdminAuthDialog {
             ),
             Line::from(""),
             Line::from("Admin card"),
-            Line::styled(
-                format!("> {card}"),
-                Style::default().fg(theme.accent),
-            ),
+            Line::styled(format!("> {card}"), Style::default().fg(theme.accent)),
             Line::from(""),
             Line::from("Password"),
-            Line::styled(
-                format!("> {password}"),
-                Style::default().fg(theme.accent),
-            ),
+            Line::styled(format!("> {password}"), Style::default().fg(theme.accent)),
             Line::from(""),
             Line::from(vec![
                 Span::styled(
@@ -76,9 +58,7 @@ impl DialogView for AdminAuthDialog {
                     .title(" Admin Authentication ")
                     .title_alignment(Alignment::Center)
                     .borders(Borders::ALL)
-                    .border_style(
-                        Style::default().fg(theme.border),
-                    ),
+                    .border_style(Style::default().fg(theme.border)),
             );
 
         frame.render_widget(popup, area);

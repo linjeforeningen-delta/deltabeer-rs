@@ -36,21 +36,13 @@ impl DialogBehavior for TopUpDialog {
 
             KeyCode::Enter => {
                 let Some(amount) = self.amount.as_u32() else {
-                    return DialogResult::Message(
-                        Message::Status(
-                            "Invalid amount".into()
-                        )
-                    );
+                    return DialogResult::Message(Message::Status("Invalid amount".into()));
                 };
 
-                DialogResult::Message(
-                    Message::Request(
-                        Request::TopUp {
-                            user_id: self.user.id.clone(),
-                            amount,
-                        }
-                    )
-                )
+                DialogResult::Message(Message::Request(Request::TopUp {
+                    user_id: self.user.id.clone(),
+                    amount,
+                }))
             }
 
             _ => DialogResult::Unhandled(key),

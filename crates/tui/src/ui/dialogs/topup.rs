@@ -5,15 +5,10 @@ use ratatui::{
 
 use crate::app::dialog::TopUpDialog;
 use crate::ui::dialogs::DialogView;
-use crate::
-ui::{layout::centered, theme::Theme};
+use crate::ui::{layout::centered, theme::Theme};
 
 impl DialogView for TopUpDialog {
-    fn draw(
-        &self,
-        frame: &mut Frame,
-        theme: &Theme,
-    ) {
+    fn draw(&self, frame: &mut Frame, theme: &Theme) {
         let area = centered(frame.area(), 56, 14);
 
         frame.render_widget(Clear, area);
@@ -40,10 +35,7 @@ impl DialogView for TopUpDialog {
                 ),
             ]),
             Line::from(""),
-            Line::styled(
-                "Top-up amount",
-                Style::default().fg(theme.accent),
-            ),
+            Line::styled("Top-up amount", Style::default().fg(theme.accent)),
             Line::styled(
                 format!("> {}", self.amount.as_str()),
                 Style::default()

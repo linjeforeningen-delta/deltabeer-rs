@@ -1,7 +1,6 @@
 use crate::app::dialog::UserDialog;
 use crate::ui::dialogs::DialogView;
-use crate::
-ui::{layout::centered, theme::Theme};
+use crate::ui::{layout::centered, theme::Theme};
 use ratatui::{
     Frame,
     layout::Alignment,
@@ -11,11 +10,7 @@ use ratatui::{
 };
 
 impl DialogView for UserDialog {
-    fn draw(
-        &self,
-        frame: &mut Frame,
-        theme: &Theme,
-    ) {
+    fn draw(&self, frame: &mut Frame, theme: &Theme) {
         let area = centered(frame.area(), 56, 18);
 
         frame.render_widget(Clear, area);
@@ -31,26 +26,11 @@ impl DialogView for UserDialog {
                 Span::raw(format!("  @{}", self.user.username)),
             ]),
             Line::from(""),
-            Line::from(format!(
-                "Program      {}",
-                self.user.program
-            )),
-            Line::from(format!(
-                "Card         {}",
-                self.user.card_number
-            )),
-            Line::from(format!(
-                "Role         {}",
-                self.user.role
-            )),
-            Line::from(format!(
-                "Balance      {} Δ¢",
-                self.user.balance.0
-            )),
-            Line::from(format!(
-                "Spent        {} Δ¢",
-                self.user.spent.0
-            )),
+            Line::from(format!("Program      {}", self.user.program)),
+            Line::from(format!("Card         {}", self.user.card_number)),
+            Line::from(format!("Role         {}", self.user.role)),
+            Line::from(format!("Balance      {} Δ¢", self.user.balance.0)),
+            Line::from(format!("Spent        {} Δ¢", self.user.spent.0)),
             Line::from(""),
             Line::from("Amount"),
             Line::styled(

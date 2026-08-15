@@ -1,10 +1,10 @@
-mod state;
-pub(crate) mod message;
-mod update;
-mod command;
-pub(crate) mod fields;
-pub(crate) mod dialog;
 mod admin_action;
+mod command;
+pub(crate) mod dialog;
+pub(crate) mod fields;
+pub(crate) mod message;
+mod state;
+mod update;
 
 pub(crate) use command::Command;
 pub(crate) use dialog::{Dialog, DialogOpenMode};

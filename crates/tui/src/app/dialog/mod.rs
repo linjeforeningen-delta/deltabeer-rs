@@ -1,9 +1,9 @@
-mod stack;
-mod user;
 mod admin_auth;
-mod topup;
-mod menu;
 mod make_user;
+mod menu;
+mod stack;
+mod topup;
+mod user;
 
 use crate::app::Message;
 use crossterm::event::{KeyCode, KeyEvent};
@@ -26,30 +26,18 @@ pub(crate) enum DialogResult<T> {
 pub(crate) trait DialogBehavior: Debug {
     fn handle_key(&mut self, key: KeyEvent) -> DialogResult<KeyEvent> {
         match key.code {
-            KeyCode::Esc => {
-                DialogResult::Message(Message::CloseDialog)
-            }
+            KeyCode::Esc => DialogResult::Message(Message::CloseDialog),
 
             _ => self.handle_key_inner(key),
         }
     }
 
     fn handle_key_inner(&mut self, key: KeyEvent) -> DialogResult<KeyEvent>;
-    fn handle_scan(
-        &mut self,
-        card: String,
-    ) -> DialogResult<String> {
+    fn handle_scan(&mut self, card: String) -> DialogResult<String> {
         DialogResult::Unhandled(card)
     }
 }
 
+pub(crate) trait Dialog: DialogBehavior + DialogView {}
 
-pub(crate) trait Dialog:
-DialogBehavior + DialogView
-{}
-
-impl<T> Dialog for T
-where
-    T: DialogBehavior + DialogView,
-{}
-
+impl<T> Dialog for T where T: DialogBehavior + DialogView {}

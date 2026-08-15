@@ -18,11 +18,7 @@ impl Input {
         }
     }
 
-    pub(crate) fn handle(
-        &mut self,
-        app: &mut App,
-        key: KeyEvent,
-    ) -> Vec<Message> {
+    pub(crate) fn handle(&mut self, app: &mut App, key: KeyEvent) -> Vec<Message> {
         match self.scanner.handle(key) {
             ScannerResult::Waiting => {
                 vec![]
@@ -32,18 +28,14 @@ impl Input {
                 vec![Message::CardScanned(card)]
             }
 
-            ScannerResult::NotScan(keys) => {
-                keys.into_iter()
-                    .filter_map(|key| keyboard::map_key(app, key))
-                    .collect()
-            }
+            ScannerResult::NotScan(keys) => keys
+                .into_iter()
+                .filter_map(|key| keyboard::map_key(app, key))
+                .collect(),
         }
     }
 
-    pub(crate) fn tick(
-        &mut self,
-        app: &mut App,
-    ) -> Vec<Message> {
+    pub(crate) fn tick(&mut self, app: &mut App) -> Vec<Message> {
         match self.scanner.flush() {
             ScannerResult::NotScan(keys) => keys
                 .into_iter()

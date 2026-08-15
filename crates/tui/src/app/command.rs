@@ -4,9 +4,19 @@ use chrono::NaiveDate;
 
 pub(crate) enum Command {
     LookupUser(String),
-    Spend { user_id: UserId, amount: u32 },
-    TopUp { user_id: UserId, amount: u32, token: AdminToken },
-    RequestAdminAuth { identifier: String, password: String },
+    Spend {
+        user_id: UserId,
+        amount: u32,
+    },
+    TopUp {
+        user_id: UserId,
+        amount: u32,
+        token: AdminToken,
+    },
+    RequestAdminAuth {
+        identifier: String,
+        password: String,
+    },
     MakeUser {
         name: String,
         username: String,

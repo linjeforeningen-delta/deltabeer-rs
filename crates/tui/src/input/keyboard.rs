@@ -2,24 +2,19 @@ use crate::app::dialog::DialogResult;
 use crate::app::{App, Message, Page};
 use crossterm::event::{KeyCode, KeyEvent};
 
-pub(crate) fn map_key(
-    app: &mut App,
-    key: KeyEvent,
-) -> Option<Message> {
+pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
     let key = match app.dialogs.active_mut() {
-        Some(dialog) => {
-            match dialog.handle_key(key) {
-                DialogResult::Consumed => {
-                    return None;
-                }
-
-                DialogResult::Message(message) => {
-                    return Some(message);
-                }
-
-                DialogResult::Unhandled(key) => key,
+        Some(dialog) => match dialog.handle_key(key) {
+            DialogResult::Consumed => {
+                return None;
             }
-        }
+
+            DialogResult::Message(message) => {
+                return Some(message);
+            }
+
+            DialogResult::Unhandled(key) => key,
+        },
 
         None => key,
     };
@@ -44,11 +39,7 @@ fn map_key_base(app: &App, key: KeyEvent) -> Option<Message> {
     }
 }
 
-
-fn map_key_page(
-    app: &App,
-    key: KeyEvent,
-) -> Option<Message> {
+fn map_key_page(app: &App, key: KeyEvent) -> Option<Message> {
     match app.page {
         Page::Home => map_key_home(key),
         Page::Users => map_key_users(key),
@@ -56,26 +47,18 @@ fn map_key_page(
         Page::Stats => map_key_stats(key),
     }
 }
-fn map_key_home(
-    _key: KeyEvent,
-) -> Option<Message> {
+fn map_key_home(_key: KeyEvent) -> Option<Message> {
     None
 }
 
-fn map_key_users(
-    _key: KeyEvent,
-) -> Option<Message> {
+fn map_key_users(_key: KeyEvent) -> Option<Message> {
     None
 }
 
-fn map_key_transactions(
-    _key: KeyEvent,
-) -> Option<Message> {
+fn map_key_transactions(_key: KeyEvent) -> Option<Message> {
     None
 }
 
-fn map_key_stats(
-    _key: KeyEvent,
-) -> Option<Message> {
+fn map_key_stats(_key: KeyEvent) -> Option<Message> {
     None
 }

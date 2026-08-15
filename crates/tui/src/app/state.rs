@@ -13,7 +13,6 @@ pub(crate) enum Page {
     Stats,
 }
 
-
 pub(crate) struct App {
     pub auth: AuthState,
     pub page: Page,
@@ -35,41 +34,28 @@ impl App {
         }
     }
 
-    pub(crate) fn request_admin_action(
-        &mut self,
-        action: AdminAction,
-    ) -> Option<Command> {
+    pub(crate) fn request_admin_action(&mut self, action: AdminAction) -> Option<Command> {
         match &self.auth {
             AuthState::Admin(session) => {
-                return Some(
-                    action.into_command(session.token.clone().into())
-                );
+                return Some(action.into_command(session.token.clone().into()));
             }
 
             AuthState::Normal => {
                 self.pending_admin_action = Some(action);
 
-                self.update(
-                    Message::OpenDialog {
-                        dialog: Box::new(AdminAuthDialog::default()),
-                        mode: DialogOpenMode::Push,
-                    })
+                self.update(Message::OpenDialog {
+                    dialog: Box::new(AdminAuthDialog::default()),
+                    mode: DialogOpenMode::Push,
+                })
             }
         }
     }
 
-    pub(crate) fn complete_admin_auth(
-        &mut self,
-        token: SingleUseToken,
-    ) -> Option<Command> {
+    pub(crate) fn complete_admin_auth(&mut self, token: SingleUseToken) -> Option<Command> {
         let action = self.pending_admin_action.take()?;
 
         self.dialogs.close();
 
-        Some(
-            action.into_command(
-                token.into()
-            )
-        )
+        Some(action.into_command(token.into()))
     }
 }

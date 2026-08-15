@@ -3,8 +3,7 @@ use chrono::NaiveDate;
 use reqwest::{Client, Method, RequestBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 
-use crate::api::models::
-auth::SessionToken;
+use crate::api::models::auth::SessionToken;
 use crate::api::models::auth::{AdminToken, Credentials, SingleUseToken};
 use crate::api::models::transaction::Transaction;
 use crate::api::models::user::{User, UserCreateRequest, UserId};
@@ -23,28 +22,15 @@ impl ApiClient {
         }
     }
 
-
-    fn request(
-        &self,
-        method: Method,
-        path: &str,
-    ) -> RequestBuilder {
-        self
-            .http
-            .request(method, format!("{}{}", self.base, path))
+    fn request(&self, method: Method, path: &str) -> RequestBuilder {
+        self.http.request(method, format!("{}{}", self.base, path))
     }
 
-    async fn json<T>(
-        &self,
-        request: RequestBuilder,
-    ) -> Result<T>
+    async fn json<T>(&self, request: RequestBuilder) -> Result<T>
     where
         T: DeserializeOwned,
     {
-        let response = request
-            .send()
-            .await
-            .context("API request failed")?;
+        let response = request.send().await.context("API request failed")?;
 
         let status = response.status();
 
@@ -52,20 +38,11 @@ impl ApiClient {
             return Err(Self::api_error(status, response).await);
         }
 
-        response
-            .json::<T>()
-            .await
-            .context("Invalid API response")
+        response.json::<T>().await.context("Invalid API response")
     }
 
-    async fn empty(
-        &self,
-        request: RequestBuilder,
-    ) -> Result<()> {
-        let response = request
-            .send()
-            .await
-            .context("API request failed")?;
+    async fn empty(&self, request: RequestBuilder) -> Result<()> {
+        let response = request.send().await.context("API request failed")?;
 
         let status = response.status();
 
@@ -76,10 +53,7 @@ impl ApiClient {
         Ok(())
     }
 
-    async fn api_error(
-        status: StatusCode,
-        response: reqwest::Response,
-    ) -> anyhow::Error {
+    async fn api_error(status: StatusCode, response: reqwest::Response) -> anyhow::Error {
         let text = response.text().await.ok();
 
         match text {
@@ -95,75 +69,46 @@ impl ApiClient {
 }
 
 impl ApiClient {
-    pub(crate) async fn user(
-        &self,
-        user_id: UserId,
-    ) -> Result<User> {
-        self.json(
-            self.request(
-                Method::GET,
-                &format!("/v1/users/{user_id}"),
-            ),
-        )
+    pub(crate) async fn user(&self, user_id: UserId) -> Result<User> {
+        self.json(self.request(Method::GET, &format!("/v1/users/{user_id}")))
             .await
     }
 
-    pub(crate) async fn resolve_user(
-        &self,
-        identifier: &str,
-    ) -> Result<UserId> {
-        self.json(
-            self.request(
-                Method::GET,
-                &format!("/v1/users/resolve/{identifier}"),
-            ),
-        )
+    pub(crate) async fn resolve_user(&self, identifier: &str) -> Result<UserId> {
+        self.json(self.request(Method::GET, &format!("/v1/users/resolve/{identifier}")))
             .await
     }
 
     pub(crate) async fn users(&self) -> Result<Vec<User>> {
-        self.json(
-            self.request(Method::GET, "/v1/users"),
-        )
-            .await
+        self.json(self.request(Method::GET, "/v1/users")).await
     }
 
-    pub(crate) async fn spend(
-        &self,
-        user_id: &UserId,
-        amount: u32,
-    ) -> Result<Transaction> {
+    pub(crate) async fn spend(&self, user_id: &UserId, amount: u32) -> Result<Transaction> {
         self.json(
-            self.request(
-                Method::POST,
-                &format!("/v1/users/{user_id}/spend"),
-            )
+            self.request(Method::POST, &format!("/v1/users/{user_id}/spend"))
                 .json(&amount),
         )
-            .await
+        .await
     }
 }
-
 
 impl ApiClient {
     pub(crate) async fn request_admin_token(
         &self,
         credentials: &Credentials,
     ) -> Result<SingleUseToken> {
-        let admin_token: AdminToken = self.json(
-            self.request(Method::POST, "/v1/admins/pass")
-                .json(credentials)
-                .into(),
-        )
+        let admin_token: AdminToken = self
+            .json(
+                self.request(Method::POST, "/v1/admins/pass")
+                    .json(credentials)
+                    .into(),
+            )
             .await?;
 
         Ok(admin_token.into())
     }
 
-    pub(crate) async fn create_session(
-        &self,
-        token: &SingleUseToken,
-    ) -> Result<SessionToken> {
+    pub(crate) async fn create_session(&self, token: &SingleUseToken) -> Result<SessionToken> {
         let admin_token: AdminToken = self
             .json(
                 self.http
@@ -176,12 +121,7 @@ impl ApiClient {
     }
 
     pub(crate) async fn logout(&self) -> Result<()> {
-        self.empty(
-            self.request(
-                Method::DELETE,
-                "/v1/admins/session",
-            ),
-        )
+        self.empty(self.request(Method::DELETE, "/v1/admins/session"))
             .await
     }
 }
@@ -190,7 +130,6 @@ pub(crate) enum Authorization<'a> {
     Session,
     SingleUse(&'a SingleUseToken),
 }
-
 
 impl ApiClient {
     pub(crate) async fn top_up(
@@ -230,10 +169,7 @@ impl ApiClient {
         };
         let request = self
             .http
-            .post(format!(
-                "{}/v1/admins/user_management/create",
-                self.base
-            ))
+            .post(format!("{}/v1/admins/user_management/create", self.base))
             .json(&content)
             .bearer_auth(token.as_str());
 

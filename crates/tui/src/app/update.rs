@@ -7,22 +7,16 @@ use crate::app::{App, AppError, DialogOpenMode, Message};
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<Command> {
         match message {
-            Message::Request(request) => {
-                self.handle_request(request)
-            }
+            Message::Request(request) => self.handle_request(request),
 
-            Message::Response(result) => {
-                self.handle_request_result(result)
-            }
+            Message::Response(result) => self.handle_request_result(result),
 
             Message::Status(status) => {
                 self.status = status;
                 None
             }
 
-            Message::Failed(error) => {
-                self.handle_error(error)
-            }
+            Message::Failed(error) => self.handle_error(error),
 
             Message::OpenDialog { dialog, mode } => {
                 self.dialogs.open(dialog, mode);
@@ -34,9 +28,7 @@ impl App {
                 None
             }
 
-            Message::CardScanned(card) => {
-                self.handle_card_scan(card)
-            }
+            Message::CardScanned(card) => self.handle_card_scan(card),
 
             Message::Navigate(page) => {
                 self.page = page;
@@ -67,9 +59,15 @@ impl App {
                 self.request_admin_action(AdminAction::TopUp { user_id, amount })
             }
 
-            Request::AuthenticateAdmin { identifier, password } => {
+            Request::AuthenticateAdmin {
+                identifier,
+                password,
+            } => {
                 self.status = "Authenticating admin...".into();
-                Some(Command::RequestAdminAuth { identifier, password })
+                Some(Command::RequestAdminAuth {
+                    identifier,
+                    password,
+                })
             }
 
             Request::MakeUser {
@@ -96,10 +94,8 @@ impl App {
         match result {
             RequestResult::UserLoaded(user) => {
                 self.status = format!("User {} loaded", user.name);
-                self.dialogs.open(
-                    Box::new(UserDialog::new(user)),
-                    DialogOpenMode::Reset,
-                );
+                self.dialogs
+                    .open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset);
 
                 None
             }
@@ -112,9 +108,7 @@ impl App {
 
             RequestResult::TopUpSucceeded(transaction) => {
                 self.status = format!("Topped up {:?} successfully", transaction.amount);
-                Some(Command::LookupUser(
-                    transaction.user_id.to_string()
-                ))
+                Some(Command::LookupUser(transaction.user_id.to_string()))
             }
 
             RequestResult::AdminAuthenticated(token) => {
@@ -125,9 +119,7 @@ impl App {
             RequestResult::MakeUserSucceeded(user) => {
                 self.status = format!("User {} created", user.name);
                 self.dialogs.close();
-                Some(Command::LookupUser(
-                    user.id.to_string()
-                ))
+                Some(Command::LookupUser(user.id.to_string()))
             }
         }
     }
@@ -158,24 +150,19 @@ impl App {
         }
     }
 
-    fn handle_card_scan(
-        &mut self,
-        card: String,
-    ) -> Option<Command> {
+    fn handle_card_scan(&mut self, card: String) -> Option<Command> {
         let card = match self.dialogs.active_mut() {
-            Some(dialog) => {
-                match dialog.handle_scan(card) {
-                    DialogResult::Consumed => {
-                        return None;
-                    }
-
-                    DialogResult::Message(message) => {
-                        return self.update(message);
-                    }
-
-                    DialogResult::Unhandled(card) => card,
+            Some(dialog) => match dialog.handle_scan(card) {
+                DialogResult::Consumed => {
+                    return None;
                 }
-            }
+
+                DialogResult::Message(message) => {
+                    return self.update(message);
+                }
+
+                DialogResult::Unhandled(card) => card,
+            },
 
             None => card,
         };

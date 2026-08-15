@@ -1,7 +1,4 @@
-use crate::{
-    app::App,
-    ui::theme::Theme,
-};
+use crate::{app::App, ui::theme::Theme};
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
@@ -9,12 +6,7 @@ use ratatui::{
     widgets::{Block, Borders, Cell, Row, Table},
 };
 
-pub(crate) fn draw(
-    frame: &mut Frame,
-    area: Rect,
-    _app: &App,
-    theme: &Theme,
-) {
+pub(crate) fn draw(frame: &mut Frame, area: Rect, _app: &App, theme: &Theme) {
     let header = Row::new([
         Cell::from("Name"),
         Cell::from("Username"),
@@ -22,11 +14,11 @@ pub(crate) fn draw(
         Cell::from("Role"),
         Cell::from("Balance"),
     ])
-        .style(
-            Style::default()
-                .fg(theme.accent)
-                .add_modifier(Modifier::BOLD),
-        );
+    .style(
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
+    );
 
     // Temporary rows until API data is wired in.
     let rows = Vec::<Row>::new();
@@ -41,13 +33,13 @@ pub(crate) fn draw(
             Constraint::Length(12),
         ],
     )
-        .header(header)
-        .block(
-            Block::default()
-                .title(" Users ")
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(theme.border)),
-        );
+    .header(header)
+    .block(
+        Block::default()
+            .title(" Users ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(theme.border)),
+    );
 
     frame.render_widget(table, area);
 }
