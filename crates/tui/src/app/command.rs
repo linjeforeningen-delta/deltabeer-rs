@@ -25,4 +25,13 @@ pub(crate) enum Command {
         birthdate: NaiveDate,
         token: AdminToken,
     },
+    GrantAdmin {
+        identifier: String,
+        password: String,
+        token: AdminToken,
+    },
+    RevokeAdmin {
+        identifier: String,
+        token: AdminToken,
+    },
 }

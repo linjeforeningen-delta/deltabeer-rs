@@ -30,6 +30,7 @@ pub(crate) enum RequestResult {
     TopUpSucceeded(Transaction),
     AdminAuthenticated(SingleUseToken),
     MakeUserSucceeded(User),
+    RoleChanged(UserId),
 }
 
 #[derive(Debug)]
@@ -53,6 +54,13 @@ pub(crate) enum Request {
         program: String,
         card_number: u32,
         birthdate: NaiveDate,
+    },
+    GrantAdmin {
+        identifier: String,
+        password: String,
+    },
+    RevokeAdmin {
+        identifier: String,
     },
 }
 

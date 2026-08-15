@@ -2,7 +2,6 @@ mod doc;
 pub use doc::ApiDoc;
 
 use super::types::*;
-use crate::api::error::ApiError;
 use crate::api::response::ApiResult;
 use crate::http::v1::types::UserDto;
 use crate::state::AppState;
@@ -35,7 +34,7 @@ pub fn routes(state: AppState) -> Router<AppState> {
                         .route("/create", post(new_user))
                         .route("/{ident}/update", patch(update_user))
                         .route("/{ident}/topup", post(topup))
-                        .route("/{ident}/role", patch(update_role)),
+                        .route("/{ident}/admin", post(grant_admin).delete(revoke_admin)),
                 ),
         )
         .layer(middleware::from_fn_with_state(state, admin_auth_middleware))
@@ -251,22 +250,52 @@ async fn topup(
 }
 
 #[utoipa::path(
-    patch,
-    path = "/user_management/{ident}/role",
+    post,
+    path = "/user_management/{ident}/admin",
     tag = "admins",
     params(
-        ("ident" = String, Path, description = "User identifier")
+        ("user_id" = String, Path, description = "User ID")
     ),
     request_body = RoleDto,
     responses(
-        (status = 200, description = "Updated user role", body = UserDto)
+        (status = 200, description = "Granted user role", body = UserDto)
     )
 )]
-async fn update_role(
+async fn grant_admin(
     State(state): State<AppState>,
     Extension(AdminId(admin_id)): Extension<AdminId>,
-    Path(ident): Path<String>,
-    JsonIn(payload): JsonIn<RoleDto>,
+    Path(user_id): Path<UserIdDto>,
+    JsonIn(payload): JsonIn<GrantAdminRequest>,
 ) -> ApiResult<UserDto> {
-    todo!()
+    let user_id = UserId::from(user_id);
+    let password = payload.password.clone();
+
+    services::auth::grant_admin(admin_id, user_id, password, &state.ctx()).await?;
+
+    let user = services::users::view_user(user_id, &state.ctx()).await?;
+    Ok((StatusCode::OK, Json(UserDto::from(&user))))
+}
+
+
+#[utoipa::path(
+    delete,
+    path = "/user_management/{ident}/admin",
+    tag = "admins",
+    params(
+        ("user_id" = String, Path, description = "User ID")
+    ),
+    responses(
+        (status = 200, description = "Revoked user role", body = UserDto)
+    )
+)]
+async fn revoke_admin(
+    State(state): State<AppState>,
+    Extension(AdminId(admin_id)): Extension<AdminId>,
+    Path(user_id): Path<UserIdDto>,
+) -> ApiResult<UserDto> {
+    let user_id = UserId::from(user_id);
+    services::auth::revoke_admin(admin_id, user_id, &state.ctx()).await?;
+
+    let user = services::users::view_user(user_id, &state.ctx()).await?;
+    Ok((StatusCode::OK, Json(UserDto::from(&user))))
 }

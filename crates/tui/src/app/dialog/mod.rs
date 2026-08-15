@@ -1,6 +1,8 @@
 mod admin_auth;
+mod grant_admin;
 mod make_user;
 mod menu;
+mod revoke_admin;
 mod stack;
 mod topup;
 mod user;
@@ -11,8 +13,10 @@ use std::fmt::Debug;
 
 use crate::ui::dialogs::DialogView;
 pub(crate) use admin_auth::AdminAuthDialog;
+pub(crate) use grant_admin::GrantAdminDialog;
 pub(crate) use make_user::MakeUserDialog;
 pub(crate) use menu::dialog::MenuDialog;
+pub(crate) use revoke_admin::RevokeAdminDialog;
 pub(crate) use stack::{DialogOpenMode, DialogStack};
 pub(crate) use topup::TopUpDialog;
 pub(crate) use user::UserDialog;

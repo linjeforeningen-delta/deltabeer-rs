@@ -32,7 +32,8 @@ impl Modify for SecurityAddon {
         super::new_user,
         super::update_user,
         super::topup,
-        super::update_role,
+        super::grant_admin,
+        super::revoke_admin,
     ),
     tags(
         (name = "admins", description = "Admin-related endpoints"),

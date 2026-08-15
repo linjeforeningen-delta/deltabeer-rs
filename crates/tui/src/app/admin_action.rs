@@ -17,6 +17,15 @@ pub(crate) enum AdminAction {
         card_number: u32,
         birthdate: NaiveDate,
     },
+
+    GrantAdmin {
+        identifier: String,
+        password: String,
+    },
+
+    RevokeAdmin {
+        identifier: String,
+    },
 }
 
 impl AdminAction {
@@ -42,6 +51,17 @@ impl AdminAction {
                 birthdate,
                 token,
             },
+
+            Self::GrantAdmin {
+                identifier,
+                password,
+            } => Command::GrantAdmin {
+                identifier,
+                password,
+                token,
+            },
+
+            Self::RevokeAdmin { identifier } => Command::RevokeAdmin { identifier, token },
         }
     }
 }

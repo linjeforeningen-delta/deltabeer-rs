@@ -175,4 +175,38 @@ impl ApiClient {
 
         self.json(request).await
     }
+
+    pub(crate) async fn grant_admin_privileges(
+        &self,
+        user_id: UserId,
+        password: String,
+        token: AdminToken,
+    ) -> Result<()> {
+        let request = self
+            .http
+            .post(format!(
+                "{}/v1/admins/user_management/{user_id}/admin",
+                self.base
+            ))
+            .json(&password)
+            .bearer_auth(token.as_str());
+
+        self.json(request).await
+    }
+
+    pub(crate) async fn revoke_admin_privileges(
+        &self,
+        user_id: UserId,
+        token: AdminToken,
+    ) -> Result<()> {
+        let request = self
+            .http
+            .delete(format!(
+                "{}/v1/admins/user_management/{user_id}/admin",
+                self.base
+            ))
+            .bearer_auth(token.as_str());
+
+        self.json(request).await
+    }
 }

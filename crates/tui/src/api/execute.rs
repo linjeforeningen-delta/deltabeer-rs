@@ -72,5 +72,37 @@ pub(crate) async fn execute_command(api: &ApiClient, command: Command) -> Messag
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
+
+        Command::GrantAdmin {
+            identifier,
+            password,
+            token,
+        } => {
+            let user_id = match api.resolve_user(&identifier).await {
+                Ok(user_id) => user_id,
+                Err(error) => {
+                    return Message::Failed(AppError::Api(error.to_string()));
+                }
+            };
+
+            match api.grant_admin_privileges(user_id, password, token).await {
+                Ok(()) => Message::Response(RequestResult::RoleChanged(user_id)),
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
+            }
+        }
+
+        Command::RevokeAdmin { identifier, token } => {
+            let user_id = match api.resolve_user(&identifier).await {
+                Ok(user_id) => user_id,
+                Err(error) => {
+                    return Message::Failed(AppError::Api(error.to_string()));
+                }
+            };
+
+            match api.revoke_admin_privileges(user_id, token).await {
+                Ok(()) => Message::Response(RequestResult::RoleChanged(user_id)),
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
+            }
+        }
     }
 }

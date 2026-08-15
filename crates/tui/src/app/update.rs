@@ -87,6 +87,22 @@ impl App {
                     birthdate,
                 })
             }
+
+            Request::GrantAdmin {
+                identifier,
+                password,
+            } => {
+                self.status = "Granting admin...".into();
+                self.request_admin_action(AdminAction::GrantAdmin {
+                    identifier,
+                    password,
+                })
+            }
+
+            Request::RevokeAdmin { identifier } => {
+                self.status = "Revoking admin...".into();
+                self.request_admin_action(AdminAction::RevokeAdmin { identifier })
+            }
         }
     }
 
@@ -120,6 +136,11 @@ impl App {
                 self.status = format!("User {} created", user.name);
                 self.dialogs.close();
                 Some(Command::LookupUser(user.id.to_string()))
+            }
+
+            RequestResult::RoleChanged(user_id) => {
+                self.status = "User role updated".into();
+                Some(Command::LookupUser(user_id.to_string()))
             }
         }
     }

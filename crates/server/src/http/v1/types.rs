@@ -137,3 +137,10 @@ pub struct Credentials {
     #[schema(example = "s3cr3tP4ssw0rd")]
     pub password: String,
 }
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct GrantAdminRequest {
+    #[schema(example = "s3cr3tP4ssw0rd")]
+    pub password: String,
+}
