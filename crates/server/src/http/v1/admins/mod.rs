@@ -17,7 +17,7 @@ use axum::{
     routing::{get, patch, post},
 };
 
-use delta_core::domain::{Amount, UserId, UserIdent};
+use delta_core::domain::{Amount, UserId};
 use delta_core::services;
 use delta_core::services::auth::AdminToken;
 
@@ -232,7 +232,7 @@ async fn update_user(
     path = "/user_management/{ident}/topup",
     tag = "admins",
     params(
-        ("ident" = String, Path, description = "User identifier")
+        ("user_id" = String, Path, description = "User ID")
     ),
     request_body = TopupRequestDto,
     responses(
@@ -242,14 +242,11 @@ async fn update_user(
 async fn topup(
     State(state): State<AppState>,
     Extension(AdminId(admin_id)): Extension<AdminId>,
-    Path(ident): Path<String>,
+    Path(user_id): Path<UserIdDto>,
     JsonIn(payload): JsonIn<TopupRequestDto>,
 ) -> ApiResult<TransactionDto> {
-    let user_ident =
-        UserIdent::try_from(ident.as_str()).map_err(|_| ApiError::InvalidUserIdentifier)?;
-    let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
     let transaction =
-        services::transactions::top_up(user_id, Amount(payload.0), admin_id, &state.ctx()).await?;
+        services::transactions::top_up(UserId::from(user_id), Amount(payload.0), admin_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(TransactionDto::from(&transaction))))
 }
 
