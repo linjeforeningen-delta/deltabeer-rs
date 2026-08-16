@@ -139,8 +139,7 @@ pub struct Credentials {
 }
 
 #[derive(Deserialize, ToSchema)]
+#[serde(transparent)]
 #[serde(rename_all = "camelCase")]
-pub struct GrantAdminRequest {
-    #[schema(example = "s3cr3tP4ssw0rd")]
-    pub password: String,
-}
+#[schema(example = "s3cr3tP4ssw0rd")]
+pub struct PasswordDto(pub String);

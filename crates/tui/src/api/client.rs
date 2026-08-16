@@ -88,7 +88,7 @@ impl ApiClient {
             self.request(Method::POST, &format!("/v1/users/{user_id}/spend"))
                 .json(&amount),
         )
-        .await
+            .await
     }
 }
 
@@ -191,7 +191,7 @@ impl ApiClient {
             .json(&password)
             .bearer_auth(token.as_str());
 
-        self.json(request).await
+        self.empty(request).await
     }
 
     pub(crate) async fn revoke_admin_privileges(
@@ -207,6 +207,6 @@ impl ApiClient {
             ))
             .bearer_auth(token.as_str());
 
-        self.json(request).await
+        self.empty(request).await
     }
 }

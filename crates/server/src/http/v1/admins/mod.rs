@@ -265,10 +265,10 @@ async fn grant_admin(
     State(state): State<AppState>,
     Extension(AdminId(admin_id)): Extension<AdminId>,
     Path(user_id): Path<UserIdDto>,
-    JsonIn(payload): JsonIn<GrantAdminRequest>,
+    JsonIn(payload): JsonIn<PasswordDto>,
 ) -> ApiResult<UserDto> {
     let user_id = UserId::from(user_id);
-    let password = payload.password.clone();
+    let password = payload.0;
 
     services::auth::grant_admin(admin_id, user_id, password, &state.ctx()).await?;
 
