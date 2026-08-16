@@ -10,8 +10,8 @@ from pathlib import Path
 import polars as pl
 
 CSV_PATH = Path("../csv")
-SOURCE = CSV_PATH / "0010_columns_renamed.csv"
-SINK = CSV_PATH / "0011_final.csv"
+SOURCE = CSV_PATH / "0011_encodings_fixed.csv"
+SINK = CSV_PATH / "0012_final.csv"
 
 df = pl.read_csv(
     SOURCE,

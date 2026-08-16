@@ -1,24 +1,28 @@
 pub(crate) mod dialogs;
+mod helpers;
 pub(crate) mod layout;
 pub mod pages;
 pub(crate) mod theme;
 
 use crate::app::{App, Page};
+use crate::ui::theme::THEME;
+use ratatui::widgets::BorderType;
 use ratatui::{
     Frame,
-    style::Style,
     widgets::{Block, Borders, Paragraph},
 };
 
 pub(crate) fn draw(frame: &mut Frame, app: &App) {
-    let theme = theme::theme(&app.auth);
+    let theme = THEME;
+    let palette = theme.active(&app.auth);
     let areas = layout::app_layout(frame.area());
 
     let header = Block::default()
         .title(" DeltaBeer ")
+        .title_style(theme.title_style(palette))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(theme.border))
-        .title_style(Style::default().fg(theme.title));
+        .border_type(BorderType::Rounded)
+        .border_style(palette.border());
 
     frame.render_widget(header, areas.header);
 
@@ -38,12 +42,17 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
     }
 
     if let Some(dialog) = app.dialogs.active() {
-        dialog.draw(frame, &theme);
+        dialog.draw(frame, app, &theme);
     }
 
     let footer = Paragraph::new(app.status.as_str())
-        .style(Style::default().fg(theme.accent))
-        .block(Block::default().borders(Borders::TOP));
+        .style(palette.text())
+        .block(
+            Block::default()
+                .borders(Borders::TOP)
+                .border_type(BorderType::Rounded)
+                .border_style(palette.border()),
+        );
 
     frame.render_widget(footer, areas.footer);
 }

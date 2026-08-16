@@ -1,16 +1,16 @@
-use ratatui::{
-    Frame,
-    layout::Alignment,
-    style::{Modifier, Style},
-    text::{Line, Span},
-    widgets::{Block, Borders, Clear, Paragraph},
-};
-
+use crate::app::App;
 use crate::app::dialog::MenuDialog;
 use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
+use ratatui::{
+    Frame,
+    text::{Line, Span},
+    widgets::{Clear, Paragraph},
+};
 
 impl DialogView for MenuDialog {
-    fn draw(&self, frame: &mut Frame, theme: &Theme) {
+    fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme) {
+        let palette = theme.active(&app.auth);
+
         let content_width = self
             .options
             .iter()
@@ -39,9 +39,7 @@ impl DialogView for MenuDialog {
             lines.push(Line::from(vec![
                 Span::styled(
                     format!("[{}]", option.key.to_ascii_uppercase()),
-                    Style::default()
-                        .fg(theme.accent)
-                        .add_modifier(Modifier::BOLD),
+                    theme.key_style(palette),
                 ),
                 Span::raw(format!(" {}", option.name)),
             ]));
@@ -50,24 +48,15 @@ impl DialogView for MenuDialog {
         lines.push(Line::from(""));
 
         lines.push(Line::from(vec![
-            Span::styled(
-                "Esc",
-                Style::default()
-                    .fg(theme.accent)
-                    .add_modifier(Modifier::BOLD),
-            ),
+            Span::styled("Esc", theme.key_style(palette)),
             Span::raw(" Back"),
         ]));
 
+        let title = format!(" {} ", self.title);
+
         let popup = Paragraph::new(lines)
-            .style(Style::default().fg(theme.accent))
-            .block(
-                Block::default()
-                    .title(format!(" {} ", self.title))
-                    .title_alignment(Alignment::Center)
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(theme.border)),
-            );
+            .style(palette.text())
+            .block(theme.dialog_block(&*title, palette));
 
         frame.render_widget(popup, popup_area);
     }

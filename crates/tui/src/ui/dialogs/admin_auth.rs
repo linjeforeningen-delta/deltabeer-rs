@@ -1,17 +1,18 @@
+use crate::app::App;
 use crate::app::dialog::AdminAuthDialog;
 use crate::ui::dialogs::DialogView;
 use crate::ui::{layout::centered, theme::Theme};
 use ratatui::{
     Frame,
-    layout::Alignment,
-    style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Clear, Paragraph},
+    widgets::{Clear, Paragraph},
 };
 
 impl DialogView for AdminAuthDialog {
-    fn draw(&self, frame: &mut Frame, theme: &Theme) {
+    fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme) {
         let area = centered(frame.area(), 56, 16);
+
+        let palette = theme.admin();
 
         frame.render_widget(Clear, area);
 
@@ -20,46 +21,25 @@ impl DialogView for AdminAuthDialog {
         let password = "•".repeat(self.password.as_str().chars().count());
 
         let content = vec![
-            Line::styled(
-                "Administrator authentication",
-                Style::default()
-                    .fg(theme.title)
-                    .add_modifier(Modifier::BOLD),
-            ),
+            Line::styled("Administrator authentication", theme.title_style(palette)),
             Line::from(""),
             Line::from("Admin card"),
-            Line::styled(format!("> {card}"), Style::default().fg(theme.accent)),
+            Line::raw(format!("> {card}")),
             Line::from(""),
             Line::from("Password"),
-            Line::styled(format!("> {password}"), Style::default().fg(theme.accent)),
+            Line::raw(format!("> {password}")),
             Line::from(""),
             Line::from(vec![
-                Span::styled(
-                    "Enter",
-                    Style::default()
-                        .fg(theme.accent)
-                        .add_modifier(Modifier::BOLD),
-                ),
+                Span::styled("Enter", theme.key_style(palette)),
                 Span::raw(" Authenticate    "),
-                Span::styled(
-                    "Esc",
-                    Style::default()
-                        .fg(theme.accent)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::raw(" Back"),
+                Span::styled("Esc", theme.key_style(palette)),
+                Span::raw(" Close"),
             ]),
         ];
 
         let popup = Paragraph::new(content)
-            .style(Style::default().fg(theme.accent))
-            .block(
-                Block::default()
-                    .title(" Admin Authentication ")
-                    .title_alignment(Alignment::Center)
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(theme.border)),
-            );
+            .style(palette.text())
+            .block(theme.dialog_block(" Admin Authentication ", palette));
 
         frame.render_widget(popup, area);
     }

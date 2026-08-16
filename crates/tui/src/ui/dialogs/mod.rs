@@ -1,3 +1,4 @@
+use crate::app::App;
 use crate::ui::theme::Theme;
 use ratatui::Frame;
 
@@ -10,5 +11,5 @@ pub(crate) mod topup;
 pub(crate) mod user;
 
 pub(crate) trait DialogView {
-    fn draw(&self, frame: &mut Frame, theme: &Theme);
+    fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme);
 }

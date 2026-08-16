@@ -2,11 +2,13 @@ use crate::{app::App, ui::theme::Theme};
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
-    style::{Modifier, Style},
-    widgets::{Block, Borders, Cell, Row, Table},
+    style::Modifier,
+    widgets::{Cell, Row, Table},
 };
 
 pub(crate) fn draw(frame: &mut Frame, area: Rect, _app: &App, theme: &Theme) {
+    let palette = theme.active(&_app.auth);
+
     let header = Row::new([
         Cell::from("Time"),
         Cell::from("User"),
@@ -14,11 +16,7 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, _app: &App, theme: &Theme) {
         Cell::from("Amount"),
         Cell::from("Source"),
     ])
-    .style(
-        Style::default()
-            .fg(theme.accent)
-            .add_modifier(Modifier::BOLD),
-    );
+    .style(palette.accent().add_modifier(Modifier::BOLD));
 
     let rows = Vec::<Row>::new();
 
@@ -33,12 +31,7 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, _app: &App, theme: &Theme) {
         ],
     )
     .header(header)
-    .block(
-        Block::default()
-            .title(" Transactions ")
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(theme.border)),
-    );
+    .block(theme.page_block(" Transactions ", palette));
 
     frame.render_widget(table, area);
 }

@@ -1,28 +1,25 @@
+use crate::app::App;
 use crate::app::dialog::UserDialog;
 use crate::ui::dialogs::DialogView;
+use crate::ui::theme::THEME;
 use crate::ui::{layout::centered, theme::Theme};
 use ratatui::{
     Frame,
-    layout::Alignment,
-    style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Clear, Paragraph},
+    widgets::{Clear, Paragraph},
 };
 
 impl DialogView for UserDialog {
-    fn draw(&self, frame: &mut Frame, theme: &Theme) {
+    fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme) {
         let area = centered(frame.area(), 56, 18);
+
+        let palette = theme.active(&app.auth);
 
         frame.render_widget(Clear, area);
 
         let content = vec![
             Line::from(vec![
-                Span::styled(
-                    self.user.name.as_str(),
-                    Style::default()
-                        .fg(theme.title)
-                        .add_modifier(Modifier::BOLD),
-                ),
+                Span::styled(self.user.name.as_str(), THEME.title_style(palette)),
                 Span::raw(format!("  @{}", self.user.username)),
             ]),
             Line::from(""),
@@ -33,45 +30,21 @@ impl DialogView for UserDialog {
             Line::from(format!("Spent        {} Δ¢", self.user.spent.0)),
             Line::from(""),
             Line::from("Amount"),
-            Line::styled(
-                format!("> {:}", self.amount),
-                Style::default().fg(theme.accent),
-            ),
+            Line::styled(format!("> {:}", self.amount), theme.selected_style(palette)),
             Line::from(""),
             Line::from(vec![
-                Span::styled(
-                    "Enter",
-                    Style::default()
-                        .fg(theme.accent)
-                        .add_modifier(Modifier::BOLD),
-                ),
+                Span::styled("Enter", theme.key_style(palette)),
                 Span::raw(" Spend    "),
-                Span::styled(
-                    "T",
-                    Style::default()
-                        .fg(theme.accent)
-                        .add_modifier(Modifier::BOLD),
-                ),
+                Span::styled("T", theme.key_style(palette)),
                 Span::raw(" Top up    "),
-                Span::styled(
-                    "Esc",
-                    Style::default()
-                        .fg(theme.accent)
-                        .add_modifier(Modifier::BOLD),
-                ),
+                Span::styled("Esc", theme.key_style(palette)),
                 Span::raw(" Close"),
             ]),
         ];
 
         let popup = Paragraph::new(content)
-            .style(Style::default().fg(theme.accent))
-            .block(
-                Block::default()
-                    .title(" User ")
-                    .title_alignment(Alignment::Center)
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(theme.border)),
-            );
+            .style(palette.text())
+            .block(theme.dialog_block(" User Details ", palette));
 
         frame.render_widget(popup, area);
     }
