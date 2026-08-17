@@ -2,6 +2,7 @@ use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::App;
 use crate::app::dialog::RevokeAdminDialog;
+use crate::ui::reccuring::card_line;
 use ratatui::{
     Frame,
     text::{Line, Span},
@@ -16,14 +17,13 @@ impl DialogView for RevokeAdminDialog {
 
         frame.render_widget(Clear, area);
 
-        let content = vec![
+        let mut content = vec![
             Line::from(""),
             Line::from("Revoke administrator privileges from this user?"),
-            Line::from(""),
-            Line::from(vec![
-                Span::raw("Card  "),
-                Span::raw(self.card.as_deref().unwrap_or("No card scanned")),
-            ]),
+            Line::from(""), ];
+
+        content.push(card_line(&self.card, palette));
+        content.extend([
             Line::from(""),
             Line::styled(
                 "This will remove administrator privileges.",
@@ -36,7 +36,7 @@ impl DialogView for RevokeAdminDialog {
                 Span::styled("Esc", theme.key_style(palette)),
                 Span::raw(" Cancel"),
             ]),
-        ];
+        ]);
 
         let popup = Paragraph::new(content)
             .style(palette.text())

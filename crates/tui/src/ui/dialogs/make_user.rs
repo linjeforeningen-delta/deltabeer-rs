@@ -2,6 +2,7 @@ use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::App;
 use crate::app::dialog::MakeUserDialog;
+use crate::ui::reccuring::card_line;
 use crate::ui::traits::Content;
 use crate::ui::widgets::form::Form;
 use ratatui::{
@@ -18,8 +19,6 @@ impl DialogView for MakeUserDialog {
 
         frame.render_widget(Clear, area);
 
-        let card = self.card.as_deref().unwrap_or("Scan card");
-
         let form = Form::new(self.active_field)
             .add_field("Name", &self.name)
             .add_field("Username", &self.username)
@@ -27,22 +26,21 @@ impl DialogView for MakeUserDialog {
             .add_field("Birthdate", &self.birthdate);
 
         let mut content = form.lines(theme, palette);
-        content.extend(
-            [
-                Line::from(""),
-                Line::from(vec![Span::raw("Card       "), Span::raw(card)]),
-                Line::from(""),
-                Line::styled("Birthdate format: YYYY-MM-DD", theme.muted_style(palette)),
-                Line::from(""),
-                Line::from(vec![
-                    Span::styled("↑/↓", theme.selected_style(palette)),
-                    Span::raw(" Select field    "),
-                    Span::styled("Enter", theme.key_style(palette)),
-                    Span::raw(" Create    "),
-                    Span::styled("Esc", theme.key_style(palette)),
-                    Span::raw(" Back"),
-                ]),
-            ]
+        content.push(Line::from(""));
+        content.push(card_line(&self.card, palette));
+        content.extend([
+            Line::from(""),
+            Line::styled("Birthdate format: YYYY-MM-DD", theme.muted_style(palette)),
+            Line::from(""),
+            Line::from(vec![
+                Span::styled("↑/↓", theme.selected_style(palette)),
+                Span::raw(" Select field    "),
+                Span::styled("Enter", theme.key_style(palette)),
+                Span::raw(" Create    "),
+                Span::styled("Esc", theme.key_style(palette)),
+                Span::raw(" Back"),
+            ]),
+        ]
         );
 
         let popup = Paragraph::new(content)

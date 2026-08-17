@@ -4,6 +4,7 @@ pub mod pages;
 pub(crate) mod theme;
 mod widgets;
 mod traits;
+mod reccuring;
 
 use crate::app::{App, Page};
 use crate::ui::theme::THEME;

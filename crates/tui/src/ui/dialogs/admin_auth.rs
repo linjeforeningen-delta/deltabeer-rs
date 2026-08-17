@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::app::dialog::AdminAuthDialog;
 use crate::ui::dialogs::DialogView;
+use crate::ui::reccuring::card_line;
 use crate::ui::traits::Content;
 use crate::ui::widgets::form::Form;
 use crate::ui::{layout::centered, theme::Theme};
@@ -27,10 +28,9 @@ impl DialogView for AdminAuthDialog {
 
         let mut content = vec![
             Line::styled("Administrator authentication", theme.title_style(palette)),
-            Line::from(""),
-            Line::from("Admin card"),
-            Line::raw(format!("> {card}")),
             Line::from(""), ];
+        content.push(card_line(&self.card, palette));
+        content.push(Line::from(""));
         content.extend(form.lines(theme, palette));
         content.extend([
             Line::from(""),
