@@ -49,6 +49,7 @@ impl Palette {
 pub(crate) struct Theme {
     normal: Palette,
     admin: Palette,
+    dimmed: Palette,
 }
 
 impl Theme {
@@ -65,6 +66,10 @@ impl Theme {
 
     pub(crate) fn admin(&self) -> Palette {
         self.admin
+    }
+
+    pub(crate) fn dimmed(&self) -> Palette {
+        self.dimmed
     }
 
     pub(crate) fn dialog_block<'a>(&self, title: &'a str, palette: Palette) -> Block<'a> {
@@ -120,6 +125,15 @@ pub(crate) const THEME: Theme = Theme {
         muted: Color::DarkGray,
         accent: Color::LightRed,
         border: Color::Red,
+        success: Color::Green,
+        warning: Color::Yellow,
+        error: Color::LightRed,
+    },
+    dimmed: Palette {
+        text: Color::DarkGray,
+        muted: Color::DarkGray,
+        accent: Color::DarkGray,
+        border: Color::DarkGray,
         success: Color::Green,
         warning: Color::Yellow,
         error: Color::LightRed,

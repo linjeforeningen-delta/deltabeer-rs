@@ -6,8 +6,12 @@ use ratatui::{
     widgets::{Cell, Row, Table},
 };
 
-pub(crate) fn draw(frame: &mut Frame, area: Rect, _app: &App, theme: &Theme) {
-    let palette = theme.active(&_app.auth);
+pub(crate) fn draw(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
+    let palette = if app.dialogs.active().is_some() {
+        theme.dimmed()
+    } else {
+        theme.active(&app.auth)
+    };
 
     let header = Row::new([
         Cell::from("Name"),
@@ -16,7 +20,7 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, _app: &App, theme: &Theme) {
         Cell::from("Role"),
         Cell::from("Balance"),
     ])
-    .style(palette.accent().add_modifier(Modifier::BOLD));
+        .style(palette.accent().add_modifier(Modifier::BOLD));
 
     // Temporary rows until API data is wired in.
     let rows = Vec::<Row>::new();
@@ -31,8 +35,8 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, _app: &App, theme: &Theme) {
             Constraint::Length(12),
         ],
     )
-    .header(header)
-    .block(theme.page_block(" Users ", theme.active(&_app.auth)));
+        .header(header)
+        .block(theme.page_block(" Users ", palette));
 
     frame.render_widget(table, area);
 }
