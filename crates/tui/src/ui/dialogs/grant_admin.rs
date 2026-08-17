@@ -2,7 +2,8 @@ use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::App;
 use crate::app::dialog::GrantAdminDialog;
-use crate::ui::helpers::field_line;
+use crate::ui::traits::Content;
+use crate::ui::widgets::form::Form;
 use ratatui::{
     Frame,
     text::{Line, Span},
@@ -17,10 +18,11 @@ impl DialogView for GrantAdminDialog {
 
         frame.render_widget(Clear, area);
 
-        let password = "•".repeat(self.password.as_str().chars().count());
-        let confirm_password = "•".repeat(self.confirm_password.as_str().chars().count());
+        let form = Form::new(self.active_field)
+            .add_hidden_field("Password", &self.password)
+            .add_hidden_field("Confirm", &self.confirm_password);
 
-        let content = vec![
+        let mut content = vec![
             Line::from(""),
             Line::raw("Create administrator credentials for this user."),
             Line::from(""),
@@ -31,21 +33,10 @@ impl DialogView for GrantAdminDialog {
                     theme.selected_style(palette),
                 ),
             ]),
-            Line::from(""),
-            field_line(
-                "Password",
-                &password,
-                self.active_field == 0,
-                theme,
-                palette,
-            ),
-            field_line(
-                "Confirm",
-                &confirm_password,
-                self.active_field == 1,
-                theme,
-                palette,
-            ),
+            Line::from("")];
+
+        content.extend(form.lines(theme, palette));
+        content.extend([
             Line::from(""),
             Line::from(vec![
                 Span::styled("↑/↓", theme.key_style(palette)),
@@ -55,7 +46,7 @@ impl DialogView for GrantAdminDialog {
                 Span::styled("Esc", theme.key_style(palette)),
                 Span::raw(" Cancel"),
             ]),
-        ];
+        ]);
 
         let popup = Paragraph::new(content)
             .style(palette.text())

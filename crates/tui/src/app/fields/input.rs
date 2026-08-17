@@ -48,12 +48,20 @@ impl TextInput {
         &self.value
     }
 
+    pub(crate) fn as_string(&self) -> String {
+        self.value.clone()
+    }
+
     pub(crate) fn as_u32(&self) -> Option<u32> {
         self.value.parse().ok()
     }
 
     pub(crate) fn is_empty(&self) -> bool {
         self.value.is_empty()
+    }
+
+    pub(crate) fn len(&self) -> usize {
+        self.value.len()
     }
 }
 

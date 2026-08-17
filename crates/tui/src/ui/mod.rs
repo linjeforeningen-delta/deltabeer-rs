@@ -1,8 +1,9 @@
 pub(crate) mod dialogs;
-mod helpers;
 pub(crate) mod layout;
 pub mod pages;
 pub(crate) mod theme;
+mod widgets;
+mod traits;
 
 use crate::app::{App, Page};
 use crate::ui::theme::THEME;
