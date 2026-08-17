@@ -6,6 +6,7 @@ pub(crate) mod theme;
 
 use crate::app::{App, Page};
 use crate::ui::theme::THEME;
+use ratatui::layout::Margin;
 use ratatui::widgets::BorderType;
 use ratatui::{
     Frame,
@@ -15,7 +16,12 @@ use ratatui::{
 pub(crate) fn draw(frame: &mut Frame, app: &App) {
     let theme = THEME;
     let palette = theme.active(&app.auth);
-    let areas = layout::app_layout(frame.area());
+    let area = frame.area().inner(Margin {
+        horizontal: 2,
+        vertical: 1,
+    });
+
+    let areas = layout::app_layout(area);
 
     let header = Block::default()
         .title(" DeltaBeer ")

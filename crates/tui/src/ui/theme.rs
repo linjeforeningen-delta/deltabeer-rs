@@ -85,6 +85,7 @@ impl Theme {
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
             .border_style(palette.border())
+            .padding(Padding::new(2, 2, 1, 1))
     }
 
     pub(crate) fn title_style(&self, palette: Palette) -> Style {
