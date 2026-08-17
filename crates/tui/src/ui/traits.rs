@@ -6,5 +6,5 @@ pub(crate) trait Content {
         &self,
         theme: &Theme,
         palette: Palette,
-    ) -> Vec<Line>;
+    ) -> Vec<Line<'_>>;
 }
