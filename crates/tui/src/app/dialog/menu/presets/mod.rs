@@ -3,7 +3,7 @@ use crate::app::dialog::menu::option::MenuOption;
 use crate::app::dialog::{GrantAdminDialog, MakeUserDialog, MenuDialog, RevokeAdminDialog, TopUpDialog};
 
 pub(crate) fn admin_menu(user_id: &UserId) -> MenuDialog {
-    MenuDialog::new(
+    MenuDialog::new_admin(
         "Admin",
         vec![
             MenuOption::new("Top Up", 'T', || Box::new(TopUpDialog::new())),

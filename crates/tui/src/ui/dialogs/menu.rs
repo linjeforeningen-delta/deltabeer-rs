@@ -9,7 +9,11 @@ use ratatui::{
 
 impl DialogView for MenuDialog {
     fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme) {
-        let palette = theme.active(&app.auth);
+        let palette = if self.is_admin {
+            theme.admin()
+        } else {
+            theme.active(&app.auth)
+        };
 
         let content_width = self
             .options

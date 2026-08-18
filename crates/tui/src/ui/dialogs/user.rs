@@ -1,7 +1,6 @@
 use crate::app::App;
 use crate::app::dialog::UserDialog;
 use crate::ui::dialogs::DialogView;
-use crate::ui::theme::THEME;
 use crate::ui::{layout::centered, theme::Theme};
 use ratatui::{
     Frame,
@@ -19,7 +18,7 @@ impl DialogView for UserDialog {
 
         let content = vec![
             Line::from(vec![
-                Span::styled(self.user.name.as_str(), THEME.title_style(palette)),
+                Span::styled(self.user.name.as_str(), theme.title_style(palette)),
                 Span::raw(format!("  @{}", self.user.username)),
             ]),
             Line::from(""),

@@ -15,7 +15,7 @@ impl DialogView for MakeUserDialog {
     fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme) {
         let area = centered(frame.area(), 62, 20);
 
-        let palette = theme.active(&app.auth);
+        let palette = theme.admin();
 
         frame.render_widget(Clear, area);
 

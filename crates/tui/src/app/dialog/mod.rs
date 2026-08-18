@@ -1,7 +1,7 @@
 mod admin_auth;
 mod grant_admin;
 mod make_user;
-mod menu;
+pub(crate) mod menu;
 mod revoke_admin;
 mod stack;
 mod topup;
@@ -17,6 +17,7 @@ pub(crate) use admin_auth::AdminAuthDialog;
 pub(crate) use grant_admin::GrantAdminDialog;
 pub(crate) use make_user::MakeUserDialog;
 pub(crate) use menu::dialog::MenuDialog;
+pub(crate) use menu::presets::admin_menu;
 pub(crate) use revoke_admin::RevokeAdminDialog;
 pub(crate) use stack::{DialogOpenMode, DialogStack};
 pub(crate) use topup::TopUpDialog;

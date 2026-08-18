@@ -15,7 +15,7 @@ impl DialogView for GrantAdminDialog {
     fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme) {
         let area = centered(frame.area(), 56, 14);
 
-        let palette = theme.active(&app.auth);
+        let palette = theme.admin();
 
         frame.render_widget(Clear, area);
 

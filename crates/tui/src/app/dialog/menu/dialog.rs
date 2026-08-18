@@ -9,6 +9,7 @@ use crate::app::{DialogOpenMode, Message};
 pub(crate) struct MenuDialog {
     pub(crate) title: String,
     pub(crate) options: Vec<MenuOption>,
+    pub(crate) is_admin: bool,
 }
 
 impl MenuDialog {
@@ -16,7 +17,21 @@ impl MenuDialog {
         Self {
             title: title.into(),
             options,
+            is_admin: false,
         }
+    }
+
+    pub(crate) fn new_admin(title: impl Into<String>, options: Vec<MenuOption>) -> Self {
+        Self {
+            title: title.into(),
+            options,
+            is_admin: true,
+        }
+    }
+
+    pub(crate) fn admin(mut self) -> Self {
+        self.is_admin = true;
+        self
     }
 }
 
