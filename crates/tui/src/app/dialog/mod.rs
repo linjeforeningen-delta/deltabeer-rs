@@ -11,6 +11,7 @@ use crate::app::Message;
 use crossterm::event::{KeyCode, KeyEvent};
 use std::fmt::Debug;
 
+use crate::api::result::ApiResult;
 use crate::ui::dialogs::DialogView;
 pub(crate) use admin_auth::AdminAuthDialog;
 pub(crate) use grant_admin::GrantAdminDialog;
@@ -39,6 +40,10 @@ pub(crate) trait DialogBehavior: Debug {
     fn handle_key_inner(&mut self, key: KeyEvent) -> DialogResult<KeyEvent>;
     fn handle_scan(&mut self, card: String) -> DialogResult<String> {
         DialogResult::Unhandled(card)
+    }
+
+    fn handle_api_result(&mut self, result: ApiResult) -> DialogResult<ApiResult> {
+        DialogResult::Unhandled(result)
     }
 }
 

@@ -1,114 +1,67 @@
-use crate::app::admin_action::AdminAction;
-use crate::app::command::Command;
+use crate::api::command::ApiCommand;
+use crate::api::request::ApiRequest;
+use crate::api::result::ApiResult;
 use crate::app::dialog::{DialogResult, UserDialog};
-use crate::app::message::{ApiRequest, ApiResult};
 use crate::app::{App, AppError, DialogOpenMode, Message};
 
 impl App {
-    pub(crate) fn update(&mut self, message: Message) -> Option<Command> {
+    pub(crate) fn update(&mut self, message: Message) -> Option<ApiCommand> {
         match message {
-            Message::ApiRequest(request) => self.handle_request(request),
+            Message::ApiRequest(request) => return self.handle_api_request(request),
 
-            Message::ApiResponse(result) => self.handle_request_result(result),
+            Message::ApiResponse(result) => return self.handle_api_result(result),
 
-            Message::Status(status) => {
-                self.status = status;
-                None
-            }
+            Message::Status(status) => self.status = status,
 
-            Message::Failed(error) => self.handle_error(error),
+            Message::Failed(error) => return self.handle_error(error),
 
-            Message::OpenDialog { dialog, mode } => {
-                self.dialogs.open(dialog, mode);
-                None
-            }
+            Message::OpenDialog { dialog, mode } => self.dialogs.open(dialog, mode),
 
-            Message::CloseDialog => {
-                self.dialogs.close();
-                None
-            }
+            Message::CloseDialog => self.dialogs.close(),
 
-            Message::CardScanned(card) => self.handle_card_scan(card),
+            Message::CardScanned(card) => return self.handle_card_scan(card),
 
-            Message::Navigate(page) => {
-                self.page = page;
-                None
-            }
+            Message::Navigate(page) => self.page = page,
 
-            Message::Quit => {
-                self.should_quit = true;
-                None
-            }
-        }
+            Message::Quit => self.should_quit = true,
+        };
+        None
     }
 
-    fn handle_request(&mut self, request: ApiRequest) -> Option<Command> {
-        match request {
-            ApiRequest::LookupUser(card) => {
-                self.status = "Looking up user...".into();
-                Some(Command::LookupUser(card))
-            }
+    fn handle_api_request(
+        &mut self,
+        request: ApiRequest,
+    ) -> Option<ApiCommand> {
+        self.status = request.status_message().into();
 
-            ApiRequest::Spend { user_id, amount } => {
-                self.status = "Spending...".into();
-                Some(Command::Spend { user_id, amount })
-            }
-
-            ApiRequest::TopUp { user_id, amount } => {
-                self.status = "Topping up...".into();
-                self.request_admin_action(AdminAction::TopUp { user_id, amount })
-            }
-
-            ApiRequest::AuthenticateAdmin {
-                identifier,
-                password,
-            } => {
-                self.status = "Authenticating admin...".into();
-                Some(Command::RequestAdminAuth {
-                    identifier,
-                    password,
-                })
-            }
-
-            ApiRequest::MakeUser {
-                name,
-                username,
-                program,
-                card_number,
-                birthdate,
-            } => {
-                self.status = "Creating user...".into();
-
-                self.request_admin_action(AdminAction::MakeUser {
-                    name,
-                    username,
-                    program,
-                    card_number,
-                    birthdate,
-                })
-            }
-
-            ApiRequest::GrantAdmin {
-                identifier,
-                password,
-            } => {
-                self.status = "Granting admin...".into();
-                self.request_admin_action(AdminAction::GrantAdmin {
-                    identifier,
-                    password,
-                })
-            }
-
-            ApiRequest::RevokeAdmin { identifier } => {
-                self.status = "Revoking admin...".into();
-                self.request_admin_action(AdminAction::RevokeAdmin { identifier })
-            }
-        }
+        self.request_api(request)
     }
 
-    fn handle_request_result(&mut self, result: ApiResult) -> Option<Command> {
+    fn handle_api_result(&mut self, result: ApiResult) -> Option<ApiCommand> {
+        if let ApiResult::AuthenticateAdmin(token) = result {
+            return self.complete_pending_request(token);
+        }
+
+        let result = match self.dialogs.active_mut() {
+            Some(dialog) => match dialog.handle_api_result(result) {
+                DialogResult::Consumed => return None,
+
+                DialogResult::Message(message) => {
+                    return self.update(message);
+                }
+
+                DialogResult::Unhandled(result) => result,
+            },
+
+            None => result,
+        };
+
+        self.handle_api_result_default(result)
+    }
+
+    fn handle_api_result_default(&mut self, result: ApiResult) -> Option<ApiCommand> {
         match result {
-            ApiResult::UserLoaded(user) => {
+            ApiResult::LookupUser(user) => {
                 self.status = format!("User {} loaded", user.name);
                 self.dialogs
                     .open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset);
@@ -116,36 +69,49 @@ impl App {
                 None
             }
 
-            ApiResult::SpendSucceeded(transaction) => {
+            ApiResult::Spend(transaction) => {
                 self.status = format!("Spent {:?} successfully", transaction.amount);
                 self.dialogs.close();
                 None
             }
-
-            ApiResult::TopUpSucceeded(transaction) => {
+            ApiResult::TopUp(transaction) => {
                 self.status = format!("Topped up {:?} successfully", transaction.amount);
-                Some(Command::LookupUser(transaction.user_id.to_string()))
+                self.request_api(
+                    ApiRequest::LookupUser(
+                        transaction.user_id.to_string()
+                    )
+                )
             }
 
-            ApiResult::AdminAuthenticated(token) => {
-                self.status = "Admin authenticated".into();
-                self.complete_admin_auth(token)
+            ApiResult::AuthenticateAdmin(_) => {
+                unreachable!("AuthenticateAdmin is handled before dialog routing")
             }
 
-            ApiResult::MakeUserSucceeded(user) => {
+            ApiResult::MakeUser(user) => {
                 self.status = format!("User {} created", user.name);
                 self.dialogs.close();
-                Some(Command::LookupUser(user.id.to_string()))
+                self.request_api(
+                    ApiRequest::LookupUser(
+                        user.id.to_string()
+                    )
+                )
             }
 
-            ApiResult::RoleChanged(user_id) => {
-                self.status = "User role updated".into();
-                Some(Command::LookupUser(user_id.to_string()))
+            ApiResult::GrantAdmin(user_id) => {
+                self.status = format!("Granted admin to user {}", user_id);
+                self.dialogs.close();
+                None
+            }
+
+            ApiResult::RevokeAdmin(user_id) => {
+                self.status = format!("Revoked admin from user {}", user_id);
+                self.dialogs.close();
+                None
             }
         }
     }
 
-    fn handle_error(&mut self, error: AppError) -> Option<Command> {
+    fn handle_error(&mut self, error: AppError) -> Option<ApiCommand> {
         match error {
             AppError::Api(error) => {
                 self.status = format!("API Error: {}", error);
@@ -166,12 +132,10 @@ impl App {
                 self.status = "Session expired".into();
                 None
             }
-
-            _ => None,
         }
     }
 
-    fn handle_card_scan(&mut self, card: String) -> Option<Command> {
+    fn handle_card_scan(&mut self, card: String) -> Option<ApiCommand> {
         let card = match self.dialogs.active_mut() {
             Some(dialog) => match dialog.handle_scan(card) {
                 DialogResult::Consumed => {
@@ -190,6 +154,6 @@ impl App {
 
         self.status = "Looking up user...".into();
 
-        Some(Command::LookupUser(card))
+        self.request_api(ApiRequest::LookupUser(card))
     }
 }

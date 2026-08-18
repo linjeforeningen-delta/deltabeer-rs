@@ -1,6 +1,6 @@
+use crate::api::request::ApiRequest;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
-use crate::app::message::ApiRequest;
 use crate::app::{AppError, Message, TextInput};
 use chrono::NaiveDate;
 use crossterm::event::{KeyCode, KeyEvent};

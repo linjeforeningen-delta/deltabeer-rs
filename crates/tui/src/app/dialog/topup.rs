@@ -1,7 +1,7 @@
 use crate::api::models::user::User;
+use crate::api::request::ApiRequest;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
-use crate::app::message::ApiRequest;
 use crate::app::{Message, TextInput};
 use crossterm::event::{KeyCode, KeyEvent};
 

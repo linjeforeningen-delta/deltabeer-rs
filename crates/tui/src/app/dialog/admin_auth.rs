@@ -1,5 +1,5 @@
+use crate::api::request::ApiRequest;
 use crate::app::dialog::{DialogBehavior, DialogResult};
-use crate::app::message::ApiRequest;
 use crate::app::{AppError, Message, TextInput};
 use crossterm::event::{KeyCode, KeyEvent};
 

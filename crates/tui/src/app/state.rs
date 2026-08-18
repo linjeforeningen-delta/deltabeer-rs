@@ -1,8 +1,9 @@
+use crate::api::command::ApiCommand;
 use crate::api::models::auth::SingleUseToken;
-use crate::app::admin_action::AdminAction;
+use crate::api::request::ApiRequest;
 use crate::app::dialog::AdminAuthDialog;
 use crate::app::dialog::DialogStack;
-use crate::app::{Command, DialogOpenMode, Message};
+use crate::app::{DialogOpenMode, Message};
 use crate::auth::AuthState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -18,7 +19,7 @@ pub(crate) struct App {
     pub page: Page,
     pub dialogs: DialogStack,
     pub status: String,
-    pending_admin_action: Option<AdminAction>,
+    pending_api_request: Option<ApiRequest>,
     pub should_quit: bool,
 }
 
@@ -29,19 +30,32 @@ impl App {
             page: Page::Home,
             dialogs: DialogStack::new(),
             status: "Ready for card".into(),
-            pending_admin_action: None,
+            pending_api_request: None,
             should_quit: false,
         }
     }
 
-    pub(crate) fn request_admin_action(&mut self, action: AdminAction) -> Option<Command> {
+    pub(crate) fn request_api(
+        &mut self,
+        request: ApiRequest,
+    ) -> Option<ApiCommand> {
+        if !request.requires_auth() {
+            return Some(ApiCommand {
+                request,
+                authorization: None,
+            });
+        }
+
         match &self.auth {
-            AuthState::Admin(session) => {
-                return Some(action.into_command(session.token.clone().into()));
-            }
+            AuthState::Admin(session) => Some(ApiCommand {
+                request,
+                authorization: Some(
+                    session.token.clone().into(),
+                ),
+            }),
 
             AuthState::Normal => {
-                self.pending_admin_action = Some(action);
+                self.pending_api_request = Some(request);
 
                 self.update(Message::OpenDialog {
                     dialog: Box::new(AdminAuthDialog::default()),
@@ -51,11 +65,14 @@ impl App {
         }
     }
 
-    pub(crate) fn complete_admin_auth(&mut self, token: SingleUseToken) -> Option<Command> {
-        let action = self.pending_admin_action.take()?;
+    pub(crate) fn complete_pending_request(&mut self, token: SingleUseToken) -> Option<ApiCommand> {
+        let request = self.pending_api_request.take()?;
 
         self.dialogs.close();
 
-        Some(action.into_command(token.into()))
+        Some(ApiCommand {
+            request,
+            authorization: Some(token.into()),
+        })
     }
 }
