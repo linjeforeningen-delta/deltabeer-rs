@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::app::dialog::TopUpDialog;
 use crate::ui::dialogs::DialogView;
+use crate::ui::reccuring::card_line;
 use crate::ui::{layout::centered, theme::Theme};
 use ratatui::{
     prelude::*,
@@ -15,16 +16,9 @@ impl DialogView for TopUpDialog {
 
         frame.render_widget(Clear, area);
 
-        let content = vec![
-            Line::from(vec![
-                Span::styled(&self.user.name, palette.accent()),
-                Span::styled(format!("  @{}", self.user.username), palette.muted()),
-            ]),
-            Line::from(""),
-            Line::from(vec![
-                Span::styled("Current balance  ", palette.accent()),
-                Span::styled(format!("{} Δ¢", self.user.balance.0), palette.accent()),
-            ]),
+        let mut content = vec![card_line(&self.card, palette)];
+
+        content.extend([
             Line::from(""),
             Line::raw("Top-up amount"),
             Line::styled(
@@ -38,7 +32,7 @@ impl DialogView for TopUpDialog {
                 Span::styled("Esc", theme.key_style(palette)),
                 Span::raw(" Close"),
             ]),
-        ];
+        ]);
 
         let popup = Paragraph::new(content)
             .style(palette.text())

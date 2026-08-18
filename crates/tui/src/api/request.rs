@@ -9,7 +9,7 @@ pub(crate) enum ApiRequest {
         amount: u32,
     },
     TopUp {
-        user_id: UserId,
+        identifier: String,
         amount: u32,
     },
     AuthenticateAdmin {

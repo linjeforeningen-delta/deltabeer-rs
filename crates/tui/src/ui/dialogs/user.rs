@@ -35,8 +35,6 @@ impl DialogView for UserDialog {
             Line::from(vec![
                 Span::styled("Enter", theme.key_style(palette)),
                 Span::raw(" Spend    "),
-                Span::styled("T", theme.key_style(palette)),
-                Span::raw(" Top up    "),
                 Span::styled("Esc", theme.key_style(palette)),
                 Span::raw(" Close"),
             ]),

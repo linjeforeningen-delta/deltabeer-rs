@@ -1,4 +1,3 @@
-use crate::api::models::user::User;
 use crate::api::request::ApiRequest;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
@@ -8,14 +7,14 @@ use crossterm::event::{KeyCode, KeyEvent};
 #[derive(Debug)]
 
 pub(crate) struct TopUpDialog {
-    pub user: User,
+    pub card: Option<String>,
     pub amount: TextInput,
 }
 
 impl TopUpDialog {
-    pub fn new(user: User) -> Self {
+    pub fn new() -> Self {
         Self {
-            user,
+            card: None,
             amount: TextInput::new(InputConstraint::Numeric),
         }
     }
@@ -40,12 +39,17 @@ impl DialogBehavior for TopUpDialog {
                 };
 
                 DialogResult::Message(Message::ApiRequest(ApiRequest::TopUp {
-                    user_id: self.user.id.clone(),
+                    identifier: self.card.clone().unwrap_or_default(),
                     amount,
                 }))
             }
 
             _ => DialogResult::Unhandled(key),
         }
+    }
+
+    fn handle_scan(&mut self, card: String) -> DialogResult<String> {
+        self.card = Some(card);
+        DialogResult::Consumed
     }
 }

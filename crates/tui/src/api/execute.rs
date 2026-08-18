@@ -31,10 +31,17 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
         },
 
         ApiRequest::TopUp {
-            user_id,
+            identifier,
             amount,
         } => {
             if let Some(token) = command.authorization {
+                let user_id = match api.resolve_user(&identifier).await {
+                    Ok(user_id) => user_id,
+                    Err(error) => {
+                        return Message::Failed(AppError::Api(error.to_string()));
+                    }
+                };
+
                 match api.top_up(user_id, amount, token).await {
                     Ok(transaction) => Message::ApiResponse(ApiResult::TopUp(transaction)),
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
