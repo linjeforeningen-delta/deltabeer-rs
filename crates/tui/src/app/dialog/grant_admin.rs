@@ -1,4 +1,6 @@
+use crate::api::models::user::User;
 use crate::api::request::ApiRequest;
+use crate::api::result::ApiResult;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
 use crate::app::{AppError, Message, TextInput};
@@ -7,7 +9,7 @@ use crossterm::event::{KeyCode, KeyEvent};
 
 #[derive(Debug)]
 pub(crate) struct GrantAdminDialog {
-    pub(crate) card: Option<String>,
+    pub(crate) user: Option<User>,
 
     pub(crate) password: TextInput,
     pub(crate) confirm_password: TextInput,
@@ -18,7 +20,7 @@ pub(crate) struct GrantAdminDialog {
 impl GrantAdminDialog {
     pub(crate) fn new() -> Self {
         Self {
-            card: None,
+            user: None,
 
             password: TextInput::new(InputConstraint::Any),
             confirm_password: TextInput::new(InputConstraint::Any),
@@ -45,13 +47,11 @@ impl GrantAdminDialog {
     }
 
     fn submit(&self) -> DialogResult<KeyEvent> {
-        let identifier = self.card.clone();
-
-        if identifier.is_none() {
+        let Some(user) = &self.user else {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Card scan required for admin revocation".into(),
+                "Card scan required for admin grant".into(),
             )));
-        }
+        };
 
         let password = self.password.as_str();
 
@@ -76,7 +76,7 @@ impl GrantAdminDialog {
         }
 
         DialogResult::Message(Message::ApiRequest(ApiRequest::GrantAdmin {
-            identifier: self.card.clone().unwrap(),
+            user_id: user.id,
             password: password.to_owned(),
         }))
     }
@@ -121,8 +121,13 @@ impl DialogBehavior for GrantAdminDialog {
         }
     }
 
-    fn handle_scan(&mut self, card: String) -> DialogResult<String> {
-        self.card = Some(card);
-        DialogResult::Consumed
+    fn handle_api_result(&mut self, result: ApiResult) -> DialogResult<ApiResult> {
+        match result {
+            ApiResult::LookupUser(user) => {
+                self.user = Some(user);
+                DialogResult::Consumed
+            }
+            _ => DialogResult::Unhandled(result),
+        }
     }
 }

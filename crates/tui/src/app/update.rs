@@ -76,6 +76,7 @@ impl App {
             }
             ApiResult::TopUp(transaction) => {
                 self.status = format!("Topped up {:?} successfully", transaction.amount);
+                self.dialogs.close();
                 self.request_api(
                     ApiRequest::LookupUser(
                         transaction.user_id.to_string()

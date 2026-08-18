@@ -22,6 +22,7 @@ pub(crate) use stack::{DialogOpenMode, DialogStack};
 pub(crate) use topup::TopUpDialog;
 pub(crate) use user::UserDialog;
 
+#[derive(Debug)]
 pub(crate) enum DialogResult<T> {
     Consumed,
     Message(Message),

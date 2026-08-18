@@ -2,7 +2,7 @@ use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::App;
 use crate::app::dialog::RevokeAdminDialog;
-use crate::ui::reccuring::card_line;
+use crate::ui::reccuring::user_line;
 use ratatui::{
     Frame,
     text::{Line, Span},
@@ -17,12 +17,18 @@ impl DialogView for RevokeAdminDialog {
 
         frame.render_widget(Clear, area);
 
+        let prompt = match &self.user {
+            Some(user) => format!("Revoke administrator privileges from {}?", user.name),
+            None => "Revoke administrator privileges from this user?".to_string(),
+        };
+
         let mut content = vec![
             Line::from(""),
-            Line::from("Revoke administrator privileges from this user?"),
-            Line::from(""), ];
+            Line::from(prompt),
+            Line::from(""),
+        ];
 
-        content.push(card_line(&self.card, palette));
+        content.push(user_line(&self.user, palette));
         content.extend([
             Line::from(""),
             Line::styled(

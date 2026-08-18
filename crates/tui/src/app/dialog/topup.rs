@@ -1,20 +1,21 @@
+use crate::api::models::user::User;
 use crate::api::request::ApiRequest;
+use crate::api::result::ApiResult;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
-use crate::app::{Message, TextInput};
+use crate::app::{AppError, Message, TextInput};
 use crossterm::event::{KeyCode, KeyEvent};
 
 #[derive(Debug)]
-
 pub(crate) struct TopUpDialog {
-    pub card: Option<String>,
+    pub(crate) user: Option<User>,
     pub amount: TextInput,
 }
 
 impl TopUpDialog {
     pub fn new() -> Self {
         Self {
-            card: None,
+            user: None,
             amount: TextInput::new(InputConstraint::Numeric),
         }
     }
@@ -38,8 +39,14 @@ impl DialogBehavior for TopUpDialog {
                     return DialogResult::Message(Message::Status("Invalid amount".into()));
                 };
 
+                let Some(user) = &self.user else {
+                    return DialogResult::Message(Message::Failed(AppError::Validation(
+                        "Card scan required for top-up".into(),
+                    )));
+                };
+
                 DialogResult::Message(Message::ApiRequest(ApiRequest::TopUp {
-                    identifier: self.card.clone().unwrap_or_default(),
+                    user_id: user.id,
                     amount,
                 }))
             }
@@ -48,8 +55,13 @@ impl DialogBehavior for TopUpDialog {
         }
     }
 
-    fn handle_scan(&mut self, card: String) -> DialogResult<String> {
-        self.card = Some(card);
-        DialogResult::Consumed
+    fn handle_api_result(&mut self, result: ApiResult) -> DialogResult<ApiResult> {
+        match result {
+            ApiResult::LookupUser(user) => {
+                self.user = Some(user);
+                DialogResult::Consumed
+            }
+            _ => DialogResult::Unhandled(result),
+        }
     }
 }

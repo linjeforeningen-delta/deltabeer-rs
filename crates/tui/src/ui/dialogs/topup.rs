@@ -1,7 +1,7 @@
 use crate::app::App;
 use crate::app::dialog::TopUpDialog;
 use crate::ui::dialogs::DialogView;
-use crate::ui::reccuring::card_line;
+use crate::ui::reccuring::user_line;
 use crate::ui::{layout::centered, theme::Theme};
 use ratatui::{
     prelude::*,
@@ -16,7 +16,7 @@ impl DialogView for TopUpDialog {
 
         frame.render_widget(Clear, area);
 
-        let mut content = vec![card_line(&self.card, palette)];
+        let mut content = vec![user_line(&self.user, palette)];
 
         content.extend([
             Line::from(""),

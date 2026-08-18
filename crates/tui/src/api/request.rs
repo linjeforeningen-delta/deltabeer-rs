@@ -9,7 +9,7 @@ pub(crate) enum ApiRequest {
         amount: u32,
     },
     TopUp {
-        identifier: String,
+        user_id: UserId,
         amount: u32,
     },
     AuthenticateAdmin {
@@ -24,11 +24,11 @@ pub(crate) enum ApiRequest {
         birthdate: NaiveDate,
     },
     GrantAdmin {
-        identifier: String,
+        user_id: UserId,
         password: String,
     },
     RevokeAdmin {
-        identifier: String,
+        user_id: UserId,
     },
 }
 

@@ -1,3 +1,4 @@
+use crate::ui::reccuring::user_line;
 use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::App;
@@ -22,18 +23,18 @@ impl DialogView for GrantAdminDialog {
             .add_hidden_field("Password", &self.password)
             .add_hidden_field("Confirm", &self.confirm_password);
 
+        let prompt = match &self.user {
+            Some(user) => format!("Create administrator credentials for {}.", user.name),
+            None => "Create administrator credentials for this user.".to_string(),
+        };
+
         let mut content = vec![
             Line::from(""),
-            Line::raw("Create administrator credentials for this user."),
+            Line::raw(prompt),
             Line::from(""),
-            Line::from(vec![
-                Span::raw("Card       "),
-                Span::styled(
-                    self.card.as_deref().unwrap_or("No card scanned"),
-                    theme.selected_style(palette),
-                ),
-            ]),
-            Line::from("")];
+            user_line(&self.user, palette),
+            Line::from(""),
+        ];
 
         content.extend(form.lines(theme, palette));
         content.extend([

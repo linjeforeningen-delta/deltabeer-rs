@@ -31,17 +31,10 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
         },
 
         ApiRequest::TopUp {
-            identifier,
+            user_id,
             amount,
         } => {
             if let Some(token) = command.authorization {
-                let user_id = match api.resolve_user(&identifier).await {
-                    Ok(user_id) => user_id,
-                    Err(error) => {
-                        return Message::Failed(AppError::Api(error.to_string()));
-                    }
-                };
-
                 match api.top_up(user_id, amount, token).await {
                     Ok(transaction) => Message::ApiResponse(ApiResult::TopUp(transaction)),
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
@@ -87,17 +80,10 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
         }
 
         ApiRequest::GrantAdmin {
-            identifier,
+            user_id,
             password,
         } => {
             if let Some(token) = command.authorization {
-                let user_id = match api.resolve_user(&identifier).await {
-                    Ok(user_id) => user_id,
-                    Err(error) => {
-                        return Message::Failed(AppError::Api(error.to_string()));
-                    }
-                };
-
                 match api.grant_admin_privileges(user_id, password, token).await {
                     Ok(()) => Message::ApiResponse(ApiResult::GrantAdmin(user_id)),
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
@@ -109,15 +95,8 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             }
         }
 
-        ApiRequest::RevokeAdmin { identifier } => {
+        ApiRequest::RevokeAdmin { user_id } => {
             if let Some(token) = command.authorization {
-                let user_id = match api.resolve_user(&identifier).await {
-                    Ok(user_id) => user_id,
-                    Err(error) => {
-                        return Message::Failed(AppError::Api(error.to_string()));
-                    }
-                };
-
                 match api.revoke_admin_privileges(user_id, token).await {
                     Ok(()) => Message::ApiResponse(ApiResult::RevokeAdmin(user_id)),
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
