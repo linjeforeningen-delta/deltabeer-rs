@@ -1,6 +1,6 @@
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
-use crate::app::message::Request;
+use crate::app::message::ApiRequest;
 use crate::app::{AppError, Message, TextInput};
 
 use crossterm::event::{KeyCode, KeyEvent};
@@ -75,7 +75,7 @@ impl GrantAdminDialog {
             )));
         }
 
-        DialogResult::Message(Message::Request(Request::GrantAdmin {
+        DialogResult::Message(Message::ApiRequest(ApiRequest::GrantAdmin {
             identifier: self.card.clone().unwrap(),
             password: password.to_owned(),
         }))

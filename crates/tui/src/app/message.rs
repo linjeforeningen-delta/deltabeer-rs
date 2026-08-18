@@ -6,8 +6,8 @@ use chrono::NaiveDate;
 
 #[derive(Debug)]
 pub(crate) enum Message {
-    Request(Request),
-    Response(RequestResult),
+    ApiRequest(ApiRequest),
+    ApiResponse(ApiResult),
 
     Status(String),
     Failed(AppError),
@@ -24,7 +24,7 @@ pub(crate) enum Message {
 }
 
 #[derive(Debug)]
-pub(crate) enum RequestResult {
+pub(crate) enum ApiResult {
     UserLoaded(User),
     SpendSucceeded(Transaction),
     TopUpSucceeded(Transaction),
@@ -34,7 +34,7 @@ pub(crate) enum RequestResult {
 }
 
 #[derive(Debug)]
-pub(crate) enum Request {
+pub(crate) enum ApiRequest {
     LookupUser(String),
     Spend {
         user_id: UserId,

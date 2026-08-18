@@ -1,7 +1,7 @@
 use crate::api::models::user::User;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
-use crate::app::message::Request;
+use crate::app::message::ApiRequest;
 use crate::app::{Message, TextInput};
 use crossterm::event::{KeyCode, KeyEvent};
 
@@ -39,7 +39,7 @@ impl DialogBehavior for TopUpDialog {
                     return DialogResult::Message(Message::Status("Invalid amount".into()));
                 };
 
-                DialogResult::Message(Message::Request(Request::TopUp {
+                DialogResult::Message(Message::ApiRequest(ApiRequest::TopUp {
                     user_id: self.user.id.clone(),
                     amount,
                 }))

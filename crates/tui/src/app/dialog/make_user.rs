@@ -1,6 +1,6 @@
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
-use crate::app::message::Request;
+use crate::app::message::ApiRequest;
 use crate::app::{AppError, Message, TextInput};
 use chrono::NaiveDate;
 use crossterm::event::{KeyCode, KeyEvent};
@@ -102,7 +102,7 @@ impl MakeUserDialog {
             }
         };
 
-        DialogResult::Message(Message::Request(Request::MakeUser {
+        DialogResult::Message(Message::ApiRequest(ApiRequest::MakeUser {
             name: name.to_owned(),
             username: username.to_owned(),
             program: program.to_owned(),

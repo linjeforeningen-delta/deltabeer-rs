@@ -1,5 +1,5 @@
 use crate::app::dialog::{DialogBehavior, DialogResult};
-use crate::app::message::Request;
+use crate::app::message::ApiRequest;
 use crate::app::{AppError, Message};
 use crossterm::event::{KeyCode, KeyEvent};
 
@@ -26,7 +26,7 @@ impl DialogBehavior for RevokeAdminDialog {
                     )));
                 }
 
-                DialogResult::Message(Message::Request(Request::RevokeAdmin {
+                DialogResult::Message(Message::ApiRequest(ApiRequest::RevokeAdmin {
                     identifier: identifier.unwrap(),
                 }))
             }

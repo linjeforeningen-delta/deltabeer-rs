@@ -1,6 +1,6 @@
 use crate::api::models::auth::Credentials;
 use crate::app::AppError;
-use crate::app::message::RequestResult;
+use crate::app::message::ApiResult;
 use crate::{
     api::client::ApiClient,
     app::{Command, Message},
@@ -17,13 +17,13 @@ pub(crate) async fn execute_command(api: &ApiClient, command: Command) -> Messag
             };
 
             match api.user(user_id).await {
-                Ok(user) => Message::Response(RequestResult::UserLoaded(user)),
+                Ok(user) => Message::ApiResponse(ApiResult::UserLoaded(user)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
 
         Command::Spend { user_id, amount } => match api.spend(&user_id, amount).await {
-            Ok(transaction) => Message::Response(RequestResult::SpendSucceeded(transaction)),
+            Ok(transaction) => Message::ApiResponse(ApiResult::SpendSucceeded(transaction)),
             Err(error) => Message::Failed(AppError::Api(error.to_string())),
         },
 
@@ -32,7 +32,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: Command) -> Messag
             amount,
             token,
         } => match api.top_up(user_id, amount, token).await {
-            Ok(transaction) => Message::Response(RequestResult::TopUpSucceeded(transaction)),
+            Ok(transaction) => Message::ApiResponse(ApiResult::TopUpSucceeded(transaction)),
             Err(error) => Message::Failed(AppError::Api(error.to_string())),
         },
 
@@ -51,7 +51,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: Command) -> Messag
                 .request_admin_token(&Credentials { user_id, password })
                 .await
             {
-                Ok(token) => Message::Response(RequestResult::AdminAuthenticated(token)),
+                Ok(token) => Message::ApiResponse(ApiResult::AdminAuthenticated(token)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
@@ -68,7 +68,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: Command) -> Messag
                 .make_user(name, username, program, card_number, birthdate, token)
                 .await
             {
-                Ok(user) => Message::Response(RequestResult::MakeUserSucceeded(user)),
+                Ok(user) => Message::ApiResponse(ApiResult::MakeUserSucceeded(user)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
@@ -86,7 +86,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: Command) -> Messag
             };
 
             match api.grant_admin_privileges(user_id, password, token).await {
-                Ok(()) => Message::Response(RequestResult::RoleChanged(user_id)),
+                Ok(()) => Message::ApiResponse(ApiResult::RoleChanged(user_id)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
@@ -100,7 +100,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: Command) -> Messag
             };
 
             match api.revoke_admin_privileges(user_id, token).await {
-                Ok(()) => Message::Response(RequestResult::RoleChanged(user_id)),
+                Ok(()) => Message::ApiResponse(ApiResult::RoleChanged(user_id)),
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }

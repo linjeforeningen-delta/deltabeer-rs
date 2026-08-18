@@ -3,7 +3,7 @@ use crate::app::dialog::menu::presets::admin_menu;
 use crate::app::dialog::topup::TopUpDialog;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
-use crate::app::message::Request;
+use crate::app::message::ApiRequest;
 use crate::app::{DialogOpenMode, Message, TextInput};
 use crossterm::event::{KeyCode, KeyEvent};
 
@@ -40,7 +40,7 @@ impl DialogBehavior for UserDialog {
                     return DialogResult::Message(Message::Status("Invalid amount".into()));
                 };
 
-                DialogResult::Message(Message::Request(Request::Spend {
+                DialogResult::Message(Message::ApiRequest(ApiRequest::Spend {
                     user_id: self.user.id.clone(),
                     amount,
                 }))

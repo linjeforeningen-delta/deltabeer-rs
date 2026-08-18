@@ -1,15 +1,15 @@
 use crate::app::admin_action::AdminAction;
 use crate::app::command::Command;
 use crate::app::dialog::{DialogResult, UserDialog};
-use crate::app::message::{Request, RequestResult};
+use crate::app::message::{ApiRequest, ApiResult};
 use crate::app::{App, AppError, DialogOpenMode, Message};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<Command> {
         match message {
-            Message::Request(request) => self.handle_request(request),
+            Message::ApiRequest(request) => self.handle_request(request),
 
-            Message::Response(result) => self.handle_request_result(result),
+            Message::ApiResponse(result) => self.handle_request_result(result),
 
             Message::Status(status) => {
                 self.status = status;
@@ -42,24 +42,24 @@ impl App {
         }
     }
 
-    fn handle_request(&mut self, request: Request) -> Option<Command> {
+    fn handle_request(&mut self, request: ApiRequest) -> Option<Command> {
         match request {
-            Request::LookupUser(card) => {
+            ApiRequest::LookupUser(card) => {
                 self.status = "Looking up user...".into();
                 Some(Command::LookupUser(card))
             }
 
-            Request::Spend { user_id, amount } => {
+            ApiRequest::Spend { user_id, amount } => {
                 self.status = "Spending...".into();
                 Some(Command::Spend { user_id, amount })
             }
 
-            Request::TopUp { user_id, amount } => {
+            ApiRequest::TopUp { user_id, amount } => {
                 self.status = "Topping up...".into();
                 self.request_admin_action(AdminAction::TopUp { user_id, amount })
             }
 
-            Request::AuthenticateAdmin {
+            ApiRequest::AuthenticateAdmin {
                 identifier,
                 password,
             } => {
@@ -70,7 +70,7 @@ impl App {
                 })
             }
 
-            Request::MakeUser {
+            ApiRequest::MakeUser {
                 name,
                 username,
                 program,
@@ -88,7 +88,7 @@ impl App {
                 })
             }
 
-            Request::GrantAdmin {
+            ApiRequest::GrantAdmin {
                 identifier,
                 password,
             } => {
@@ -99,16 +99,16 @@ impl App {
                 })
             }
 
-            Request::RevokeAdmin { identifier } => {
+            ApiRequest::RevokeAdmin { identifier } => {
                 self.status = "Revoking admin...".into();
                 self.request_admin_action(AdminAction::RevokeAdmin { identifier })
             }
         }
     }
 
-    fn handle_request_result(&mut self, result: RequestResult) -> Option<Command> {
+    fn handle_request_result(&mut self, result: ApiResult) -> Option<Command> {
         match result {
-            RequestResult::UserLoaded(user) => {
+            ApiResult::UserLoaded(user) => {
                 self.status = format!("User {} loaded", user.name);
                 self.dialogs
                     .open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset);
@@ -116,29 +116,29 @@ impl App {
                 None
             }
 
-            RequestResult::SpendSucceeded(transaction) => {
+            ApiResult::SpendSucceeded(transaction) => {
                 self.status = format!("Spent {:?} successfully", transaction.amount);
                 self.dialogs.close();
                 None
             }
 
-            RequestResult::TopUpSucceeded(transaction) => {
+            ApiResult::TopUpSucceeded(transaction) => {
                 self.status = format!("Topped up {:?} successfully", transaction.amount);
                 Some(Command::LookupUser(transaction.user_id.to_string()))
             }
 
-            RequestResult::AdminAuthenticated(token) => {
+            ApiResult::AdminAuthenticated(token) => {
                 self.status = "Admin authenticated".into();
                 self.complete_admin_auth(token)
             }
 
-            RequestResult::MakeUserSucceeded(user) => {
+            ApiResult::MakeUserSucceeded(user) => {
                 self.status = format!("User {} created", user.name);
                 self.dialogs.close();
                 Some(Command::LookupUser(user.id.to_string()))
             }
 
-            RequestResult::RoleChanged(user_id) => {
+            ApiResult::RoleChanged(user_id) => {
                 self.status = "User role updated".into();
                 Some(Command::LookupUser(user_id.to_string()))
             }

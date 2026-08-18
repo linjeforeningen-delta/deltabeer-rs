@@ -1,5 +1,5 @@
 use crate::app::dialog::{DialogBehavior, DialogResult};
-use crate::app::message::Request;
+use crate::app::message::ApiRequest;
 use crate::app::{AppError, Message, TextInput};
 use crossterm::event::{KeyCode, KeyEvent};
 
@@ -32,7 +32,7 @@ impl DialogBehavior for AdminAuthDialog {
                     )));
                 }
 
-                DialogResult::Message(Message::Request(Request::AuthenticateAdmin {
+                DialogResult::Message(Message::ApiRequest(ApiRequest::AuthenticateAdmin {
                     identifier: identifier.unwrap(),
                     password,
                 }))
