@@ -54,25 +54,16 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
         }
 
         ApiRequest::AuthenticateAdmin {
-            identifier,
+            user_id,
             password,
-        } => {
-            let user_id = match api.resolve_user(&identifier).await {
-                Ok(user_id) => user_id,
-                Err(error) => {
-                    return Message::Failed(AppError::Api(error.to_string()));
-                }
-            };
-
-            match api
-                .request_admin_token(&Credentials { user_id, password })
-                .await
-            {
-                Ok(token) => Message::ApiResponse(ApiResult::AuthenticateAdmin(token)),
-                Err(error) => Message::Failed(AppError::Api(error.to_string())),
-            }
+        } => match api
+            .request_admin_token(&Credentials { user_id, password })
+            .await
+        {
+            Ok(token) => Message::ApiResponse(ApiResult::AuthenticateAdmin(token)),
+            Err(error) => Message::Failed(AppError::Api(error.to_string())),
         }
-
+        
         ApiRequest::MakeUser {
             name,
             username,

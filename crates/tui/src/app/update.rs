@@ -1,8 +1,10 @@
 use crate::api::command::ApiCommand;
+use crate::api::models::user::{Role, User};
 use crate::api::request::ApiRequest;
 use crate::api::result::ApiResult;
 use crate::app::dialog::{DialogResult, UserDialog};
 use crate::app::{App, AppError, DialogOpenMode, Message};
+use crate::auth::{AdminContext, AuthState};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<ApiCommand> {
@@ -17,7 +19,7 @@ impl App {
 
             Message::OpenDialog { dialog, mode } => self.dialogs.open(dialog, mode),
 
-            Message::CloseDialog => self.dialogs.close(),
+            Message::CloseDialog => self.handle_close_dialog(),
 
             Message::CardScanned(card) => return self.handle_card_scan(card),
 
@@ -63,9 +65,7 @@ impl App {
         match result {
             ApiResult::LookupUser(user) => {
                 self.status = format!("User {} loaded", user.name);
-                self.dialogs
-                    .open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset);
-
+                self.open_user_dialog(user);
                 None
             }
 
@@ -155,5 +155,26 @@ impl App {
         self.status = "Looking up user...".into();
 
         self.request_api(ApiRequest::LookupUser(card))
+    }
+
+    fn open_user_dialog(
+        &mut self,
+        user: User,
+    ) {
+        if user.role == Role::Admin {
+            self.active_admin = Some(AdminContext {
+                user_id: user.id.clone(),
+                name: user.name.clone(),
+            });
+        }
+        self.dialogs.open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset)
+    }
+
+    fn handle_close_dialog(&mut self) {
+        if self.dialogs.is_empty() {
+            self.active_admin = None;
+            self.auth = AuthState::Normal;
+        }
+        self.dialogs.close();
     }
 }

@@ -13,7 +13,7 @@ pub(crate) enum ApiRequest {
         amount: u32,
     },
     AuthenticateAdmin {
-        identifier: String,
+        user_id: UserId,
         password: String,
     },
     MakeUser {

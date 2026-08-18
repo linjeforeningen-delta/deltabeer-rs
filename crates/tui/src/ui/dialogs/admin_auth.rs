@@ -1,7 +1,6 @@
 use crate::app::App;
 use crate::app::dialog::AdminAuthDialog;
 use crate::ui::dialogs::DialogView;
-use crate::ui::reccuring::card_line;
 use crate::ui::traits::Content;
 use crate::ui::widgets::form::Form;
 use crate::ui::{layout::centered, theme::Theme};
@@ -19,17 +18,24 @@ impl DialogView for AdminAuthDialog {
 
         frame.render_widget(Clear, area);
 
-        let card = self.card.as_deref().unwrap_or("Scan admin card");
 
-        let password = "•".repeat(self.password.as_str().chars().count());
+        let given_name = match &self.admin {
+            Some(admin) => admin
+                .name
+                .split_whitespace()
+                .next()
+                .unwrap_or("")
+                .to_string(),
+            None => "Stranger".to_string(),
+        };
 
         let form = Form::new(0)
             .add_hidden_field("Password", &self.password);
 
         let mut content = vec![
             Line::styled("Administrator authentication", theme.title_style(palette)),
-            Line::from(""), ];
-        content.push(card_line(&self.card, palette));
+            Line::from(""),
+            Line::from(format!("Welcome {}", given_name))];
         content.push(Line::from(""));
         content.extend(form.lines(theme, palette));
         content.extend([

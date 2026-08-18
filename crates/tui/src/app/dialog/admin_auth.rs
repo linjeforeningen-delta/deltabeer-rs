@@ -1,12 +1,31 @@
 use crate::api::request::ApiRequest;
 use crate::app::dialog::{DialogBehavior, DialogResult};
+use crate::app::fields::input::InputConstraint;
 use crate::app::{AppError, Message, TextInput};
+use crate::auth::AdminContext;
 use crossterm::event::{KeyCode, KeyEvent};
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub(crate) struct AdminAuthDialog {
-    pub card: Option<String>,
+    pub(crate) admin: Option<AdminContext>,
     pub password: TextInput,
+}
+
+impl AdminAuthDialog {
+    pub fn new(admin: Option<AdminContext>) -> Self {
+        Self {
+            admin,
+            password: TextInput::new(InputConstraint::Any),
+        }
+    }
+
+    pub fn empty() -> Self {
+        Self::new(None)
+    }
+
+    pub fn with_admin(admin: AdminContext) -> Self {
+        Self::new(Some(admin))
+    }
 }
 
 impl DialogBehavior for AdminAuthDialog {
@@ -23,27 +42,24 @@ impl DialogBehavior for AdminAuthDialog {
             }
 
             KeyCode::Enter => {
-                let identifier = self.card.clone();
                 let password = self.password.as_str().to_string();
 
-                if identifier.is_none() {
-                    return DialogResult::Message(Message::Failed(AppError::Validation(
-                        "Card scan required for admin authentication".into(),
-                    )));
-                }
+                let admin = match &self.admin {
+                    Some(admin) => admin,
+                    None => {
+                        return DialogResult::Message(Message::Failed(AppError::Validation(
+                            "Admin required for authentication".into(),
+                        )));
+                    }
+                };
 
                 DialogResult::Message(Message::ApiRequest(ApiRequest::AuthenticateAdmin {
-                    identifier: identifier.unwrap(),
+                    user_id: admin.user_id,
                     password,
                 }))
             }
 
             _ => DialogResult::Unhandled(key),
         }
-    }
-
-    fn handle_scan(&mut self, card: String) -> DialogResult<String> {
-        self.card = Some(card);
-        DialogResult::Consumed
     }
 }

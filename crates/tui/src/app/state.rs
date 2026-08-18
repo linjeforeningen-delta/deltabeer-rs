@@ -1,10 +1,10 @@
 use crate::api::command::ApiCommand;
 use crate::api::models::auth::SingleUseToken;
 use crate::api::request::ApiRequest;
+use crate::app::DialogOpenMode;
 use crate::app::dialog::AdminAuthDialog;
 use crate::app::dialog::DialogStack;
-use crate::app::DialogOpenMode;
-use crate::auth::AuthState;
+use crate::auth::{AdminContext, AuthState};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Page {
@@ -20,6 +20,7 @@ pub(crate) struct App {
     pub dialogs: DialogStack,
     pub status: String,
     pending_api_request: Option<ApiRequest>,
+    pub(crate) active_admin: Option<AdminContext>,
     pub should_quit: bool,
 }
 
@@ -31,6 +32,7 @@ impl App {
             dialogs: DialogStack::new(),
             status: "Ready for card".into(),
             pending_api_request: None,
+            active_admin: None,
             should_quit: false,
         }
     }
@@ -55,9 +57,11 @@ impl App {
             }),
 
             AuthState::Normal => {
+                let admin = self.active_admin.clone();
+
                 self.pending_api_request = Some(request);
 
-                self.dialogs.open(Box::new(AdminAuthDialog::default()), DialogOpenMode::Push);
+                self.dialogs.open(Box::new(AdminAuthDialog::new(admin)), DialogOpenMode::Push);
                 None
             }
         }
