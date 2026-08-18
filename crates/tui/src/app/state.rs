@@ -3,7 +3,7 @@ use crate::api::models::auth::SingleUseToken;
 use crate::api::request::ApiRequest;
 use crate::app::dialog::AdminAuthDialog;
 use crate::app::dialog::DialogStack;
-use crate::app::{DialogOpenMode, Message};
+use crate::app::DialogOpenMode;
 use crate::auth::AuthState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -57,10 +57,8 @@ impl App {
             AuthState::Normal => {
                 self.pending_api_request = Some(request);
 
-                self.update(Message::OpenDialog {
-                    dialog: Box::new(AdminAuthDialog::default()),
-                    mode: DialogOpenMode::Push,
-                })
+                self.dialogs.open(Box::new(AdminAuthDialog::default()), DialogOpenMode::Push);
+                None
             }
         }
     }
