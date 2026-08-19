@@ -18,7 +18,6 @@ impl DialogView for AdminAuthDialog {
 
         frame.render_widget(Clear, area);
 
-
         let given_name = match &self.admin {
             Some(admin) => admin
                 .name
@@ -29,13 +28,13 @@ impl DialogView for AdminAuthDialog {
             None => "Stranger".to_string(),
         };
 
-        let form = Form::new(0)
-            .add_hidden_field("Password", &self.password);
+        let form = Form::new(0).add_hidden_field("Password", &self.password);
 
         let mut content = vec![
             Line::styled("Administrator authentication", theme.title_style(palette)),
             Line::from(""),
-            Line::from(format!("Welcome {}", given_name))];
+            Line::from(format!("Welcome {}", given_name)),
+        ];
         content.push(Line::from(""));
         content.extend(form.lines(theme, palette));
         content.extend([

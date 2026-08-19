@@ -23,11 +23,7 @@ impl<'a> Form<'a> {
         }
     }
 
-    pub(crate) fn add_field(
-        mut self,
-        label: &'a str,
-        input: &'a TextInput,
-    ) -> Self {
+    pub(crate) fn add_field(mut self, label: &'a str, input: &'a TextInput) -> Self {
         self.fields.push(FormField {
             label,
             input,
@@ -38,11 +34,7 @@ impl<'a> Form<'a> {
         self
     }
 
-    pub(crate) fn add_hidden_field(
-        mut self,
-        label: &'a str,
-        input: &'a TextInput,
-    ) -> Self {
+    pub(crate) fn add_hidden_field(mut self, label: &'a str, input: &'a TextInput) -> Self {
         self.fields.push(FormField {
             label,
             input,
@@ -86,11 +78,7 @@ impl<'a> Form<'a> {
     }
 }
 impl Content for Form<'_> {
-    fn lines(
-        &self,
-        theme: &Theme,
-        palette: Palette,
-    ) -> Vec<Line<'_>> {
+    fn lines(&self, theme: &Theme, palette: Palette) -> Vec<Line<'_>> {
         let label_width = self
             .fields
             .iter()
@@ -130,7 +118,7 @@ impl Content for Form<'_> {
                     )),
                     Span::raw(value),
                 ])
-                    .style(style)
+                .style(style)
             })
             .collect()
     }

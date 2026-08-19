@@ -40,8 +40,7 @@ impl DialogView for MakeUserDialog {
                 Span::styled("Esc", theme.key_style(palette)),
                 Span::raw(" Back"),
             ]),
-        ]
-        );
+        ]);
 
         let popup = Paragraph::new(content)
             .style(palette.text())

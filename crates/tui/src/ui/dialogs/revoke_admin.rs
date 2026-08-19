@@ -22,11 +22,7 @@ impl DialogView for RevokeAdminDialog {
             None => "Revoke administrator privileges from this user?".to_string(),
         };
 
-        let mut content = vec![
-            Line::from(""),
-            Line::from(prompt),
-            Line::from(""),
-        ];
+        let mut content = vec![Line::from(""), Line::from(prompt), Line::from("")];
 
         content.push(user_line(&self.user, palette));
         content.extend([

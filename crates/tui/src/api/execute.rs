@@ -3,11 +3,7 @@ use crate::api::models::auth::Credentials;
 use crate::api::request::ApiRequest;
 use crate::api::result::ApiResult;
 use crate::app::AppError;
-use crate::{
-    api::client::ApiClient,
-    app::Message,
-};
-
+use crate::{api::client::ApiClient, app::Message};
 
 pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Message {
     match command.request {
@@ -30,10 +26,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             Err(error) => Message::Failed(AppError::Api(error.to_string())),
         },
 
-        ApiRequest::TopUp {
-            user_id,
-            amount,
-        } => {
+        ApiRequest::TopUp { user_id, amount } => {
             if let Some(token) = command.authorization {
                 match api.top_up(user_id, amount, token).await {
                     Ok(transaction) => Message::ApiResponse(ApiResult::TopUp(transaction)),
@@ -46,17 +39,14 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             }
         }
 
-        ApiRequest::AuthenticateAdmin {
-            user_id,
-            password,
-        } => match api
+        ApiRequest::AuthenticateAdmin { user_id, password } => match api
             .request_admin_token(&Credentials { user_id, password })
             .await
         {
             Ok(token) => Message::ApiResponse(ApiResult::AuthenticateAdmin(token)),
             Err(error) => Message::Failed(AppError::Api(error.to_string())),
-        }
-        
+        },
+
         ApiRequest::MakeUser {
             name,
             username,
@@ -92,10 +82,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             }
         }
 
-        ApiRequest::GrantAdmin {
-            user_id,
-            password,
-        } => {
+        ApiRequest::GrantAdmin { user_id, password } => {
             if let Some(token) = command.authorization {
                 match api.grant_admin_privileges(user_id, password, token).await {
                     Ok(()) => Message::ApiResponse(ApiResult::GrantAdmin(user_id)),

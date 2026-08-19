@@ -30,10 +30,7 @@ impl App {
         None
     }
 
-    fn handle_api_request(
-        &mut self,
-        request: ApiRequest,
-    ) -> Option<ApiCommand> {
+    fn handle_api_request(&mut self, request: ApiRequest) -> Option<ApiCommand> {
         self.status = request.status_message().into();
 
         self.request_api(request)
@@ -77,11 +74,7 @@ impl App {
             ApiResult::TopUp(transaction) => {
                 self.status = format!("Topped up {:?} successfully", transaction.amount);
                 self.dialogs.close();
-                self.request_api(
-                    ApiRequest::LookupUser(
-                        transaction.user_id.to_string()
-                    )
-                )
+                self.request_api(ApiRequest::LookupUser(transaction.user_id.to_string()))
             }
 
             ApiResult::AuthenticateAdmin(_) => {
@@ -91,21 +84,13 @@ impl App {
             ApiResult::MakeUser(user) => {
                 self.status = format!("User {} created", user.name);
                 self.dialogs.close();
-                self.request_api(
-                    ApiRequest::LookupUser(
-                        user.id.to_string()
-                    )
-                )
+                self.request_api(ApiRequest::LookupUser(user.id.to_string()))
             }
 
             ApiResult::UpdateUser(user) => {
                 self.status = format!("User {} updated", user.name);
                 self.dialogs.close();
-                self.request_api(
-                    ApiRequest::LookupUser(
-                        user.id.to_string()
-                    )
-                )
+                self.request_api(ApiRequest::LookupUser(user.id.to_string()))
             }
 
             ApiResult::GrantAdmin(user_id) => {
@@ -168,17 +153,15 @@ impl App {
         self.request_api(ApiRequest::LookupUser(card))
     }
 
-    fn open_user_dialog(
-        &mut self,
-        user: User,
-    ) {
+    fn open_user_dialog(&mut self, user: User) {
         if user.role == Role::Admin {
             self.active_admin = Some(AdminContext {
                 user_id: user.id.clone(),
                 name: user.name.clone(),
             });
         }
-        self.dialogs.open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset)
+        self.dialogs
+            .open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset)
     }
 
     fn handle_close_dialog(&mut self) {

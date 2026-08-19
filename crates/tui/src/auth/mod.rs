@@ -1,5 +1,5 @@
-mod session;
 mod context;
+mod session;
 
 use crate::auth::session::AdminSession;
 

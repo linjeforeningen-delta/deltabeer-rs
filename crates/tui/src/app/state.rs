@@ -37,10 +37,7 @@ impl App {
         }
     }
 
-    pub(crate) fn request_api(
-        &mut self,
-        request: ApiRequest,
-    ) -> Option<ApiCommand> {
+    pub(crate) fn request_api(&mut self, request: ApiRequest) -> Option<ApiCommand> {
         if !request.requires_auth() {
             return Some(ApiCommand {
                 request,
@@ -51,9 +48,7 @@ impl App {
         match &self.auth {
             AuthState::Admin(session) => Some(ApiCommand {
                 request,
-                authorization: Some(
-                    session.token.clone().into(),
-                ),
+                authorization: Some(session.token.clone().into()),
             }),
 
             AuthState::Normal => {
@@ -61,7 +56,8 @@ impl App {
 
                 self.pending_api_request = Some(request);
 
-                self.dialogs.open(Box::new(AdminAuthDialog::new(admin)), DialogOpenMode::Push);
+                self.dialogs
+                    .open(Box::new(AdminAuthDialog::new(admin)), DialogOpenMode::Push);
                 None
             }
         }
