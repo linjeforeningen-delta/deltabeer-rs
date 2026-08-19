@@ -120,9 +120,13 @@ impl ApiClient {
         Ok(admin_token.into())
     }
 
-    pub(crate) async fn logout(&self) -> Result<()> {
-        self.empty(self.request(Method::DELETE, "/v1/admins/session"))
-            .await
+    pub(crate) async fn logout(&self, token: AdminToken) -> Result<()> {
+        let request = self
+            .http
+            .delete(format!("{}/v1/admins/session", self.base))
+            .bearer_auth(token.as_str());
+
+        self.empty(request).await
     }
 }
 
