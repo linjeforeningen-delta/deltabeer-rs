@@ -1,10 +1,10 @@
-use crate::app::Dialog;
+use crate::app::Message;
 use std::fmt;
 
 pub(crate) struct MenuOption {
     pub(crate) name: String,
     pub(crate) key: char,
-    pub(crate) next: Box<dyn Fn() -> Box<dyn Dialog>>,
+    pub(crate) message: Box<dyn Fn() -> Message>,
 }
 
 impl fmt::Debug for MenuOption {
@@ -17,14 +17,14 @@ impl fmt::Debug for MenuOption {
 }
 
 impl MenuOption {
-    pub(crate) fn new<F>(name: impl Into<String>, key: char, next: F) -> Self
+    pub(crate) fn new<F>(name: impl Into<String>, key: char, message: F) -> Self
     where
-        F: Fn() -> Box<dyn Dialog> + 'static,
+        F: Fn() -> Message + 'static,
     {
         Self {
             name: name.into(),
             key,
-            next: Box::new(next),
+            message: Box::new(message),
         }
     }
 }

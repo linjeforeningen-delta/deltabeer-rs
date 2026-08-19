@@ -3,7 +3,6 @@ use std::fmt::Debug;
 
 use crate::app::dialog::menu::option::MenuOption;
 use crate::app::dialog::{DialogBehavior, DialogResult};
-use crate::app::{DialogOpenMode, Message};
 
 #[derive(Debug)]
 pub(crate) struct MenuDialog {
@@ -49,9 +48,6 @@ impl DialogBehavior for MenuDialog {
             return DialogResult::Unhandled(key);
         };
 
-        DialogResult::Message(Message::OpenDialog {
-            dialog: (option.next)(),
-            mode: DialogOpenMode::Push,
-        })
+        DialogResult::Message((option.message)())
     }
 }
