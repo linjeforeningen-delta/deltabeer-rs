@@ -1,4 +1,4 @@
-use crate::api::models::user::UserId;
+use crate::api::models::user::{UserId, UserPatch};
 use chrono::NaiveDate;
 
 #[derive(Debug)]
@@ -23,6 +23,10 @@ pub(crate) enum ApiRequest {
         card_number: u32,
         birthdate: NaiveDate,
     },
+    UpdateUser {
+        user_id: UserId,
+        patch: UserPatch,
+    },
     GrantAdmin {
         user_id: UserId,
         password: String,
@@ -37,6 +41,8 @@ impl ApiRequest {
         matches!(
             self,
             ApiRequest::TopUp { .. }
+                | ApiRequest::MakeUser { .. }
+                | ApiRequest::UpdateUser { .. }
                 | ApiRequest::GrantAdmin { .. }
                 | ApiRequest::RevokeAdmin { .. }
         )
@@ -49,6 +55,7 @@ impl ApiRequest {
             Self::TopUp { .. } => "Topping up...",
             Self::AuthenticateAdmin { .. } => "Authenticating admin...",
             Self::MakeUser { .. } => "Creating user...",
+            Self::UpdateUser { .. } => "Updating user...",
             Self::GrantAdmin { .. } => "Granting admin...",
             Self::RevokeAdmin { .. } => "Revoking admin...",
         }

@@ -79,6 +79,19 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             }
         }
 
+        ApiRequest::UpdateUser { user_id, patch } => {
+            if let Some(token) = command.authorization {
+                match api.update_user(user_id, patch, token).await {
+                    Ok(user) => Message::ApiResponse(ApiResult::UpdateUser(user)),
+                    Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                }
+            } else {
+                Message::Failed(AppError::Authentication(
+                    "Admin token required for updating user".to_string(),
+                ))
+            }
+        }
+
         ApiRequest::GrantAdmin {
             user_id,
             password,

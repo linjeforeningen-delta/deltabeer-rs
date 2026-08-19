@@ -6,7 +6,7 @@ use serde::de::DeserializeOwned;
 use crate::api::models::auth::SessionToken;
 use crate::api::models::auth::{AdminToken, Credentials, SingleUseToken};
 use crate::api::models::transaction::Transaction;
-use crate::api::models::user::{User, UserCreateRequest, UserId};
+use crate::api::models::user::{User, UserCreateRequest, UserId, UserPatch};
 
 #[derive(Clone)]
 pub(crate) struct ApiClient {
@@ -171,6 +171,24 @@ impl ApiClient {
             .http
             .post(format!("{}/v1/admins/user_management/create", self.base))
             .json(&content)
+            .bearer_auth(token.as_str());
+
+        self.json(request).await
+    }
+
+    pub(crate) async fn update_user(
+        &self,
+        user_id: UserId,
+        patch: UserPatch,
+        token: AdminToken,
+    ) -> Result<User> {
+        let request = self
+            .http
+            .patch(format!(
+                "{}/v1/admins/user_management/{user_id}/update",
+                self.base
+            ))
+            .json(&patch)
             .bearer_auth(token.as_str());
 
         self.json(request).await

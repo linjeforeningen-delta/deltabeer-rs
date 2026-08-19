@@ -48,7 +48,7 @@ pub struct User {
     pub spent: Amount,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserPatch {
     pub name: Option<String>,

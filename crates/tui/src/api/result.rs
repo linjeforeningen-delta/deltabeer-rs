@@ -9,6 +9,7 @@ pub(crate) enum ApiResult {
     TopUp(Transaction),
     AuthenticateAdmin(SingleUseToken),
     MakeUser(User),
+    UpdateUser(User),
     GrantAdmin(UserId),
     RevokeAdmin(UserId),
 }

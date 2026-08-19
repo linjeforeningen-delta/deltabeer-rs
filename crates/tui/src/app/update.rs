@@ -98,6 +98,16 @@ impl App {
                 )
             }
 
+            ApiResult::UpdateUser(user) => {
+                self.status = format!("User {} updated", user.name);
+                self.dialogs.close();
+                self.request_api(
+                    ApiRequest::LookupUser(
+                        user.id.to_string()
+                    )
+                )
+            }
+
             ApiResult::GrantAdmin(user_id) => {
                 self.status = format!("Granted admin to user {}", user_id);
                 self.dialogs.close();

@@ -22,6 +22,15 @@ impl TextInput {
         }
     }
 
+    pub(crate) fn with_value(mut self, value: impl Into<String>) -> Self {
+        self.value = value.into();
+        self
+    }
+
+    pub(crate) fn set_value(&mut self, value: impl Into<String>) {
+        self.value = value.into();
+    }
+
     pub(crate) fn push(&mut self, c: char) {
         if self.accepts(c) {
             self.value.push(c);

@@ -124,7 +124,7 @@ impl Content for Form<'_> {
 
                 Line::from(vec![
                     Span::raw(format!(
-                        "{:<width$}",
+                        "{marker}{:<width$}",
                         field.label,
                         width = label_width + 2
                     )),

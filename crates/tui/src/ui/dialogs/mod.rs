@@ -8,6 +8,7 @@ mod make_user;
 mod menu;
 mod revoke_admin;
 pub(crate) mod topup;
+mod update_user;
 pub(crate) mod user;
 
 pub(crate) trait DialogView {

@@ -5,6 +5,7 @@ pub(crate) mod menu;
 mod revoke_admin;
 mod stack;
 mod topup;
+mod update_user;
 mod user;
 
 use crate::app::Message;
@@ -21,6 +22,7 @@ pub(crate) use menu::presets::admin_menu;
 pub(crate) use revoke_admin::RevokeAdminDialog;
 pub(crate) use stack::{DialogOpenMode, DialogStack};
 pub(crate) use topup::TopUpDialog;
+pub(crate) use update_user::{UpdateUserDialog, UpdateUserStage};
 pub(crate) use user::UserDialog;
 
 #[derive(Debug)]
