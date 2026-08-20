@@ -26,7 +26,7 @@ tracing = "0.1"
 async-trait = "0.1"
 thiserror = "2"
 dotenvy = "0.15"
-base64 = "0.22"
-ratatui = "0.29"
-crossterm = "0.28"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+base64 = "0.23"
+ratatui = "0.30"
+crossterm = "0.29"
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }

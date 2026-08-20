@@ -89,7 +89,10 @@ async fn resolve_user(
         (status = 200, description = "Get single user", body = UserDto)
     )
 )]
-async fn get_user(State(state): State<AppState>, Path(user_id): Path<UserIdDto>) -> ApiResult<UserDto> {
+async fn get_user(
+    State(state): State<AppState>,
+    Path(user_id): Path<UserIdDto>,
+) -> ApiResult<UserDto> {
     let user = services::users::view_user(UserId::from(user_id), &state.ctx()).await?;
 
     Ok((StatusCode::OK, Json(UserDto::from(&user))))
@@ -113,6 +116,7 @@ async fn spend(
     JsonIn(payload): JsonIn<SpendRequestDto>,
 ) -> ApiResult<TransactionDto> {
     let amount = Amount::from(payload);
-    let transaction = services::transactions::spend(UserId::from(user_id), amount, &state.ctx()).await?;
+    let transaction =
+        services::transactions::spend(UserId::from(user_id), amount, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(TransactionDto::from(&transaction))))
 }

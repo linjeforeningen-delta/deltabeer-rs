@@ -8,8 +8,13 @@ use delta_core::services::auth::{
     grant_admin, issue_admin_pass, issue_admin_session, login, update_password,
     validate_authorization,
 };
-use rand_core::RngCore;
 use uuid::Uuid;
+
+fn random_card_number() -> u32 {
+    let mut bytes = [0u8; 4];
+    getrandom::fill(&mut bytes).unwrap();
+    u32::from_ne_bytes(bytes)
+}
 
 async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
     let user = User {
@@ -17,7 +22,7 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
         name: "Admin".to_string(),
         username: format!("admin-{}", Uuid::now_v7()),
         program: "Administration".to_string(),
-        card_number: rand_core::OsRng.next_u32(),
+        card_number: random_card_number(),
         role: Role::Admin,
         birthdate: chrono::NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
         comments: "".to_string(),

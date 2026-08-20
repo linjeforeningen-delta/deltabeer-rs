@@ -183,7 +183,7 @@ async fn new_user(
         },
         &state.ctx(),
     )
-        .await?;
+    .await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(UserDto::from(&user))))
@@ -220,7 +220,7 @@ async fn update_user(
         },
         &state.ctx(),
     )
-        .await?;
+    .await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(UserDto::from(&user))))
@@ -244,8 +244,13 @@ async fn topup(
     Path(user_id): Path<UserIdDto>,
     JsonIn(payload): JsonIn<TopupRequestDto>,
 ) -> ApiResult<TransactionDto> {
-    let transaction =
-        services::transactions::top_up(UserId::from(user_id), Amount(payload.0), admin_id, &state.ctx()).await?;
+    let transaction = services::transactions::top_up(
+        UserId::from(user_id),
+        Amount(payload.0),
+        admin_id,
+        &state.ctx(),
+    )
+    .await?;
     Ok((StatusCode::OK, Json(TransactionDto::from(&transaction))))
 }
 
@@ -275,7 +280,6 @@ async fn grant_admin(
     let user = services::users::view_user(user_id, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(UserDto::from(&user))))
 }
-
 
 #[utoipa::path(
     delete,

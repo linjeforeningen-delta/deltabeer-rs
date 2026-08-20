@@ -5,17 +5,21 @@ use common::TestEnv;
 use delta_core::domain::{Amount, Role, User, UserId};
 use delta_core::ports::repo::{AdminRepo, UserRepo};
 use delta_core::services::users::{CreateUser, UpdateUser, create_user, resolve_user, update_user};
-use rand_core::RngCore;
 use uuid::Uuid;
 
+fn random_card_number() -> u32 {
+    let mut bytes = [0u8; 4];
+    getrandom::fill(&mut bytes).unwrap();
+    u32::from_ne_bytes(bytes)
+}
+
 async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
-    let mut os_rng = rand_core::OsRng;
     let user = User {
         id,
         name: "Admin".to_string(),
         username: format!("admin-{}", Uuid::now_v7()),
         program: "Administration".to_string(),
-        card_number: os_rng.next_u32(),
+        card_number: random_card_number(),
         role: Role::Admin,
         birthdate: chrono::NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
         comments: "".to_string(),

@@ -4,7 +4,6 @@ use argon2::{
     Algorithm, Argon2, Params, PasswordHash as Argon2PasswordHash, PasswordHasher,
     PasswordVerifier, Version,
 };
-use rand_core::OsRng;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PasswordHash(pub String); // or Vec<u8>
@@ -27,6 +26,13 @@ const ARGON2_MEMORY_COST: u32 = 19_456;
 const ARGON2_TIME_COST: u32 = 2;
 const ARGON2_PARALLELISM: u32 = 1;
 const ARGON2_HASH_LENGTH: usize = 32;
+const SALT_LENGTH: usize = 16;
+
+fn generate_salt() -> SaltString {
+    let mut bytes = [0u8; SALT_LENGTH];
+    getrandom::fill(&mut bytes).expect("OS randomness must be available");
+    SaltString::encode_b64(&bytes).expect("valid salt bytes must encode")
+}
 
 fn argon2_ctx() -> Argon2<'static> {
     let params = Params::new(
@@ -75,7 +81,7 @@ pub fn needs_rehash(hash: &PasswordHash) -> bool {
 }
 
 pub fn hash_password(password: &str) -> PasswordHash {
-    let salt = SaltString::generate(&mut OsRng);
+    let salt = generate_salt();
     let password_hash = argon2_ctx()
         .hash_password(password.as_bytes(), &salt)
         .expect("argon2 hashing must succeed")
@@ -119,7 +125,7 @@ mod tests {
     #[test]
     fn test_needs_rehash_older_params() {
         let password = "password123";
-        let salt = SaltString::generate(&mut OsRng);
+        let salt = generate_salt();
 
         // intentionally use lower cost params
         let params = Params::new(1024, 1, 1, Some(ARGON2_HASH_LENGTH)).unwrap();
@@ -139,7 +145,7 @@ mod tests {
     #[test]
     fn test_needs_rehash_different_algorithm() {
         let password = "password123";
-        let salt = SaltString::generate(&mut OsRng);
+        let salt = generate_salt();
 
         let params = Params::new(
             ARGON2_MEMORY_COST,

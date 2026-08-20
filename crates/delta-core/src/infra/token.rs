@@ -3,7 +3,6 @@ use crate::ports::{Clock, RepoError, TokenError, TokenRepo, TokenSource};
 use crate::services::auth::{AdminToken, TokenData, TokenKind};
 use async_trait::async_trait;
 use chrono::Duration;
-use rand_core::{OsRng, RngCore};
 
 impl From<RepoError> for TokenError {
     fn from(_: RepoError) -> Self {
@@ -13,10 +12,10 @@ impl From<RepoError> for TokenError {
 
 pub struct OpaqueTokenSource;
 
-fn generate_token() -> AdminToken {
+fn generate_token() -> Result<AdminToken, TokenError> {
     let mut buf = [0u8; 32];
-    OsRng.fill_bytes(&mut buf);
-    AdminToken(buf)
+    getrandom::fill(&mut buf).map_err(|_| TokenError::FailedToIssueToken)?;
+    Ok(AdminToken(buf))
 }
 
 #[async_trait]
@@ -30,7 +29,7 @@ impl TokenSource for OpaqueTokenSource {
         clock: &(dyn Clock + Sync),
     ) -> Result<AdminToken, TokenError> {
         let now = clock.now();
-        let token = generate_token();
+        let token = generate_token()?;
         let data = TokenData {
             user_id,
             expires_at: now + ttl,
