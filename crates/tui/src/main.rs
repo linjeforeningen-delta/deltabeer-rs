@@ -9,6 +9,7 @@ pub(crate) mod auth;
 mod config;
 mod input;
 mod runtime;
+mod splash;
 mod ui;
 
 use crate::api::client::ApiClient;
@@ -75,6 +76,8 @@ async fn main() -> Result<()> {
         Input::new(Duration::from_millis(config.tui.scanner_max_gap_ms)),
         Duration::from_millis(config.tui.event_poll_interval_ms),
     );
+
+    splash::show(&mut terminal, runtime.event_poll_interval)?;
 
     let result = run(&mut terminal, &mut runtime).await;
 
