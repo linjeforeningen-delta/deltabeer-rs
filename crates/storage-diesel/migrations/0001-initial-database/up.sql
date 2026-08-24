@@ -165,12 +165,12 @@ END;
 -- =========================
 CREATE TABLE admin_tokens
 (
-    token      BLOBa PRIMARY KEY NOT NULL,
-    user_id    TEXT              NOT NULL,
-    expires_at BIGINT            NOT NULL, -- unix timestamp
-    single_use BOOLEAN           NOT NULL,
-    created_at BIGINT            NOT NULL, -- unix timestamp
-    expired    BOOLEAN           NOT NULL DEFAULT FALSE,
+    token      BLOB PRIMARY KEY NOT NULL,
+    user_id    TEXT             NOT NULL,
+    expires_at BIGINT           NOT NULL, -- unix timestamp
+    single_use BOOLEAN          NOT NULL,
+    created_at BIGINT           NOT NULL, -- unix timestamp
+    expired    BOOLEAN          NOT NULL DEFAULT FALSE,
 
     FOREIGN KEY (user_id)
         REFERENCES users (id)
