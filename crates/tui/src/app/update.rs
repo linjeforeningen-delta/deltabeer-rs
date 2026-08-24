@@ -4,7 +4,7 @@ use crate::api::request::ApiRequest;
 use crate::api::result::ApiResult;
 use crate::app::dialog::{DialogResult, UserDialog};
 use crate::app::{App, AppError, DialogOpenMode, Message};
-use crate::auth::{AdminContext, AuthState};
+use crate::auth::{AdminContext, AdminSession, AuthState};
 
 impl App {
     pub(crate) fn update(&mut self, message: Message) -> Option<ApiCommand> {
@@ -19,7 +19,12 @@ impl App {
 
             Message::OpenDialog { dialog, mode } => self.dialogs.open(dialog, mode),
 
-            Message::CloseDialog => self.handle_close_dialog(),
+            Message::OpenAdminDialog { dialog, mode } => {
+                self.dialogs
+                    .open_admin(dialog, mode, &self.auth, self.active_admin.clone())
+            }
+
+            Message::CloseDialog => return self.handle_close_dialog(),
 
             Message::CardScanned(card) => return self.handle_card_scan(card),
 
@@ -62,8 +67,7 @@ impl App {
         match result {
             ApiResult::LookupUser(user) => {
                 self.status = format!("User {} loaded", user.name);
-                self.open_user_dialog(user);
-                None
+                self.open_user_dialog(user)
             }
 
             ApiResult::Spend(transaction) => {
@@ -79,6 +83,21 @@ impl App {
 
             ApiResult::AuthenticateAdmin(_) => {
                 unreachable!("AuthenticateAdmin is handled before dialog routing")
+            }
+
+            ApiResult::StartAdminSession { user_id, token } => {
+                self.auth = AuthState::Admin(AdminSession::new(user_id, token));
+                self.status = "Admin session started".into();
+                self.dialogs.close();
+                self.dialogs.set_auth_state(&self.auth);
+                None
+            }
+
+            ApiResult::EndAdminSession => {
+                self.auth = AuthState::Normal;
+                self.dialogs.set_auth_state(&self.auth);
+                self.status = "Admin session ended".into();
+                None
             }
 
             ApiResult::MakeUser(user) => {
@@ -153,22 +172,43 @@ impl App {
         self.request_api(ApiRequest::LookupUser(card))
     }
 
-    fn open_user_dialog(&mut self, user: User) {
-        if user.role == Role::Admin {
-            self.active_admin = Some(AdminContext {
+    fn open_user_dialog(&mut self, user: User) -> Option<ApiCommand> {
+        let previous_session_needs_logout = match (&self.auth, &user.role) {
+            (AuthState::Admin(session), Role::Admin) => {
+                session.user_id != user.id
+            }
+            (AuthState::Admin(_), _) => true,
+            _ => false,
+        };
+
+        self.active_admin = match user.role {
+            Role::Admin => Some(AdminContext {
                 user_id: user.id.clone(),
                 name: user.name.clone(),
-            });
+            }),
+            _ => None,
+        };
+
+        self.dialogs.open(
+            Box::new(UserDialog::new(user)),
+            DialogOpenMode::Reset,
+        );
+
+        if previous_session_needs_logout {
+            self.request_api(ApiRequest::EndAdminSession)
+        } else {
+            None
         }
-        self.dialogs
-            .open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset)
     }
 
-    fn handle_close_dialog(&mut self) {
-        if self.dialogs.is_empty() {
-            self.active_admin = None;
-            self.auth = AuthState::Normal;
-        }
+    fn handle_close_dialog(&mut self) -> Option<ApiCommand> {
         self.dialogs.close();
+
+        if !self.dialogs.is_empty() {
+            return None;
+        }
+
+        self.active_admin = None;
+        self.request_api(ApiRequest::EndAdminSession)
     }
 }

@@ -1,10 +1,14 @@
 use crate::api::models::auth::SessionToken;
-use crate::api::models::user::User;
-use chrono::{DateTime, Utc};
+use crate::api::models::user::UserId;
 
+#[derive(Debug, Clone)]
 pub(crate) struct AdminSession {
-    admin: User,
+    pub(crate) user_id: UserId,
     pub(crate) token: SessionToken,
-    expires_at: DateTime<Utc>,
-    last_validated_at: DateTime<Utc>,
+}
+
+impl AdminSession {
+    pub(crate) fn new(user_id: UserId, token: SessionToken) -> Self {
+        Self { user_id, token }
+    }
 }

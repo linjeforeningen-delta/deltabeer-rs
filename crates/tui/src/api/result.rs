@@ -1,4 +1,4 @@
-use crate::api::models::auth::SingleUseToken;
+use crate::api::models::auth::{SessionToken, SingleUseToken};
 use crate::api::models::transaction::Transaction;
 use crate::api::models::user::{User, UserId};
 
@@ -8,6 +8,11 @@ pub(crate) enum ApiResult {
     Spend(Transaction),
     TopUp(Transaction),
     AuthenticateAdmin(SingleUseToken),
+    StartAdminSession {
+        user_id: UserId,
+        token: SessionToken,
+    },
+    EndAdminSession,
     MakeUser(User),
     UpdateUser(User),
     GrantAdmin(UserId),

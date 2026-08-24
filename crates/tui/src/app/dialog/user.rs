@@ -47,8 +47,8 @@ impl DialogBehavior for UserDialog {
 
             KeyCode::Char('a') => {
                 if self.user.role == Role::Admin {
-                    return DialogResult::Message(Message::OpenDialog {
-                        dialog: Box::new(admin_menu(&self.user.id)),
+                    return DialogResult::Message(Message::OpenAdminDialog {
+                        dialog: Box::new(admin_menu()),
                         mode: DialogOpenMode::Push,
                     });
                 }

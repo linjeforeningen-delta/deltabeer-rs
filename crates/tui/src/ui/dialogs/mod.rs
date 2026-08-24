@@ -3,6 +3,7 @@ use crate::ui::theme::Theme;
 use ratatui::Frame;
 
 pub(crate) mod admin_auth;
+pub(crate) mod admin_session_login;
 mod grant_admin;
 mod make_user;
 mod menu;

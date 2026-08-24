@@ -1,5 +1,6 @@
 use crate::api::request::ApiRequest;
 use crate::api::result::ApiResult;
+use crate::app::dialog::AdminDialog;
 use crate::app::{Dialog, DialogOpenMode, Page};
 
 #[derive(Debug)]
@@ -12,6 +13,10 @@ pub(crate) enum Message {
 
     OpenDialog {
         dialog: Box<dyn Dialog>,
+        mode: DialogOpenMode,
+    },
+    OpenAdminDialog {
+        dialog: Box<dyn AdminDialog>,
         mode: DialogOpenMode,
     },
     CloseDialog,

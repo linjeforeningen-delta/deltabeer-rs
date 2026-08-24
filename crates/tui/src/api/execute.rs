@@ -47,6 +47,37 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             Err(error) => Message::Failed(AppError::Api(error.to_string())),
         },
 
+        ApiRequest::StartAdminSession { user_id, password } => {
+            let single_use = match api
+                .request_admin_token(&Credentials {
+                    user_id: user_id.clone(),
+                    password,
+                })
+                .await
+            {
+                Ok(token) => token,
+                Err(error) => return Message::Failed(AppError::Api(error.to_string())),
+            };
+
+            match api.create_session(&single_use).await {
+                Ok(token) => Message::ApiResponse(ApiResult::StartAdminSession { user_id, token }),
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
+            }
+        }
+
+        ApiRequest::EndAdminSession => {
+            if let Some(token) = command.authorization {
+                match api.logout(token.into()).await {
+                    Ok(()) => Message::ApiResponse(ApiResult::EndAdminSession),
+                    Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                }
+            } else {
+                Message::Failed(AppError::Authentication(
+                    "Admin token required to end admin session".to_string(),
+                ))
+            }
+        }
+
         ApiRequest::MakeUser {
             name,
             username,

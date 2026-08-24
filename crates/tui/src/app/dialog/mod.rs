@@ -1,4 +1,6 @@
 mod admin_auth;
+mod admin_menu;
+mod admin_session_login;
 mod grant_admin;
 mod make_user;
 pub(crate) mod menu;
@@ -13,12 +15,14 @@ use crossterm::event::{KeyCode, KeyEvent};
 use std::fmt::Debug;
 
 use crate::api::result::ApiResult;
+use crate::auth::{AdminContext, AuthState};
 use crate::ui::dialogs::DialogView;
 pub(crate) use admin_auth::AdminAuthDialog;
+pub(crate) use admin_menu::AdminMenuDialog;
+pub(crate) use admin_session_login::AdminSessionLoginDialog;
 pub(crate) use grant_admin::GrantAdminDialog;
 pub(crate) use make_user::MakeUserDialog;
 pub(crate) use menu::dialog::MenuDialog;
-pub(crate) use menu::presets::admin_menu;
 pub(crate) use revoke_admin::RevokeAdminDialog;
 pub(crate) use stack::{DialogOpenMode, DialogStack};
 pub(crate) use topup::TopUpDialog;
@@ -54,3 +58,9 @@ pub(crate) trait DialogBehavior: Debug {
 pub(crate) trait Dialog: DialogBehavior + DialogView {}
 
 impl<T> Dialog for T where T: DialogBehavior + DialogView {}
+
+pub(crate) trait AdminDialog: Dialog {
+    fn set_admin_context(&mut self, context: Option<AdminContext>) {}
+
+    fn set_auth_state(&mut self, _state: &AuthState) {}
+}

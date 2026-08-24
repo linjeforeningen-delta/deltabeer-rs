@@ -1,4 +1,5 @@
-use super::Dialog;
+use super::{AdminDialog, Dialog};
+use crate::auth::{AdminContext, AuthState};
 
 #[derive(Debug)]
 pub(crate) enum DialogOpenMode {
@@ -8,7 +9,12 @@ pub(crate) enum DialogOpenMode {
 }
 
 pub(crate) struct DialogStack {
-    stack: Vec<Box<dyn Dialog>>,
+    stack: Vec<DialogEntry>,
+}
+
+enum DialogEntry {
+    Normal(Box<dyn Dialog>),
+    Admin(Box<dyn AdminDialog>),
 }
 
 impl DialogStack {
@@ -19,16 +25,48 @@ impl DialogStack {
     pub(crate) fn open(&mut self, dialog: Box<dyn Dialog>, mode: DialogOpenMode) {
         match mode {
             DialogOpenMode::Push => {
-                self.stack.push(dialog);
+                self.stack.push(DialogEntry::Normal(dialog));
             }
             DialogOpenMode::ReplaceTop => {
                 self.stack.pop();
-                self.stack.push(dialog);
+                self.stack.push(DialogEntry::Normal(dialog));
             }
             DialogOpenMode::Reset => {
                 self.stack.clear();
-                self.stack.push(dialog);
+                self.stack.push(DialogEntry::Normal(dialog));
             }
+        }
+    }
+
+    pub(crate) fn open_admin(
+        &mut self,
+        dialog: Box<dyn AdminDialog>,
+        mode: DialogOpenMode,
+        state: &AuthState,
+        context: Option<AdminContext>,
+    ) {
+        let mut dialog = dialog;
+        dialog.set_auth_state(state);
+        dialog.set_admin_context(context);
+
+        match mode {
+            DialogOpenMode::Push => {
+                self.stack.push(DialogEntry::Admin(dialog));
+            }
+            DialogOpenMode::ReplaceTop => {
+                self.stack.pop();
+                self.stack.push(DialogEntry::Admin(dialog));
+            }
+            DialogOpenMode::Reset => {
+                self.stack.clear();
+                self.stack.push(DialogEntry::Admin(dialog));
+            }
+        }
+    }
+
+    pub(crate) fn set_auth_state(&mut self, state: &AuthState) {
+        if let Some(DialogEntry::Admin(dialog)) = self.stack.last_mut() {
+            dialog.set_auth_state(state);
         }
     }
 
@@ -37,13 +75,17 @@ impl DialogStack {
     }
 
     pub(crate) fn active(&self) -> Option<&(dyn Dialog + '_)> {
-        let dialog = self.stack.last()?;
-        Some(dialog.as_ref())
+        match self.stack.last()? {
+            DialogEntry::Normal(dialog) => Some(dialog.as_ref()),
+            DialogEntry::Admin(dialog) => Some(dialog.as_ref()),
+        }
     }
 
     pub(crate) fn active_mut(&mut self) -> Option<&mut (dyn Dialog + '_)> {
-        let dialog = self.stack.last_mut()?;
-        Some(dialog.as_mut())
+        match self.stack.last_mut()? {
+            DialogEntry::Normal(dialog) => Some(dialog.as_mut()),
+            DialogEntry::Admin(dialog) => Some(dialog.as_mut()),
+        }
     }
 
     pub(crate) fn is_empty(&self) -> bool {

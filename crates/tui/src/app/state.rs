@@ -38,6 +38,17 @@ impl App {
     }
 
     pub(crate) fn request_api(&mut self, request: ApiRequest) -> Option<ApiCommand> {
+        if matches!(request, ApiRequest::EndAdminSession) {
+            let AuthState::Admin(session) = &self.auth else {
+                return None;
+            };
+
+            return Some(ApiCommand {
+                request,
+                authorization: Some(session.token.clone().into()),
+            });
+        }
+
         if !request.requires_auth() {
             return Some(ApiCommand {
                 request,

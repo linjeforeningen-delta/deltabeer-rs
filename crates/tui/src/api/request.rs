@@ -16,6 +16,11 @@ pub(crate) enum ApiRequest {
         user_id: UserId,
         password: String,
     },
+    StartAdminSession {
+        user_id: UserId,
+        password: String,
+    },
+    EndAdminSession,
     MakeUser {
         name: String,
         username: String,
@@ -54,6 +59,8 @@ impl ApiRequest {
             Self::Spend { .. } => "Spending...",
             Self::TopUp { .. } => "Topping up...",
             Self::AuthenticateAdmin { .. } => "Authenticating admin...",
+            Self::StartAdminSession { .. } => "Starting admin session...",
+            Self::EndAdminSession { .. } => "Ending admin session...",
             Self::MakeUser { .. } => "Creating user...",
             Self::UpdateUser { .. } => "Updating user...",
             Self::GrantAdmin { .. } => "Granting admin...",
