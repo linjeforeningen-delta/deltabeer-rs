@@ -18,6 +18,8 @@ impl DialogView for MenuDialog {
 
         let title = match self.title {
             MenuTitle::Admin => t!("menu.admin").to_string(),
+            MenuTitle::Application => t!("menu.application").to_string(),
+            MenuTitle::Language => t!("menu.language").to_string(),
         };
         let content_width = self
             .options
@@ -72,6 +74,10 @@ impl DialogView for MenuDialog {
 
 fn option_label(label: MenuLabel) -> String {
     match label {
+        MenuLabel::ChangeLanguage => t!("menu.change_language").to_string(),
+        MenuLabel::Quit => t!("menu.quit").to_string(),
+        MenuLabel::English => t!("languages.en").to_string(),
+        MenuLabel::NorwegianBokmaal => t!("languages.nb").to_string(),
         MenuLabel::TopUp => t!("menu.top_up").to_string(),
         MenuLabel::MakeUser => t!("menu.make_user").to_string(),
         MenuLabel::UpdateUser => t!("menu.update_user").to_string(),

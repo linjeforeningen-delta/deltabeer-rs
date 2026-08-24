@@ -9,6 +9,10 @@ pub(crate) struct MenuOption {
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum MenuLabel {
+    ChangeLanguage,
+    Quit,
+    English,
+    NorwegianBokmaal,
     TopUp,
     MakeUser,
     UpdateUser,
@@ -16,6 +20,21 @@ pub(crate) enum MenuLabel {
     RevokeAdmin,
     Login,
     Logout,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum Language {
+    English,
+    NorwegianBokmaal,
+}
+
+impl Language {
+    pub(crate) const fn locale(self) -> &'static str {
+        match self {
+            Self::English => "en",
+            Self::NorwegianBokmaal => "nb",
+        }
+    }
 }
 
 impl fmt::Debug for MenuOption {

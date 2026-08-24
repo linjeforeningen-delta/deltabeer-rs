@@ -63,6 +63,10 @@ roles:
 
 menu:
   admin: "Admin"
+  application: "Program"
+  language: "Språk"
+  change_language: "Bytt språk"
+  quit: "Avslutt"
   top_up: "Fyll på"
   make_user: "Ny bruker"
   update_user: "Endre bruker"
@@ -70,6 +74,10 @@ menu:
   revoke_admin: "Opphev admin"
   login: "Logg inn"
   logout: "Logg ut"
+
+languages:
+  en: "Engelsk"
+  nb: "Norsk bokmål"
 
 hints:
   back: "Tilbake"

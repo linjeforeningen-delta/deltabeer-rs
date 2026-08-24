@@ -63,6 +63,10 @@ roles:
 
 menu:
   admin: "Admin"
+  application: "Application"
+  language: "Language"
+  change_language: "Change language"
+  quit: "Quit"
   top_up: "Top Up"
   make_user: "Make User"
   update_user: "Update User"
@@ -70,6 +74,10 @@ menu:
   revoke_admin: "Revoke Admin"
   login: "Login"
   logout: "Logout"
+
+languages:
+  en: "English"
+  nb: "Norwegian Bokmål"
 
 hints:
   back: "Back"

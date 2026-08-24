@@ -31,6 +31,11 @@ impl App {
             Message::Navigate(page) => self.page = page,
 
             Message::Quit => self.should_quit = true,
+
+            Message::SetLanguage(language) => {
+                rust_i18n::set_locale(language.locale());
+                self.dialogs.close();
+            }
         };
         None
     }

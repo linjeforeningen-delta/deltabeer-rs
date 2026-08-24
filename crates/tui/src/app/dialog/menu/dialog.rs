@@ -14,12 +14,22 @@ pub(crate) struct MenuDialog {
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum MenuTitle {
     Admin,
+    Application,
+    Language,
 }
 
 impl MenuDialog {
+    pub(crate) fn new(title: MenuTitle, options: Vec<MenuOption>) -> Self {
+        Self {
+            title,
+            options,
+            is_admin: false,
+        }
+    }
+
     pub(crate) fn new_admin(title: MenuTitle, options: Vec<MenuOption>) -> Self {
         Self {
-            title: title.into(),
+            title,
             options,
             is_admin: true,
         }
