@@ -2,13 +2,14 @@ use crossterm::event::{KeyCode, KeyEvent};
 use std::fmt::Debug;
 
 use crate::app::dialog::menu::option::MenuOption;
-use crate::app::dialog::{DialogBehavior, DialogResult};
+use crate::app::dialog::{AdminDialog, DialogBehavior, DialogResult};
+use crate::auth::{AdminContext, AuthState};
 
 #[derive(Debug)]
 pub(crate) struct MenuDialog {
     pub(crate) title: MenuTitle,
     pub(crate) options: Vec<MenuOption>,
-    pub(crate) is_admin: bool,
+    pub(crate) kind: MenuKind,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -18,20 +19,34 @@ pub(crate) enum MenuTitle {
     Language,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum MenuKind {
+    Normal,
+    Admin { logged_in: bool },
+}
+
 impl MenuDialog {
-    pub(crate) fn new(title: MenuTitle, options: Vec<MenuOption>) -> Self {
+    pub(crate) fn new(title: MenuTitle, options: Vec<MenuOption>, kind: MenuKind) -> Self {
         Self {
             title,
             options,
-            is_admin: false,
+            kind,
         }
     }
+}
 
-    pub(crate) fn new_admin(title: MenuTitle, options: Vec<MenuOption>) -> Self {
-        Self {
-            title,
-            options,
-            is_admin: true,
+impl AdminDialog for MenuDialog {
+    fn set_admin_context(&mut self, _context: Option<AdminContext>) {}
+
+    fn set_auth_state(&mut self, state: &AuthState) {
+        let MenuKind::Admin { logged_in } = &mut self.kind else {
+            return;
+        };
+
+        let next_logged_in = matches!(state, AuthState::Admin(_));
+        if *logged_in != next_logged_in {
+            *logged_in = next_logged_in;
+            self.options = crate::app::dialog::menu::preset::admin::options(next_logged_in);
         }
     }
 }

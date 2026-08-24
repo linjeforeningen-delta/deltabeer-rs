@@ -1,5 +1,5 @@
 use crate::app::dialog::DialogResult;
-use crate::app::dialog::menu::presets;
+use crate::app::dialog::menu::preset;
 use crate::app::{App, Message, Page};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -41,7 +41,7 @@ fn map_key_base(app: &App, key: KeyEvent) -> Option<Message> {
 
     match key.code {
         KeyCode::Esc => Some(Message::OpenDialog {
-            dialog: Box::new(presets::application_menu()),
+            dialog: Box::new(preset::application::new()),
             mode: crate::app::DialogOpenMode::Push,
         }),
         KeyCode::Char('1') => Some(Message::Navigate(Page::Home)),

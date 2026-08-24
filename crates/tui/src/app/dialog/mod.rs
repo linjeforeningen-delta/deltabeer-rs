@@ -1,5 +1,4 @@
 mod admin_auth;
-mod admin_menu;
 mod admin_session_login;
 mod grant_admin;
 mod make_user;
@@ -18,7 +17,6 @@ use crate::api::result::ApiResult;
 use crate::auth::{AdminContext, AuthState};
 use crate::ui::dialogs::DialogView;
 pub(crate) use admin_auth::AdminAuthDialog;
-pub(crate) use admin_menu::AdminMenuDialog;
 pub(crate) use admin_session_login::AdminSessionLoginDialog;
 pub(crate) use grant_admin::GrantAdminDialog;
 pub(crate) use make_user::MakeUserDialog;

@@ -1,6 +1,6 @@
 use crate::app::App;
 use crate::app::dialog::MenuDialog;
-use crate::app::dialog::menu::{MenuLabel, MenuTitle};
+use crate::app::dialog::menu::{MenuKind, MenuLabel, MenuTitle};
 use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 use ratatui::{
     Frame,
@@ -10,10 +10,9 @@ use ratatui::{
 
 impl DialogView for MenuDialog {
     fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme) {
-        let palette = if self.is_admin {
-            theme.admin()
-        } else {
-            theme.active(&app.auth)
+        let palette = match self.kind {
+            MenuKind::Normal => theme.active(&app.auth),
+            MenuKind::Admin { .. } => theme.admin(),
         };
 
         let title = match self.title {
