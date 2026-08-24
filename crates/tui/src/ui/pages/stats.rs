@@ -20,9 +20,7 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         Line::from("Transactions    --"),
     ];
 
-    let widget = Paragraph::new(content)
-        .style(palette.text())
-        .block(theme.page_block(" Stats ", palette));
+    let widget = Paragraph::new(content).style(palette.text());
 
     frame.render_widget(widget, area);
 }

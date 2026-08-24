@@ -34,8 +34,7 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
             Constraint::Length(15),
         ],
     )
-    .header(header)
-    .block(theme.page_block(" Transactions ", palette));
+    .header(header);
 
     frame.render_widget(table, area);
 }

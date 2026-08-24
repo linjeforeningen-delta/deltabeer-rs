@@ -5,14 +5,7 @@ use crate::app::DialogOpenMode;
 use crate::app::dialog::AdminAuthDialog;
 use crate::app::dialog::DialogStack;
 use crate::auth::{AdminContext, AuthState};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum Page {
-    Home,
-    Users,
-    Transactions,
-    Stats,
-}
+pub(crate) use crate::ui::pages::Page;
 
 pub(crate) struct App {
     pub auth: AuthState,

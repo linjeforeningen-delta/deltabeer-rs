@@ -8,6 +8,7 @@ mod widgets;
 
 use crate::app::{App, Page};
 use crate::ui::theme::THEME;
+use crate::ui::widgets::folder_tabs::FolderPageFrame;
 use ratatui::layout::Margin;
 use ratatui::widgets::BorderType;
 use ratatui::{
@@ -34,18 +35,22 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
 
     frame.render_widget(header, areas.header);
 
+    let page_frame = FolderPageFrame::new(app.page, palette);
+    let body = FolderPageFrame::inner(areas.body);
+    frame.render_widget(page_frame, areas.body);
+
     match app.page {
         Page::Home => {
-            pages::home::draw(frame, areas.body, app, &theme);
+            pages::home::draw(frame, body, app, &theme);
         }
         Page::Users => {
-            pages::users::draw(frame, areas.body, app, &theme);
+            pages::users::draw(frame, body, app, &theme);
         }
         Page::Transactions => {
-            pages::transactions::draw(frame, areas.body, app, &theme);
+            pages::transactions::draw(frame, body, app, &theme);
         }
         Page::Stats => {
-            pages::stats::draw(frame, areas.body, app, &theme);
+            pages::stats::draw(frame, body, app, &theme);
         }
     }
 

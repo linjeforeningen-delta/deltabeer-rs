@@ -35,8 +35,7 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
             Constraint::Length(12),
         ],
     )
-    .header(header)
-    .block(theme.page_block(" Users ", palette));
+    .header(header);
 
     frame.render_widget(table, area);
 }

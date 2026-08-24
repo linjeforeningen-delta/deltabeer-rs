@@ -13,15 +13,9 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         Line::from(""),
         Line::from("Scan a card at any time to open a user."),
         Line::from(""),
-        Line::from("1 Home"),
-        Line::from("2 Users"),
-        Line::from("3 Transactions"),
-        Line::from("4 Stats"),
     ];
 
-    let widget = Paragraph::new(content)
-        .style(palette.text())
-        .block(theme.page_block(" Home ", palette));
+    let widget = Paragraph::new(content).style(palette.text());
 
     frame.render_widget(widget, area);
 }
