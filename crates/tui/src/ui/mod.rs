@@ -13,6 +13,7 @@ use ratatui::layout::Margin;
 use ratatui::widgets::BorderType;
 use ratatui::{
     Frame,
+    text::Line,
     widgets::{Block, Borders, Paragraph},
 };
 
@@ -58,14 +59,18 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
         dialog.draw(frame, app, &theme);
     }
 
-    let footer = Paragraph::new(app.status.as_str())
-        .style(palette.text())
-        .block(
-            Block::default()
-                .borders(Borders::TOP)
-                .border_type(BorderType::Rounded)
-                .border_style(palette.border()),
-        );
+    let footer = Paragraph::new(Line::from(format!(
+        "{}  |  {}",
+        app.status,
+        t!("hints.change_language")
+    )))
+    .style(palette.text())
+    .block(
+        Block::default()
+            .borders(Borders::TOP)
+            .border_type(BorderType::Rounded)
+            .border_style(palette.border()),
+    );
 
     frame.render_widget(footer, areas.footer);
 }

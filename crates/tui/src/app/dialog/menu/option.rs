@@ -37,6 +37,19 @@ impl Language {
     }
 }
 
+pub(crate) fn set_locale(language: Language) {
+    rust_i18n::set_locale(language.locale());
+}
+
+pub(crate) fn toggle_locale() {
+    let language = if &*rust_i18n::locale() == "nb" {
+        Language::English
+    } else {
+        Language::NorwegianBokmaal
+    };
+    set_locale(language);
+}
+
 impl fmt::Debug for MenuOption {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("MenuOption")

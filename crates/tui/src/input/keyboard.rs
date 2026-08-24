@@ -7,6 +7,9 @@ pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
     if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {
         return Some(Message::Quit);
     }
+    if key.code == KeyCode::Char('l') && key.modifiers.contains(KeyModifiers::CONTROL) {
+        return Some(Message::ToggleLanguage);
+    }
 
     let key = match app.dialogs.active_mut() {
         Some(dialog) => match dialog.handle_key(key) {

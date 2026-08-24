@@ -2,6 +2,7 @@ use crate::api::command::ApiCommand;
 use crate::api::models::user::{Role, User};
 use crate::api::request::ApiRequest;
 use crate::api::result::ApiResult;
+use crate::app::dialog::menu::{set_locale, toggle_locale};
 use crate::app::dialog::{DialogResult, UserDialog};
 use crate::app::{App, AppError, DialogOpenMode, Message};
 use crate::auth::{AdminContext, AdminSession, AuthState};
@@ -33,9 +34,11 @@ impl App {
             Message::Quit => self.should_quit = true,
 
             Message::SetLanguage(language) => {
-                rust_i18n::set_locale(language.locale());
+                set_locale(language);
                 self.dialogs.close();
             }
+
+            Message::ToggleLanguage => toggle_locale(),
         };
         None
     }

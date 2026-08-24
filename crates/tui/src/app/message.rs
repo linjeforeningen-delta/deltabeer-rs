@@ -26,6 +26,7 @@ pub(crate) enum Message {
     Navigate(Page),
     Quit,
     SetLanguage(Language),
+    ToggleLanguage,
 }
 
 #[derive(Debug)]

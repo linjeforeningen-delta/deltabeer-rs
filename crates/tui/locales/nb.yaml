@@ -80,6 +80,7 @@ languages:
   nb: "Norsk bokmål"
 
 hints:
+  change_language: "Ctrl+L: Bytt språk"
   back: "Tilbake"
   cancel: "Avbryt"
   close: "Lukk"
