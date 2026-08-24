@@ -28,12 +28,15 @@ impl DialogView for AdminSessionLoginDialog {
             .unwrap_or("")
             .to_string();
 
-        let form = Form::new(0).add_hidden_field("Password", &self.password);
+        let form = Form::new(0).add_hidden_field(t!("labels.password"), &self.password);
 
         let mut content = vec![
-            Line::styled("Admin Login", theme.title_style(palette)),
+            Line::styled(
+                t!("dialogs.admin_login.heading").to_string(),
+                theme.title_style(palette),
+            ),
             Line::from(""),
-            Line::from(format!("Start session as {}?", given_name)),
+            Line::from(t!("dialogs.admin_login.start_session", name = given_name)),
             Line::from(""),
         ];
         content.extend(form.lines(theme, palette));
@@ -41,15 +44,16 @@ impl DialogView for AdminSessionLoginDialog {
             Line::from(""),
             Line::from(vec![
                 Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(" Login    "),
+                Span::raw(format!(" {}    ", t!("hints.login"))),
                 Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(" Back"),
+                Span::raw(format!(" {}", t!("hints.back"))),
             ]),
         ]);
 
+        let block_title = format!(" {} ", t!("dialogs.admin_login.title"));
         let popup = Paragraph::new(content)
             .style(palette.text())
-            .block(theme.dialog_block(" Admin Login ", palette));
+            .block(theme.dialog_block(&block_title, palette));
 
         frame.render_widget(popup, area);
     }

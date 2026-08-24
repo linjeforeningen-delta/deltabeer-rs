@@ -9,9 +9,9 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     };
 
     let content = vec![
-        Line::from("Welcome to DeltaBeer"),
+        Line::from(t!("home.welcome").to_string()),
         Line::from(""),
-        Line::from("Scan a card at any time to open a user."),
+        Line::from(t!("home.scan_hint").to_string()),
         Line::from(""),
     ];
 

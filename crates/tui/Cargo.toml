@@ -20,3 +20,4 @@ clap.workspace = true
 uuid.workspace = true
 reqwest.workspace = true
 tokio = { version = "1.53.1", features = ["rt", "rt-multi-thread", "macros"] }
+rust-i18n = "3"

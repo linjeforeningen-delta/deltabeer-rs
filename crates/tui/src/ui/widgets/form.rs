@@ -9,10 +9,10 @@ pub(crate) struct Form<'a> {
 }
 
 struct FormField<'a> {
-    label: &'a str,
+    label: String,
     input: &'a TextInput,
     hidden: bool,
-    placeholder: Option<&'a str>,
+    placeholder: Option<String>,
 }
 
 impl<'a> Form<'a> {
@@ -23,9 +23,9 @@ impl<'a> Form<'a> {
         }
     }
 
-    pub(crate) fn add_field(mut self, label: &'a str, input: &'a TextInput) -> Self {
+    pub(crate) fn add_field(mut self, label: impl Into<String>, input: &'a TextInput) -> Self {
         self.fields.push(FormField {
-            label,
+            label: label.into(),
             input,
             hidden: false,
             placeholder: None,
@@ -34,9 +34,13 @@ impl<'a> Form<'a> {
         self
     }
 
-    pub(crate) fn add_hidden_field(mut self, label: &'a str, input: &'a TextInput) -> Self {
+    pub(crate) fn add_hidden_field(
+        mut self,
+        label: impl Into<String>,
+        input: &'a TextInput,
+    ) -> Self {
         self.fields.push(FormField {
-            label,
+            label: label.into(),
             input,
             hidden: true,
             placeholder: None,
@@ -47,15 +51,15 @@ impl<'a> Form<'a> {
 
     pub(crate) fn add_field_with_placeholder(
         mut self,
-        label: &'a str,
+        label: impl Into<String>,
         input: &'a TextInput,
-        placeholder: &'a str,
+        placeholder: impl Into<String>,
     ) -> Self {
         self.fields.push(FormField {
-            label,
+            label: label.into(),
             input,
             hidden: false,
-            placeholder: Some(placeholder),
+            placeholder: Some(placeholder.into()),
         });
 
         self
@@ -63,15 +67,15 @@ impl<'a> Form<'a> {
 
     pub(crate) fn add_hidden_field_with_placeholder(
         mut self,
-        label: &'a str,
+        label: impl Into<String>,
         input: &'a TextInput,
-        placeholder: &'a str,
+        placeholder: impl Into<String>,
     ) -> Self {
         self.fields.push(FormField {
-            label,
+            label: label.into(),
             input,
             hidden: true,
-            placeholder: Some(placeholder),
+            placeholder: Some(placeholder.into()),
         });
 
         self

@@ -14,12 +14,12 @@ pub(crate) enum Page {
 impl Page {
     pub(crate) const ALL: [Self; 4] = [Self::Home, Self::Users, Self::Transactions, Self::Stats];
 
-    pub(crate) fn label(self) -> &'static str {
+    pub(crate) fn label(self) -> String {
         match self {
-            Self::Home => "Home",
-            Self::Users => "Users",
-            Self::Transactions => "Transactions",
-            Self::Stats => "Stats",
+            Self::Home => t!("nav.home").to_string(),
+            Self::Users => t!("nav.users").to_string(),
+            Self::Transactions => t!("nav.transactions").to_string(),
+            Self::Stats => t!("nav.stats").to_string(),
         }
     }
 }

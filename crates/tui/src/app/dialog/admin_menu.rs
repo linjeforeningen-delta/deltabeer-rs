@@ -1,7 +1,7 @@
 use super::{AdminDialog, DialogBehavior, DialogResult, MenuDialog};
 use crate::api::request::ApiRequest;
 use crate::app::App;
-use crate::app::dialog::menu::MenuOption;
+use crate::app::dialog::menu::{MenuLabel, MenuOption, MenuTitle};
 use crate::app::{DialogOpenMode, Message};
 use crate::auth::{AdminContext, AuthState};
 use crate::ui::{dialogs::DialogView, theme::Theme};
@@ -17,7 +17,7 @@ pub(crate) struct AdminMenuDialog {
 impl AdminMenuDialog {
     pub(crate) fn new() -> Self {
         let mut dialog = Self {
-            menu: MenuDialog::new_admin("Admin", Vec::new()),
+            menu: MenuDialog::new_admin(MenuTitle::Admin, Vec::new()),
             logged_in: false,
         };
         dialog.refresh_auth_option();
@@ -26,32 +26,32 @@ impl AdminMenuDialog {
 
     fn refresh_auth_option(&mut self) {
         self.menu.options = vec![
-            MenuOption::new("Top Up", 'T', || Message::OpenDialog {
+            MenuOption::new(MenuLabel::TopUp, 'T', || Message::OpenDialog {
                 dialog: Box::new(super::TopUpDialog::new()),
                 mode: DialogOpenMode::Push,
             }),
-            MenuOption::new("Make User", 'M', || Message::OpenDialog {
+            MenuOption::new(MenuLabel::MakeUser, 'M', || Message::OpenDialog {
                 dialog: Box::new(super::MakeUserDialog::new()),
                 mode: DialogOpenMode::Push,
             }),
-            MenuOption::new("Update User", 'U', || Message::OpenDialog {
+            MenuOption::new(MenuLabel::UpdateUser, 'U', || Message::OpenDialog {
                 dialog: Box::new(super::UpdateUserDialog::new()),
                 mode: DialogOpenMode::Push,
             }),
-            MenuOption::new("Grant Admin", 'G', || Message::OpenDialog {
+            MenuOption::new(MenuLabel::GrantAdmin, 'G', || Message::OpenDialog {
                 dialog: Box::new(super::GrantAdminDialog::new()),
                 mode: DialogOpenMode::Push,
             }),
-            MenuOption::new("Revoke Admin", 'R', || Message::OpenDialog {
+            MenuOption::new(MenuLabel::RevokeAdmin, 'R', || Message::OpenDialog {
                 dialog: Box::new(super::RevokeAdminDialog::new()),
                 mode: DialogOpenMode::Push,
             }),
             if self.logged_in {
-                MenuOption::new("Logout", 'L', || {
+                MenuOption::new(MenuLabel::Logout, 'L', || {
                     Message::ApiRequest(ApiRequest::EndAdminSession)
                 })
             } else {
-                MenuOption::new("Login", 'L', || Message::OpenAdminDialog {
+                MenuOption::new(MenuLabel::Login, 'L', || Message::OpenAdminDialog {
                     dialog: Box::new(super::AdminSessionLoginDialog::new()),
                     mode: DialogOpenMode::Push,
                 })

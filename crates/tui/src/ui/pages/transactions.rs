@@ -14,11 +14,11 @@ pub(crate) fn draw(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     };
 
     let header = Row::new([
-        Cell::from("Time"),
-        Cell::from("User"),
-        Cell::from("Type"),
-        Cell::from("Amount"),
-        Cell::from("Source"),
+        Cell::from(t!("tx_table.time").to_string()),
+        Cell::from(t!("tx_table.user").to_string()),
+        Cell::from(t!("tx_table.kind").to_string()),
+        Cell::from(t!("tx_table.amount").to_string()),
+        Cell::from(t!("tx_table.source").to_string()),
     ])
     .style(palette.accent().add_modifier(Modifier::BOLD));
 

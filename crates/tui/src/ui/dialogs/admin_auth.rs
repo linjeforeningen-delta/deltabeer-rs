@@ -25,15 +25,18 @@ impl DialogView for AdminAuthDialog {
                 .next()
                 .unwrap_or("")
                 .to_string(),
-            None => "Stranger".to_string(),
+            None => t!("dialogs.admin_auth.stranger").to_string(),
         };
 
-        let form = Form::new(0).add_hidden_field("Password", &self.password);
+        let form = Form::new(0).add_hidden_field(t!("labels.password"), &self.password);
 
         let mut content = vec![
-            Line::styled("Administrator authentication", theme.title_style(palette)),
+            Line::styled(
+                t!("dialogs.admin_auth.heading").to_string(),
+                theme.title_style(palette),
+            ),
             Line::from(""),
-            Line::from(format!("Welcome {}", given_name)),
+            Line::from(t!("dialogs.admin_auth.welcome", name = given_name)),
         ];
         content.push(Line::from(""));
         content.extend(form.lines(theme, palette));
@@ -41,15 +44,16 @@ impl DialogView for AdminAuthDialog {
             Line::from(""),
             Line::from(vec![
                 Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(" Authenticate    "),
+                Span::raw(format!(" {}    ", t!("hints.authenticate"))),
                 Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(" Close"),
+                Span::raw(format!(" {}", t!("hints.close"))),
             ]),
         ]);
 
+        let block_title = format!(" {} ", t!("dialogs.admin_auth.title"));
         let popup = Paragraph::new(content)
             .style(palette.text())
-            .block(theme.dialog_block(" Admin Authentication ", palette));
+            .block(theme.dialog_block(&block_title, palette));
 
         frame.render_widget(popup, area);
     }

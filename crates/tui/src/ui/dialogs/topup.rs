@@ -20,7 +20,7 @@ impl DialogView for TopUpDialog {
 
         content.extend([
             Line::from(""),
-            Line::raw("Top-up amount"),
+            Line::raw(t!("dialogs.topup.amount_prompt").to_string()),
             Line::styled(
                 format!("> {}", self.amount.as_str()),
                 theme.selected_style(palette),
@@ -28,15 +28,16 @@ impl DialogView for TopUpDialog {
             Line::from(""),
             Line::from(vec![
                 Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(" Top up    "),
+                Span::raw(format!(" {}    ", t!("hints.top_up"))),
                 Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(" Close"),
+                Span::raw(format!(" {}", t!("hints.close"))),
             ]),
         ]);
 
+        let block_title = format!(" {} ", t!("dialogs.topup.title"));
         let popup = Paragraph::new(content)
             .style(palette.text())
-            .block(theme.dialog_block(" Top Up ", palette));
+            .block(theme.dialog_block(&block_title, palette));
 
         frame.render_widget(popup, area);
     }

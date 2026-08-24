@@ -6,31 +6,23 @@ use crate::app::dialog::{DialogBehavior, DialogResult};
 
 #[derive(Debug)]
 pub(crate) struct MenuDialog {
-    pub(crate) title: String,
+    pub(crate) title: MenuTitle,
     pub(crate) options: Vec<MenuOption>,
     pub(crate) is_admin: bool,
 }
 
-impl MenuDialog {
-    pub(crate) fn new(title: impl Into<String>, options: Vec<MenuOption>) -> Self {
-        Self {
-            title: title.into(),
-            options,
-            is_admin: false,
-        }
-    }
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum MenuTitle {
+    Admin,
+}
 
-    pub(crate) fn new_admin(title: impl Into<String>, options: Vec<MenuOption>) -> Self {
+impl MenuDialog {
+    pub(crate) fn new_admin(title: MenuTitle, options: Vec<MenuOption>) -> Self {
         Self {
             title: title.into(),
             options,
             is_admin: true,
         }
-    }
-
-    pub(crate) fn admin(mut self) -> Self {
-        self.is_admin = true;
-        self
     }
 }
 

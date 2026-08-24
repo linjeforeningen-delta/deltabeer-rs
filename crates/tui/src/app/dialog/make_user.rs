@@ -55,7 +55,7 @@ impl MakeUserDialog {
 
         if name.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Name is required".into(),
+                t!("validation.name_required").to_string(),
             )));
         }
 
@@ -63,7 +63,7 @@ impl MakeUserDialog {
 
         if username.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Username is required".into(),
+                t!("validation.username_required").to_string(),
             )));
         }
 
@@ -71,7 +71,7 @@ impl MakeUserDialog {
 
         if program.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Program is required".into(),
+                t!("validation.program_required").to_string(),
             )));
         }
 
@@ -81,14 +81,14 @@ impl MakeUserDialog {
 
             Err(_) => {
                 return DialogResult::Message(Message::Failed(AppError::Validation(
-                    "Birthdate must be YYYY-MM-DD".into(),
+                    t!("validation.birthdate_format").to_string(),
                 )));
             }
         };
 
         let Some(card) = &self.card else {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Scan a card first".into(),
+                t!("validation.scan_card_first").to_string(),
             )));
         };
 
@@ -97,7 +97,7 @@ impl MakeUserDialog {
 
             Err(_) => {
                 return DialogResult::Message(Message::Failed(AppError::Validation(
-                    "Invalid card number".into(),
+                    t!("validation.invalid_card").to_string(),
                 )));
             }
         };

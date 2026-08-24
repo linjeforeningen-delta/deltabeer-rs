@@ -48,7 +48,7 @@ impl DialogBehavior for AdminAuthDialog {
                     Some(admin) => admin,
                     None => {
                         return DialogResult::Message(Message::Failed(AppError::Validation(
-                            "Admin required for authentication".into(),
+                            t!("validation.admin_required_auth").to_string(),
                         )));
                     }
                 };

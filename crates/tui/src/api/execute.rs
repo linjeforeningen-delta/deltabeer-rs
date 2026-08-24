@@ -34,7 +34,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 }
             } else {
                 Message::Failed(AppError::Authentication(
-                    "Admin token required for top-up".to_string(),
+                    t!("auth_errors.topup").to_string(),
                 ))
             }
         }
@@ -73,7 +73,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 }
             } else {
                 Message::Failed(AppError::Authentication(
-                    "Admin token required to end admin session".to_string(),
+                    t!("auth_errors.end_session").to_string(),
                 ))
             }
         }
@@ -95,7 +95,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 }
             } else {
                 Message::Failed(AppError::Authentication(
-                    "Admin token required for user creation".to_string(),
+                    t!("auth_errors.create_user").to_string(),
                 ))
             }
         }
@@ -108,7 +108,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 }
             } else {
                 Message::Failed(AppError::Authentication(
-                    "Admin token required for updating user".to_string(),
+                    t!("auth_errors.update_user").to_string(),
                 ))
             }
         }
@@ -121,7 +121,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 }
             } else {
                 Message::Failed(AppError::Authentication(
-                    "Admin token required for granting admin privileges".to_string(),
+                    t!("auth_errors.grant").to_string(),
                 ))
             }
         }
@@ -134,7 +134,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 }
             } else {
                 Message::Failed(AppError::Authentication(
-                    "Admin token required for revoking admin privileges".to_string(),
+                    t!("auth_errors.revoke").to_string(),
                 ))
             }
         }

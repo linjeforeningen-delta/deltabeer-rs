@@ -1,3 +1,8 @@
+#[macro_use]
+extern crate rust_i18n;
+
+rust_i18n::i18n!("locales", fallback = "en");
+
 pub mod api;
 mod app;
 pub(crate) mod auth;
@@ -61,6 +66,8 @@ async fn run(
 async fn main() -> Result<()> {
     let args = config::Args::parse();
     let config = config::Config::load(&args.config)?;
+    config::validate_locale(&config.tui.locale)?;
+    rust_i18n::set_locale(&config.tui.locale);
     let mut terminal = init_terminal()?;
     let mut runtime = Runtime::new(
         App::new(),

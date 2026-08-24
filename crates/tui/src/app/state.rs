@@ -23,7 +23,7 @@ impl App {
             auth: AuthState::Normal,
             page: Page::Home,
             dialogs: DialogStack::new(),
-            status: "Ready for card".into(),
+            status: t!("status.ready").to_string(),
             pending_api_request: None,
             active_admin: None,
             should_quit: false,

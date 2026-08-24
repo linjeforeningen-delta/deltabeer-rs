@@ -1,0 +1,179 @@
+# Norsk bokmål (nb) locale for the DeltaBeer TUI.
+#
+# Keys are looked up with `rust-i18n`; only user-facing text lives
+# here; Rust identifiers, API fields, DB names, enum variants, config keys, and
+# protocol values stay in the source code.
+#
+# `%{name}`, `%{amount}`, and `%{id}` are placeholders substituted at runtime and
+# may be repositioned to suit the language.
+
+header:
+  title: "DeltaBeer"
+
+nav:
+  home: "Hjem"
+  users: "Brukere"
+  transactions: "Transaksjoner"
+  stats: "Statistikk"
+
+home:
+  welcome: "Velkommen til DeltaBeer"
+  scan_hint: "Skann et kort når som helst for å åpne en bruker."
+
+users_table:
+  name: "Navn"
+  username: "Brukernavn"
+  card: "Kort"
+  role: "Rolle"
+  balance: "Saldo"
+
+tx_table:
+  time: "Tid"
+  user: "Bruker"
+  kind: "Type"
+  amount: "Beløp"
+  source: "Kilde"
+
+stats:
+  title: "Systemstatistikk"
+  users: "Brukere"
+  total_balance: "Total saldo"
+  total_spent: "Totalt brukt"
+  transactions: "Transaksjoner"
+
+labels:
+  user: "Bruker"
+  card: "Kort"
+  scan_card: "Skann kort"
+  amount: "Beløp"
+  program: "Program"
+  role: "Rolle"
+  balance: "Saldo"
+  spent: "Brukt"
+  password: "Passord"
+  confirm: "Bekreft"
+  name: "Navn"
+  username: "Brukernavn"
+  birthdate: "Fødselsdato"
+  comments: "Kommentarer"
+
+roles:
+  admin: "Admin"
+  user: "Bruker"
+
+menu:
+  admin: "Admin"
+  top_up: "Fyll på"
+  make_user: "Ny bruker"
+  update_user: "Endre bruker"
+  grant_admin: "Gi admin"
+  revoke_admin: "Opphev admin"
+  login: "Logg inn"
+  logout: "Logg ut"
+
+hints:
+  back: "Tilbake"
+  cancel: "Avbryt"
+  close: "Lukk"
+  authenticate: "Autentiser"
+  login: "Logg inn"
+  logout: "Logg ut"
+  grant: "Gi"
+  revoke: "Opphev"
+  create: "Opprett"
+  save: "Lagre"
+  find: "Søk"
+  spend: "Bruk"
+  top_up: "Fyll på"
+  select_field: "Velg felt"
+
+dialogs:
+  user:
+    title: "Brukerdetaljer"
+    amount: "Beløp"
+  topup:
+    title: "Fyll på"
+    amount_prompt: "Påfyllingsbeløp"
+  admin_auth:
+    heading: "Administratorautentisering"
+    title: "Administratorautentisering"
+    welcome: "Velkommen %{name}"
+    stranger: "Fremmed"
+  admin_login:
+    heading: "Admin-innlogging"
+    title: "Admin-innlogging"
+    start_session: "Starte økt som %{name}?"
+  grant_admin:
+    title: "Gi administrator"
+    prompt: "Opprett administratorlegitimasjon for %{name}."
+    prompt_generic: "Opprett administratorlegitimasjon for denne brukeren."
+  revoke_admin:
+    title: "Opphev administrator"
+    prompt: "Oppheve administratorrettigheter for %{name}?"
+    prompt_generic: "Oppheve administratorrettigheter for denne brukeren?"
+    warning: "Dette fjerner administratorrettighetene."
+  make_user:
+    title: "Opprett bruker"
+    birthdate_format: "Fødselsdato-format: ÅÅÅÅ-MM-DD"
+  update_user:
+    title: "Endre bruker"
+    scan_prompt: "Skann et brukerkort"
+    or: "eller"
+    editing: "Endrer %{name}"
+    editing_generic: "Endrer bruker"
+
+status:
+  ready: "Klar for kort"
+  user_loaded: "Bruker %{name} lastet"
+  spend_success: "Trakk %{amount}"
+  topup_success: "Fylte på %{amount}"
+  session_started: "Adminøkt startet"
+  session_ended: "Adminøkt avsluttet"
+  user_created: "Bruker %{name} opprettet"
+  user_updated: "Bruker %{name} oppdatert"
+  admin_granted: "Ga admin til bruker %{id}"
+  admin_revoked: "Opphevet admin fra bruker %{id}"
+  session_expired: "Økt utløpt"
+  no_changes: "Ingen endringer å lagre"
+
+progress:
+  looking_up: "Slår opp bruker..."
+  spending: "Trekker beløp..."
+  topping_up: "Fyller på..."
+  authenticating: "Autentiserer admin..."
+  starting_session: "Starter adminøkt..."
+  ending_session: "Avslutter adminøkt..."
+  creating_user: "Oppretter bruker..."
+  updating_user: "Oppdaterer bruker..."
+  granting_admin: "Gir admin..."
+  revoking_admin: "Opphever admin..."
+
+errors:
+  api: "API-feil"
+  validation: "Valideringsfeil"
+  authentication: "Autentiseringsfeil"
+
+validation:
+  invalid_amount: "Ugyldig beløp"
+  card_required_topup: "Kortskann kreves for påfylling"
+  name_required: "Navn er påkrevd"
+  username_required: "Brukernavn er påkrevd"
+  program_required: "Program er påkrevd"
+  birthdate_format: "Fødselsdato må være ÅÅÅÅ-MM-DD"
+  scan_card_first: "Skann et kort først"
+  invalid_card: "Ugyldig kortnummer"
+  user_not_identified: "Bruker ikke identifisert"
+  card_required_grant: "Kortskann kreves for å gi admin"
+  password_required: "Passord er påkrevd"
+  confirm_required: "Passordbekreftelse er påkrevd"
+  passwords_mismatch: "Passordene er ikke like"
+  card_required_revoke: "Kortskann kreves for å oppheve admin"
+  admin_required_auth: "Admin kreves for autentisering"
+
+auth_errors:
+  topup: "Admin-token kreves for påfylling"
+  end_session: "Admin-token kreves for å avslutte adminøkt"
+  create_user: "Admin-token kreves for å opprette bruker"
+  update_user: "Admin-token kreves for å oppdatere bruker"
+  grant: "Admin-token kreves for å gi adminrettigheter"
+  revoke: "Admin-token kreves for å oppheve adminrettigheter"

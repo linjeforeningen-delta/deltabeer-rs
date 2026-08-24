@@ -20,12 +20,12 @@ impl DialogView for GrantAdminDialog {
         frame.render_widget(Clear, area);
 
         let form = Form::new(self.active_field)
-            .add_hidden_field("Password", &self.password)
-            .add_hidden_field("Confirm", &self.confirm_password);
+            .add_hidden_field(t!("labels.password"), &self.password)
+            .add_hidden_field(t!("labels.confirm"), &self.confirm_password);
 
         let prompt = match &self.user {
-            Some(user) => format!("Create administrator credentials for {}.", user.name),
-            None => "Create administrator credentials for this user.".to_string(),
+            Some(user) => t!("dialogs.grant_admin.prompt", name = user.name),
+            None => t!("dialogs.grant_admin.prompt_generic"),
         };
 
         let mut content = vec![
@@ -41,17 +41,18 @@ impl DialogView for GrantAdminDialog {
             Line::from(""),
             Line::from(vec![
                 Span::styled("↑/↓", theme.key_style(palette)),
-                Span::raw(" Select field    "),
+                Span::raw(format!(" {}    ", t!("hints.select_field"))),
                 Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(" Grant    "),
+                Span::raw(format!(" {}    ", t!("hints.grant"))),
                 Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(" Cancel"),
+                Span::raw(format!(" {}", t!("hints.cancel"))),
             ]),
         ]);
 
+        let block_title = format!(" {} ", t!("dialogs.grant_admin.title"));
         let popup = Paragraph::new(content)
             .style(palette.text())
-            .block(theme.dialog_block(" Grant Administrator ", palette));
+            .block(theme.dialog_block(&block_title, palette));
 
         frame.render_widget(popup, area);
     }

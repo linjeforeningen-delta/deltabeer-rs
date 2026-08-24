@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::Parser;
 use serde::Deserialize;
 use std::{
@@ -29,6 +29,7 @@ pub(crate) struct TuiConfig {
     pub api_base_url: String,
     pub event_poll_interval_ms: u64,
     pub scanner_max_gap_ms: u64,
+    pub locale: String,
 }
 
 impl Config {
@@ -37,4 +38,17 @@ impl Config {
             .with_context(|| format!("failed to read {}", path.display()))?;
         serde_yml::from_str(&text).context("failed to parse configuration")
     }
+}
+
+pub(crate) fn validate_locale(locale: &str) -> Result<()> {
+    let available = rust_i18n::available_locales!();
+
+    if available.iter().any(|candidate| *candidate == locale) {
+        return Ok(());
+    }
+
+    bail!(
+        "unsupported TUI locale '{locale}'; supported locales are: {}",
+        available.join(", ")
+    )
 }

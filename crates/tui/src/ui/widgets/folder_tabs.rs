@@ -147,13 +147,15 @@ impl Widget for FolderPageFrame {
 
         for (page, &x) in Page::ALL.iter().zip(&positions) {
             if *page != self.page {
-                self.draw_tab(buffer, area, x, page.label(), false);
+                let label = page.label();
+                self.draw_tab(buffer, area, x, &label, false);
             }
         }
         // Render the selected tab last so its outline is visually in front.
         for (page, &x) in Page::ALL.iter().zip(&positions) {
             if *page == self.page {
-                self.draw_tab(buffer, area, x, page.label(), true);
+                let label = page.label();
+                self.draw_tab(buffer, area, x, &label, true);
                 break;
             }
         }

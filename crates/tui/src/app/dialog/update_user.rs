@@ -75,28 +75,28 @@ impl UpdateUserDialog {
     fn submit(&self) -> DialogResult<KeyEvent> {
         let Some(user) = &self.user else {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "User not identified".into(),
+                t!("validation.user_not_identified").to_string(),
             )));
         };
 
         let name = self.name.as_str().trim();
         if name.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Name is required".into(),
+                t!("validation.name_required").to_string(),
             )));
         }
 
         let username = self.username.as_str().trim();
         if username.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Username is required".into(),
+                t!("validation.username_required").to_string(),
             )));
         }
 
         let program = self.program.as_str().trim();
         if program.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Program is required".into(),
+                t!("validation.program_required").to_string(),
             )));
         }
 
@@ -108,7 +108,7 @@ impl UpdateUserDialog {
                     Ok(c) => c,
                     Err(_) => {
                         return DialogResult::Message(Message::Failed(AppError::Validation(
-                            "Invalid card number".into(),
+                            t!("validation.invalid_card").to_string(),
                         )));
                     }
                 };
@@ -151,7 +151,7 @@ impl UpdateUserDialog {
             && card_opt.is_none()
             && comments_opt.is_none()
         {
-            return DialogResult::Message(Message::Status("No changes to save".into()));
+            return DialogResult::Message(Message::Status(t!("status.no_changes").to_string()));
         }
 
         let patch = UserPatch {

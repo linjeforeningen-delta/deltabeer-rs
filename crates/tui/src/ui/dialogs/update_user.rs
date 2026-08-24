@@ -13,18 +13,22 @@ use ratatui::{
 impl DialogView for UpdateUserDialog {
     fn draw(&self, frame: &mut Frame, _app: &App, theme: &Theme) {
         let palette = theme.admin();
+        let block_title = format!(" {} ", t!("dialogs.update_user.title"));
 
         match self.stage {
             UpdateUserStage::Identify => {
                 let area = centered(frame.area(), 56, 14);
                 frame.render_widget(Clear, area);
 
-                let form = Form::new(0).add_field("Username", &self.identifier);
+                let form = Form::new(0).add_field(t!("labels.username"), &self.identifier);
 
                 let mut content = vec![
                     Line::from(""),
-                    Line::raw("Scan a user card"),
-                    Line::styled("or", theme.muted_style(palette)),
+                    Line::raw(t!("dialogs.update_user.scan_prompt").to_string()),
+                    Line::styled(
+                        t!("dialogs.update_user.or").to_string(),
+                        theme.muted_style(palette),
+                    ),
                     Line::from(""),
                 ];
 
@@ -33,15 +37,15 @@ impl DialogView for UpdateUserDialog {
                     Line::from(""),
                     Line::from(vec![
                         Span::styled("Enter", theme.key_style(palette)),
-                        Span::raw(" Find    "),
+                        Span::raw(format!(" {}    ", t!("hints.find"))),
                         Span::styled("Esc", theme.key_style(palette)),
-                        Span::raw(" Back"),
+                        Span::raw(format!(" {}", t!("hints.back"))),
                     ]),
                 ]);
 
                 let popup = Paragraph::new(content)
                     .style(palette.text())
-                    .block(theme.dialog_block(" Update User ", palette));
+                    .block(theme.dialog_block(&block_title, palette));
 
                 frame.render_widget(popup, area);
             }
@@ -56,14 +60,14 @@ impl DialogView for UpdateUserDialog {
                     .or_else(|| self.user.as_ref().map(|u| u.card_number.to_string()));
 
                 let form = Form::new(self.active_field)
-                    .add_field("Name", &self.name)
-                    .add_field("Username", &self.username)
-                    .add_field("Program", &self.program)
-                    .add_field("Comments", &self.comments);
+                    .add_field(t!("labels.name"), &self.name)
+                    .add_field(t!("labels.username"), &self.username)
+                    .add_field(t!("labels.program"), &self.program)
+                    .add_field(t!("labels.comments"), &self.comments);
 
                 let editing_title = match &self.user {
-                    Some(user) => format!("Editing {}", user.name),
-                    None => "Editing User".to_string(),
+                    Some(user) => t!("dialogs.update_user.editing", name = user.name),
+                    None => t!("dialogs.update_user.editing_generic"),
                 };
 
                 let mut content = vec![
@@ -79,17 +83,17 @@ impl DialogView for UpdateUserDialog {
                     Line::from(""),
                     Line::from(vec![
                         Span::styled("↑/↓", theme.key_style(palette)),
-                        Span::raw(" Select field    "),
+                        Span::raw(format!(" {}    ", t!("hints.select_field"))),
                         Span::styled("Enter", theme.key_style(palette)),
-                        Span::raw(" Save    "),
+                        Span::raw(format!(" {}    ", t!("hints.save"))),
                         Span::styled("Esc", theme.key_style(palette)),
-                        Span::raw(" Back"),
+                        Span::raw(format!(" {}", t!("hints.back"))),
                     ]),
                 ]);
 
                 let popup = Paragraph::new(content)
                     .style(palette.text())
-                    .block(theme.dialog_block(" Update User ", palette));
+                    .block(theme.dialog_block(&block_title, palette));
 
                 frame.render_widget(popup, area);
             }

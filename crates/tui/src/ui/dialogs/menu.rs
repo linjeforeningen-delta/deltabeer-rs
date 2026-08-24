@@ -1,5 +1,6 @@
 use crate::app::App;
 use crate::app::dialog::MenuDialog;
+use crate::app::dialog::menu::{MenuLabel, MenuTitle};
 use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 use ratatui::{
     Frame,
@@ -15,17 +16,20 @@ impl DialogView for MenuDialog {
             theme.active(&app.auth)
         };
 
+        let title = match self.title {
+            MenuTitle::Admin => t!("menu.admin").to_string(),
+        };
         let content_width = self
             .options
             .iter()
             .map(|option| {
                 // "[X] Option name"
-                option.name.len() + 4
+                option_label(option.label).len() + 4
             })
             .max()
             .unwrap_or(0);
 
-        let title_width = self.title.len() + 4;
+        let title_width = title.len() + 4;
 
         let width = content_width.max(title_width).max(24).saturating_add(4) as u16;
 
@@ -45,7 +49,7 @@ impl DialogView for MenuDialog {
                     format!("[{}]", option.key.to_ascii_uppercase()),
                     theme.key_style(palette),
                 ),
-                Span::raw(format!(" {}", option.name)),
+                Span::raw(format!(" {}", option_label(option.label))),
             ]));
         }
 
@@ -53,15 +57,27 @@ impl DialogView for MenuDialog {
 
         lines.push(Line::from(vec![
             Span::styled("Esc", theme.key_style(palette)),
-            Span::raw(" Back"),
+            Span::raw(format!(" {}", t!("hints.back"))),
         ]));
 
-        let title = format!(" {} ", self.title);
+        let title = format!(" {} ", title);
 
         let popup = Paragraph::new(lines)
             .style(palette.text())
             .block(theme.dialog_block(&*title, palette));
 
         frame.render_widget(popup, popup_area);
+    }
+}
+
+fn option_label(label: MenuLabel) -> String {
+    match label {
+        MenuLabel::TopUp => t!("menu.top_up").to_string(),
+        MenuLabel::MakeUser => t!("menu.make_user").to_string(),
+        MenuLabel::UpdateUser => t!("menu.update_user").to_string(),
+        MenuLabel::GrantAdmin => t!("menu.grant_admin").to_string(),
+        MenuLabel::RevokeAdmin => t!("menu.revoke_admin").to_string(),
+        MenuLabel::Login => t!("menu.login").to_string(),
+        MenuLabel::Logout => t!("menu.logout").to_string(),
     }
 }

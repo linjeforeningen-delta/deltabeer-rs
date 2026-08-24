@@ -36,12 +36,14 @@ impl DialogBehavior for TopUpDialog {
 
             KeyCode::Enter => {
                 let Some(amount) = self.amount.as_u32() else {
-                    return DialogResult::Message(Message::Status("Invalid amount".into()));
+                    return DialogResult::Message(Message::Status(
+                        t!("validation.invalid_amount").to_string(),
+                    ));
                 };
 
                 let Some(user) = &self.user else {
                     return DialogResult::Message(Message::Failed(AppError::Validation(
-                        "Card scan required for top-up".into(),
+                        t!("validation.card_required_topup").to_string(),
                     )));
                 };
 

@@ -53,18 +53,19 @@ impl ApiRequest {
         )
     }
 
-    pub(crate) fn status_message(&self) -> &'static str {
+    pub(crate) fn status_message(&self) -> String {
         match self {
-            Self::LookupUser(_) => "Looking up user...",
-            Self::Spend { .. } => "Spending...",
-            Self::TopUp { .. } => "Topping up...",
-            Self::AuthenticateAdmin { .. } => "Authenticating admin...",
-            Self::StartAdminSession { .. } => "Starting admin session...",
-            Self::EndAdminSession { .. } => "Ending admin session...",
-            Self::MakeUser { .. } => "Creating user...",
-            Self::UpdateUser { .. } => "Updating user...",
-            Self::GrantAdmin { .. } => "Granting admin...",
-            Self::RevokeAdmin { .. } => "Revoking admin...",
+            Self::LookupUser(_) => t!("progress.looking_up"),
+            Self::Spend { .. } => t!("progress.spending"),
+            Self::TopUp { .. } => t!("progress.topping_up"),
+            Self::AuthenticateAdmin { .. } => t!("progress.authenticating"),
+            Self::StartAdminSession { .. } => t!("progress.starting_session"),
+            Self::EndAdminSession => t!("progress.ending_session"),
+            Self::MakeUser { .. } => t!("progress.creating_user"),
+            Self::UpdateUser { .. } => t!("progress.updating_user"),
+            Self::GrantAdmin { .. } => t!("progress.granting_admin"),
+            Self::RevokeAdmin { .. } => t!("progress.revoking_admin"),
         }
+        .to_string()
     }
 }

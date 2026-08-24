@@ -20,31 +20,35 @@ impl DialogView for MakeUserDialog {
         frame.render_widget(Clear, area);
 
         let form = Form::new(self.active_field)
-            .add_field("Name", &self.name)
-            .add_field("Username", &self.username)
-            .add_field("Program", &self.program)
-            .add_field("Birthdate", &self.birthdate);
+            .add_field(t!("labels.name"), &self.name)
+            .add_field(t!("labels.username"), &self.username)
+            .add_field(t!("labels.program"), &self.program)
+            .add_field(t!("labels.birthdate"), &self.birthdate);
 
         let mut content = form.lines(theme, palette);
         content.push(Line::from(""));
         content.push(card_line(&self.card, palette));
         content.extend([
             Line::from(""),
-            Line::styled("Birthdate format: YYYY-MM-DD", theme.muted_style(palette)),
+            Line::styled(
+                t!("dialogs.make_user.birthdate_format").to_string(),
+                theme.muted_style(palette),
+            ),
             Line::from(""),
             Line::from(vec![
                 Span::styled("↑/↓", theme.selected_style(palette)),
-                Span::raw(" Select field    "),
+                Span::raw(format!(" {}    ", t!("hints.select_field"))),
                 Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(" Create    "),
+                Span::raw(format!(" {}    ", t!("hints.create"))),
                 Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(" Back"),
+                Span::raw(format!(" {}", t!("hints.back"))),
             ]),
         ]);
 
+        let block_title = format!(" {} ", t!("dialogs.make_user.title"));
         let popup = Paragraph::new(content)
             .style(palette.text())
-            .block(theme.dialog_block(" Create User ", palette));
+            .block(theme.dialog_block(&block_title, palette));
 
         frame.render_widget(popup, area);
     }

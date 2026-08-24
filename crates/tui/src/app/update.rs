@@ -66,17 +66,17 @@ impl App {
     fn handle_api_result_default(&mut self, result: ApiResult) -> Option<ApiCommand> {
         match result {
             ApiResult::LookupUser(user) => {
-                self.status = format!("User {} loaded", user.name);
+                self.status = t!("status.user_loaded", name = user.name).to_string();
                 self.open_user_dialog(user)
             }
 
             ApiResult::Spend(transaction) => {
-                self.status = format!("Spent {:?} successfully", transaction.amount);
+                self.status = t!("status.spend_success", amount = transaction.amount.0).to_string();
                 self.dialogs.close();
                 None
             }
             ApiResult::TopUp(transaction) => {
-                self.status = format!("Topped up {:?} successfully", transaction.amount);
+                self.status = t!("status.topup_success", amount = transaction.amount.0).to_string();
                 self.dialogs.close();
                 self.request_api(ApiRequest::LookupUser(transaction.user_id.to_string()))
             }
@@ -87,7 +87,7 @@ impl App {
 
             ApiResult::StartAdminSession { user_id, token } => {
                 self.auth = AuthState::Admin(AdminSession::new(user_id, token));
-                self.status = "Admin session started".into();
+                self.status = t!("status.session_started").to_string();
                 self.dialogs.close();
                 self.dialogs.set_auth_state(&self.auth);
                 None
@@ -96,30 +96,30 @@ impl App {
             ApiResult::EndAdminSession => {
                 self.auth = AuthState::Normal;
                 self.dialogs.set_auth_state(&self.auth);
-                self.status = "Admin session ended".into();
+                self.status = t!("status.session_ended").to_string();
                 None
             }
 
             ApiResult::MakeUser(user) => {
-                self.status = format!("User {} created", user.name);
+                self.status = t!("status.user_created", name = user.name).to_string();
                 self.dialogs.close();
                 self.request_api(ApiRequest::LookupUser(user.id.to_string()))
             }
 
             ApiResult::UpdateUser(user) => {
-                self.status = format!("User {} updated", user.name);
+                self.status = t!("status.user_updated", name = user.name).to_string();
                 self.dialogs.close();
                 self.request_api(ApiRequest::LookupUser(user.id.to_string()))
             }
 
             ApiResult::GrantAdmin(user_id) => {
-                self.status = format!("Granted admin to user {}", user_id);
+                self.status = t!("status.admin_granted", id = user_id).to_string();
                 self.dialogs.close();
                 None
             }
 
             ApiResult::RevokeAdmin(user_id) => {
-                self.status = format!("Revoked admin from user {}", user_id);
+                self.status = t!("status.admin_revoked", id = user_id).to_string();
                 self.dialogs.close();
                 None
             }
@@ -129,22 +129,22 @@ impl App {
     fn handle_error(&mut self, error: AppError) -> Option<ApiCommand> {
         match error {
             AppError::Api(error) => {
-                self.status = format!("API Error: {}", error);
+                self.status = format!("{}: {}", t!("errors.api"), error);
                 None
             }
 
             AppError::Validation(error) => {
-                self.status = format!("Validation Error: {}", error);
+                self.status = format!("{}: {}", t!("errors.validation"), error);
                 None
             }
 
             AppError::Authentication(error) => {
-                self.status = format!("Authentication Error: {}", error);
+                self.status = format!("{}: {}", t!("errors.authentication"), error);
                 None
             }
 
             AppError::SessionExpired => {
-                self.status = "Session expired".into();
+                self.status = t!("status.session_expired").to_string();
                 None
             }
         }
@@ -167,16 +167,14 @@ impl App {
             None => card,
         };
 
-        self.status = "Looking up user...".into();
+        self.status = t!("progress.looking_up").to_string();
 
         self.request_api(ApiRequest::LookupUser(card))
     }
 
     fn open_user_dialog(&mut self, user: User) -> Option<ApiCommand> {
         let previous_session_needs_logout = match (&self.auth, &user.role) {
-            (AuthState::Admin(session), Role::Admin) => {
-                session.user_id != user.id
-            }
+            (AuthState::Admin(session), Role::Admin) => session.user_id != user.id,
             (AuthState::Admin(_), _) => true,
             _ => false,
         };
@@ -189,10 +187,8 @@ impl App {
             _ => None,
         };
 
-        self.dialogs.open(
-            Box::new(UserDialog::new(user)),
-            DialogOpenMode::Reset,
-        );
+        self.dialogs
+            .open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset);
 
         if previous_session_needs_logout {
             self.request_api(ApiRequest::EndAdminSession)

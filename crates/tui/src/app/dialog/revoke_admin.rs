@@ -22,7 +22,7 @@ impl DialogBehavior for RevokeAdminDialog {
             KeyCode::Enter => {
                 let Some(user) = &self.user else {
                     return DialogResult::Message(Message::Failed(AppError::Validation(
-                        "Card scan required for admin revocation".into(),
+                        t!("validation.card_required_revoke").to_string(),
                     )));
                 };
 

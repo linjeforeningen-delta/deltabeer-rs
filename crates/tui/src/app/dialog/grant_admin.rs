@@ -49,7 +49,7 @@ impl GrantAdminDialog {
     fn submit(&self) -> DialogResult<KeyEvent> {
         let Some(user) = &self.user else {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Card scan required for admin grant".into(),
+                t!("validation.card_required_grant").to_string(),
             )));
         };
 
@@ -57,7 +57,7 @@ impl GrantAdminDialog {
 
         if password.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Password is required".into(),
+                t!("validation.password_required").to_string(),
             )));
         }
 
@@ -65,13 +65,13 @@ impl GrantAdminDialog {
 
         if confirm_password.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Password confirmation is required".into(),
+                t!("validation.confirm_required").to_string(),
             )));
         }
 
         if password != confirm_password {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                "Passwords do not match".into(),
+                t!("validation.passwords_mismatch").to_string(),
             )));
         }
 

@@ -1,0 +1,179 @@
+# English (en) locale for the DeltaBeer TUI.
+#
+# Keys are looked up with `rust-i18n`; only user-facing text lives
+# here; Rust identifiers, API fields, DB names, enum variants, config keys, and
+# protocol values stay in the source code.
+#
+# `%{name}`, `%{amount}`, and `%{id}` are placeholders substituted at runtime and
+# may be repositioned to suit the language.
+
+header:
+  title: "DeltaBeer"
+
+nav:
+  home: "Home"
+  users: "Users"
+  transactions: "Transactions"
+  stats: "Stats"
+
+home:
+  welcome: "Welcome to DeltaBeer"
+  scan_hint: "Scan a card at any time to open a user."
+
+users_table:
+  name: "Name"
+  username: "Username"
+  card: "Card"
+  role: "Role"
+  balance: "Balance"
+
+tx_table:
+  time: "Time"
+  user: "User"
+  kind: "Type"
+  amount: "Amount"
+  source: "Source"
+
+stats:
+  title: "System statistics"
+  users: "Users"
+  total_balance: "Total balance"
+  total_spent: "Total spent"
+  transactions: "Transactions"
+
+labels:
+  user: "User"
+  card: "Card"
+  scan_card: "Scan card"
+  amount: "Amount"
+  program: "Program"
+  role: "Role"
+  balance: "Balance"
+  spent: "Spent"
+  password: "Password"
+  confirm: "Confirm"
+  name: "Name"
+  username: "Username"
+  birthdate: "Birthdate"
+  comments: "Comments"
+
+roles:
+  admin: "Admin"
+  user: "User"
+
+menu:
+  admin: "Admin"
+  top_up: "Top Up"
+  make_user: "Make User"
+  update_user: "Update User"
+  grant_admin: "Grant Admin"
+  revoke_admin: "Revoke Admin"
+  login: "Login"
+  logout: "Logout"
+
+hints:
+  back: "Back"
+  cancel: "Cancel"
+  close: "Close"
+  authenticate: "Authenticate"
+  login: "Login"
+  logout: "Logout"
+  grant: "Grant"
+  revoke: "Revoke"
+  create: "Create"
+  save: "Save"
+  find: "Find"
+  spend: "Spend"
+  top_up: "Top up"
+  select_field: "Select field"
+
+dialogs:
+  user:
+    title: "User Details"
+    amount: "Amount"
+  topup:
+    title: "Top Up"
+    amount_prompt: "Top-up amount"
+  admin_auth:
+    heading: "Administrator authentication"
+    title: "Admin Authentication"
+    welcome: "Welcome %{name}"
+    stranger: "Stranger"
+  admin_login:
+    heading: "Admin Login"
+    title: "Admin Login"
+    start_session: "Start session as %{name}?"
+  grant_admin:
+    title: "Grant Administrator"
+    prompt: "Create administrator credentials for %{name}."
+    prompt_generic: "Create administrator credentials for this user."
+  revoke_admin:
+    title: "Revoke Administrator"
+    prompt: "Revoke administrator privileges from %{name}?"
+    prompt_generic: "Revoke administrator privileges from this user?"
+    warning: "This will remove administrator privileges."
+  make_user:
+    title: "Create User"
+    birthdate_format: "Birthdate format: YYYY-MM-DD"
+  update_user:
+    title: "Update User"
+    scan_prompt: "Scan a user card"
+    or: "or"
+    editing: "Editing %{name}"
+    editing_generic: "Editing User"
+
+status:
+  ready: "Ready for card"
+  user_loaded: "User %{name} loaded"
+  spend_success: "Spent %{amount} successfully"
+  topup_success: "Topped up %{amount} successfully"
+  session_started: "Admin session started"
+  session_ended: "Admin session ended"
+  user_created: "User %{name} created"
+  user_updated: "User %{name} updated"
+  admin_granted: "Granted admin to user %{id}"
+  admin_revoked: "Revoked admin from user %{id}"
+  session_expired: "Session expired"
+  no_changes: "No changes to save"
+
+progress:
+  looking_up: "Looking up user..."
+  spending: "Spending..."
+  topping_up: "Topping up..."
+  authenticating: "Authenticating admin..."
+  starting_session: "Starting admin session..."
+  ending_session: "Ending admin session..."
+  creating_user: "Creating user..."
+  updating_user: "Updating user..."
+  granting_admin: "Granting admin..."
+  revoking_admin: "Revoking admin..."
+
+errors:
+  api: "API Error"
+  validation: "Validation Error"
+  authentication: "Authentication Error"
+
+validation:
+  invalid_amount: "Invalid amount"
+  card_required_topup: "Card scan required for top-up"
+  name_required: "Name is required"
+  username_required: "Username is required"
+  program_required: "Program is required"
+  birthdate_format: "Birthdate must be YYYY-MM-DD"
+  scan_card_first: "Scan a card first"
+  invalid_card: "Invalid card number"
+  user_not_identified: "User not identified"
+  card_required_grant: "Card scan required for admin grant"
+  password_required: "Password is required"
+  confirm_required: "Password confirmation is required"
+  passwords_mismatch: "Passwords do not match"
+  card_required_revoke: "Card scan required for admin revocation"
+  admin_required_auth: "Admin required for authentication"
+
+auth_errors:
+  topup: "Admin token required for top-up"
+  end_session: "Admin token required to end admin session"
+  create_user: "Admin token required for user creation"
+  update_user: "Admin token required for updating user"
+  grant: "Admin token required for granting admin privileges"
+  revoke: "Admin token required for revoking admin privileges"

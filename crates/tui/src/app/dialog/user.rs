@@ -36,7 +36,9 @@ impl DialogBehavior for UserDialog {
 
             KeyCode::Enter => {
                 let Some(amount) = self.amount.as_u32() else {
-                    return DialogResult::Message(Message::Status("Invalid amount".into()));
+                    return DialogResult::Message(Message::Status(
+                        t!("validation.invalid_amount").to_string(),
+                    ));
                 };
 
                 DialogResult::Message(Message::ApiRequest(ApiRequest::Spend {

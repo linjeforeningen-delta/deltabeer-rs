@@ -27,7 +27,7 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
     let areas = layout::app_layout(area);
 
     let header = Block::default()
-        .title(" DeltaBeer ")
+        .title(format!(" {} ", t!("header.title")))
         .title_style(theme.title_style(palette))
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)

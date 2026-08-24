@@ -18,8 +18,8 @@ impl DialogView for RevokeAdminDialog {
         frame.render_widget(Clear, area);
 
         let prompt = match &self.user {
-            Some(user) => format!("Revoke administrator privileges from {}?", user.name),
-            None => "Revoke administrator privileges from this user?".to_string(),
+            Some(user) => t!("dialogs.revoke_admin.prompt", name = user.name),
+            None => t!("dialogs.revoke_admin.prompt_generic"),
         };
 
         let mut content = vec![Line::from(""), Line::from(prompt), Line::from("")];
@@ -28,21 +28,22 @@ impl DialogView for RevokeAdminDialog {
         content.extend([
             Line::from(""),
             Line::styled(
-                "This will remove administrator privileges.",
+                t!("dialogs.revoke_admin.warning").to_string(),
                 theme.selected_style(palette),
             ),
             Line::from(""),
             Line::from(vec![
                 Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(" Revoke    "),
+                Span::raw(format!(" {}    ", t!("hints.revoke"))),
                 Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(" Cancel"),
+                Span::raw(format!(" {}", t!("hints.cancel"))),
             ]),
         ]);
 
+        let block_title = format!(" {} ", t!("dialogs.revoke_admin.title"));
         let popup = Paragraph::new(content)
             .style(palette.text())
-            .block(theme.dialog_block(" Revoke Administrator ", palette));
+            .block(theme.dialog_block(&block_title, palette));
 
         frame.render_widget(popup, area);
     }
