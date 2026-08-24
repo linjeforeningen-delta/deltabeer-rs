@@ -1,8 +1,12 @@
 use crate::app::dialog::DialogResult;
 use crate::app::{App, Message, Page};
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
+    if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {
+        return Some(Message::Quit);
+    }
+
     let key = match app.dialogs.active_mut() {
         Some(dialog) => match dialog.handle_key(key) {
             DialogResult::Consumed => {
@@ -27,14 +31,15 @@ pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
 }
 
 fn map_key_base(app: &App, key: KeyEvent) -> Option<Message> {
-    match key.code {
-        KeyCode::Esc => Some(Message::Quit),
+    if !app.dialogs.is_empty() {
+        return None;
+    }
 
+    match key.code {
         KeyCode::Char('1') => Some(Message::Navigate(Page::Home)),
         KeyCode::Char('2') => Some(Message::Navigate(Page::Users)),
         KeyCode::Char('3') => Some(Message::Navigate(Page::Transactions)),
         KeyCode::Char('4') => Some(Message::Navigate(Page::Stats)),
-
         _ => None,
     }
 }
