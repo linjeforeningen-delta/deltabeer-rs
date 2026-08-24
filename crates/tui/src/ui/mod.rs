@@ -27,15 +27,6 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
 
     let areas = layout::app_layout(area);
 
-    let header = Block::default()
-        .title(format!(" {} ", t!("header.title")))
-        .title_style(theme.title_style(palette))
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .border_style(palette.border());
-
-    frame.render_widget(header, areas.header);
-
     let page_frame = FolderPageFrame::new(app.page, palette);
     let body = FolderPageFrame::inner(areas.body);
     frame.render_widget(page_frame, areas.body);

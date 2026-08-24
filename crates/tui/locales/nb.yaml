@@ -7,9 +7,6 @@
 # `%{name}`, `%{amount}`, and `%{id}` are placeholders substituted at runtime and
 # may be repositioned to suit the language.
 
-header:
-  title: "DeltaBeer"
-
 nav:
   home: "Hjem"
   users: "Brukere"
