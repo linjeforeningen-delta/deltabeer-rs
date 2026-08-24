@@ -10,15 +10,15 @@ pub(crate) enum ScannerResult {
 pub(crate) struct Scanner {
     buffer: Vec<KeyEvent>,
     last_input: Option<Instant>,
+    max_gap: Duration,
 }
 
 impl Scanner {
-    const MAX_GAP: Duration = Duration::from_millis(80);
-
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(max_gap: Duration) -> Self {
         Self {
             buffer: Vec::new(),
             last_input: None,
+            max_gap,
         }
     }
 
@@ -71,7 +71,7 @@ impl Scanner {
             return ScannerResult::Waiting;
         };
 
-        if last.elapsed() <= Self::MAX_GAP {
+        if last.elapsed() <= self.max_gap {
             return ScannerResult::Waiting;
         }
 

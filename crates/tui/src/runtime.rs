@@ -3,16 +3,28 @@ use crate::api::client::ApiClient;
 use crate::app::{App, Message};
 use crate::input::Input;
 use crossterm::event::KeyEvent;
+use std::time::Duration;
 
 pub(crate) struct Runtime {
     pub(crate) app: App,
     pub(crate) api: ApiClient,
     pub(crate) input: Input,
+    pub(crate) event_poll_interval: Duration,
 }
 
 impl Runtime {
-    pub(crate) fn new(app: App, api: ApiClient, input: Input) -> Self {
-        Self { app, api, input }
+    pub(crate) fn new(
+        app: App,
+        api: ApiClient,
+        input: Input,
+        event_poll_interval: Duration,
+    ) -> Self {
+        Self {
+            app,
+            api,
+            input,
+            event_poll_interval,
+        }
     }
 
     pub(crate) async fn handle_key(&mut self, key: KeyEvent) {

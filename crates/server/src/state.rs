@@ -1,3 +1,4 @@
+use delta_core::domain::AuthPolicy;
 use delta_core::ports::{
     AdminRepo, Clock, IdGenerator, TokenRepo, TokenSource, TransactionRepo, UserRepo,
 };
@@ -19,6 +20,7 @@ pub struct AppState {
     pub clock: Arc<dyn Clock + Send + Sync>,
     pub ids: Arc<dyn IdGenerator + Send + Sync>,
     pub tokens: Arc<dyn TokenSource + Send + Sync>,
+    pub auth_policy: AuthPolicy,
 }
 
 impl AppState {

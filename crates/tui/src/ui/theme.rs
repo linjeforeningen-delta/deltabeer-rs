@@ -53,6 +53,8 @@ pub(crate) struct Theme {
 }
 
 impl Theme {
+    const DIALOG_PADDING: Padding = Padding::new(2, 2, 1, 1);
+
     pub(crate) fn active(&self, auth: &AuthState) -> Palette {
         match auth {
             AuthState::Normal => self.normal,
@@ -80,7 +82,7 @@ impl Theme {
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
             .border_style(palette.border())
-            .padding(Padding::new(2, 2, 1, 1))
+            .padding(Self::DIALOG_PADDING)
     }
 
     pub(crate) fn page_block<'a>(&self, title: &'a str, palette: Palette) -> Block<'a> {
@@ -90,7 +92,7 @@ impl Theme {
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
             .border_style(palette.border())
-            .padding(Padding::new(2, 2, 1, 1))
+            .padding(Self::DIALOG_PADDING)
     }
 
     pub(crate) fn title_style(&self, palette: Palette) -> Style {

@@ -1,7 +1,7 @@
 mod common;
 
 use common::TestEnv;
-use delta_core::domain::{Amount, Role, User, UserId};
+use delta_core::domain::{Amount, AuthPolicy, Role, User, UserId};
 use delta_core::ports::repo::{AdminRepo, UserRepo};
 use delta_core::services::auth::issue_admin_pass;
 use delta_core::services::transactions::{spend, top_up};
@@ -127,9 +127,10 @@ async fn test_multiple_transactions_consistency() {
     setup_admin(&env, admin_id, "admin").await;
 
     for _ in 0..5 {
-        let admin_token = issue_admin_pass(admin_id, "admin".to_string(), &ctx)
-            .await
-            .unwrap();
+        let admin_token =
+            issue_admin_pass(admin_id, "admin".to_string(), &AuthPolicy::default(), &ctx)
+                .await
+                .unwrap();
         top_up(user_id, Amount(20), admin_id, &ctx).await.unwrap();
     }
 
@@ -167,7 +168,7 @@ async fn test_revoked_admin_cannot_top_up() {
         .await
         .unwrap();
 
-    let res = issue_admin_pass(admin_id, "admin".to_string(), &ctx).await;
+    let res = issue_admin_pass(admin_id, "admin".to_string(), &AuthPolicy::default(), &ctx).await;
     assert!(res.is_err());
 }
 

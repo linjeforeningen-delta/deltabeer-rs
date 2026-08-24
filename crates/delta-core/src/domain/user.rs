@@ -78,8 +78,10 @@ pub struct User {
 }
 
 impl User {
+    const MINIMUM_AGE_YEARS: i64 = 18;
+
     pub fn is_adult(birthdate: NaiveDate, today: NaiveDate) -> bool {
-        birthdate <= today - chrono::Duration::days(18 * 365)
+        birthdate <= today - chrono::Duration::days(Self::MINIMUM_AGE_YEARS * 365)
     }
 
     pub fn is_admin(&self) -> bool {

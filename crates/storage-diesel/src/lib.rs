@@ -29,13 +29,11 @@ pub enum PoolError {
     Build(#[from] r2d2::Error),
 }
 
-pub const DEV_SQLITE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/data/dev.sqlite");
-
-pub fn create_pool(database_url: &str) -> Result<SqlitePool, PoolError> {
+pub fn create_pool(database_url: &str, pool_size: u32) -> Result<SqlitePool, PoolError> {
     let manager = ConnectionManager::<SqliteConnection>::new(database_url);
 
     Pool::builder()
-        .max_size(16)
+        .max_size(pool_size)
         .build(manager)
         .map_err(PoolError::from)
 }

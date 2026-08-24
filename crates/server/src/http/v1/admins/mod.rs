@@ -115,7 +115,9 @@ async fn pass(
 ) -> ApiResult<AdminTokenDto> {
     let admin_id = UserId::from(payload.user_id);
     let password = payload.password;
-    let token = services::auth::issue_admin_pass(admin_id, password, &state.ctx()).await?;
+    let token =
+        services::auth::issue_admin_pass(admin_id, password, &state.auth_policy, &state.ctx())
+            .await?;
 
     Ok((StatusCode::OK, Json(AdminTokenDto::from(&token))))
 }
@@ -132,7 +134,8 @@ async fn login(
     State(state): State<AppState>,
     Extension(AdminId(admin_id)): Extension<AdminId>,
 ) -> ApiResult<AdminTokenDto> {
-    let token = services::auth::issue_admin_session(admin_id, &state.ctx()).await?;
+    let token =
+        services::auth::issue_admin_session(admin_id, &state.auth_policy, &state.ctx()).await?;
     Ok((StatusCode::OK, Json(AdminTokenDto::from(&token))))
 }
 

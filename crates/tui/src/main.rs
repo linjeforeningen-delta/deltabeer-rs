@@ -1,6 +1,7 @@
 pub mod api;
 mod app;
 pub(crate) mod auth;
+mod config;
 mod input;
 mod runtime;
 mod ui;
@@ -9,6 +10,7 @@ use crate::api::client::ApiClient;
 use crate::input::Input;
 use anyhow::Result;
 use app::App;
+use clap::Parser;
 use crossterm::event::{self, Event};
 use crossterm::{
     execute,
@@ -41,7 +43,7 @@ async fn run(
     while !runtime.app.should_quit {
         terminal.draw(|frame| ui::draw(frame, &runtime.app))?;
 
-        if event::poll(Duration::from_millis(20))? {
+        if event::poll(runtime.event_poll_interval)? {
             if let Event::Key(key) = event::read()? {
                 runtime.handle_key(key).await;
             }
@@ -57,11 +59,14 @@ async fn run(
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let args = config::Args::parse();
+    let config = config::Config::load(&args.config)?;
     let mut terminal = init_terminal()?;
     let mut runtime = Runtime::new(
         App::new(),
-        ApiClient::new("http://localhost:3000"),
-        Input::new(),
+        ApiClient::new(&config.tui.api_base_url),
+        Input::new(Duration::from_millis(config.tui.scanner_max_gap_ms)),
+        Duration::from_millis(config.tui.event_poll_interval_ms),
     );
 
     let result = run(&mut terminal, &mut runtime).await;

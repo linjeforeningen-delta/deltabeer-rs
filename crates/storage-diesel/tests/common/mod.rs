@@ -19,5 +19,5 @@ pub fn setup_test_db(path: &Path) -> SqlitePool {
         panic!("migrations failed");
     }
 
-    create_pool(db_url).expect("failed to create pool")
+    create_pool(db_url, 16).expect("failed to create pool")
 }

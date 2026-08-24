@@ -6,15 +6,16 @@ use crate::{
     input::scanner::{Scanner, ScannerResult},
 };
 use crossterm::event::KeyEvent;
+use std::time::Duration;
 
 pub(crate) struct Input {
     scanner: Scanner,
 }
 
 impl Input {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(scanner_max_gap: Duration) -> Self {
         Self {
-            scanner: Scanner::new(),
+            scanner: Scanner::new(scanner_max_gap),
         }
     }
 

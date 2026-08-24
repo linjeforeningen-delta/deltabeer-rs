@@ -1,11 +1,14 @@
-use crate::domain::{ActionRecord, PasswordCheck, UserId, hash_password, verify_password};
+use crate::domain::{
+    ActionRecord, AuthPolicy, PasswordCheck, UserId, hash_password, verify_password,
+};
 use crate::ports::repo::{AdminRepo, UserRepo};
 use crate::services::ServiceError;
 use crate::services::context::Ctx;
 use chrono::{DateTime, Utc};
 
+const TOKEN_BYTE_SIZE: usize = 32;
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct AdminToken(pub [u8; 32]);
+pub struct AdminToken(pub [u8; TOKEN_BYTE_SIZE]);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
@@ -41,13 +44,14 @@ where
 pub async fn issue_admin_pass<R>(
     user_id: UserId,
     password: String,
+    policy: &AuthPolicy,
     ctx: &Ctx<'_, R>,
 ) -> Result<AdminToken, ServiceError>
 where
     R: AdminRepo + UserRepo + ?Sized,
 {
     login(user_id, password, ctx).await?;
-    let ttl = chrono::Duration::seconds(15);
+    let ttl = policy.single_use_token_ttl;
     let token = ctx
         .tokens
         .issue_token(
@@ -64,6 +68,7 @@ where
 
 pub async fn issue_admin_session<R>(
     actor: UserId,
+    policy: &AuthPolicy,
     ctx: &Ctx<'_, R>,
 ) -> Result<AdminToken, ServiceError>
 where
@@ -73,7 +78,7 @@ where
         .tokens
         .issue_token(
             actor,
-            chrono::Duration::minutes(3),
+            policy.admin_session_ttl,
             TokenKind::Session,
             ctx.token_repo,
             ctx.clock,

@@ -13,6 +13,9 @@ pub(crate) struct FolderPageFrame {
 }
 
 impl FolderPageFrame {
+    const TAB_GAP: u16 = 1;
+    const TAB_HORIZONTAL_PADDING: u16 = 6;
+
     pub(crate) fn new(page: Page, palette: Palette) -> Self {
         Self { page, palette }
     }
@@ -46,7 +49,7 @@ impl FolderPageFrame {
     }
 
     fn draw_tab(&self, buffer: &mut Buffer, area: Rect, x: u16, label: &str, active: bool) {
-        let width = label.chars().count() as u16 + 6;
+        let width = label.chars().count() as u16 + Self::TAB_HORIZONTAL_PADDING;
         let right = x.saturating_add(width.saturating_sub(1));
         let y = area.y;
         let line = if active {
@@ -133,12 +136,13 @@ impl Widget for FolderPageFrame {
             border,
         );
 
-        let gap = 1;
         let mut positions = Vec::with_capacity(Page::ALL.len());
         let mut x = area.x;
         for page in Page::ALL {
             positions.push(x);
-            x = x.saturating_add(page.label().chars().count() as u16 + 6 + gap);
+            x = x.saturating_add(
+                page.label().chars().count() as u16 + Self::TAB_HORIZONTAL_PADDING + Self::TAB_GAP,
+            );
         }
 
         for (page, &x) in Page::ALL.iter().zip(&positions) {

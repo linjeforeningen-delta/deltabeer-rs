@@ -2,7 +2,7 @@ mod common;
 
 use chrono::{Duration, Utc};
 use common::TestEnv;
-use delta_core::domain::{Amount, Role, User, UserId};
+use delta_core::domain::{Amount, AuthPolicy, Role, User, UserId};
 use delta_core::ports::repo::{AdminRepo, UserRepo};
 use delta_core::services::auth::{
     grant_admin, issue_admin_pass, issue_admin_session, login, update_password,
@@ -155,7 +155,9 @@ async fn test_session_token_flow() {
     let admin_id = UserId(Uuid::now_v7());
     setup_admin(&env, admin_id, "admin-pass").await;
 
-    let session_token = issue_admin_session(admin_id, &ctx).await.unwrap();
+    let session_token = issue_admin_session(admin_id, &AuthPolicy::default(), &ctx)
+        .await
+        .unwrap();
 
     let validate_session = validate_authorization(session_token.clone(), &ctx).await;
     assert_eq!(validate_session.unwrap(), admin_id);
@@ -172,9 +174,14 @@ async fn test_token_expiration() {
     setup_admin(&env, admin_id, "admin-pass").await;
 
     let ctx = env.ctx();
-    let pass_token = issue_admin_pass(admin_id, "admin-pass".to_string(), &ctx)
-        .await
-        .unwrap();
+    let pass_token = issue_admin_pass(
+        admin_id,
+        "admin-pass".to_string(),
+        &AuthPolicy::default(),
+        &ctx,
+    )
+    .await
+    .unwrap();
 
     assert!(
         validate_authorization(pass_token.clone(), &ctx)
@@ -257,7 +264,9 @@ async fn test_session_token_expiration() {
 
     let ctx = env.ctx();
 
-    let session_token = issue_admin_session(admin_id, &ctx).await.unwrap();
+    let session_token = issue_admin_session(admin_id, &AuthPolicy::default(), &ctx)
+        .await
+        .unwrap();
 
     assert!(
         validate_authorization(session_token.clone(), &ctx)
