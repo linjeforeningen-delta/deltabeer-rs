@@ -17,7 +17,7 @@ use crate::input::Input;
 use anyhow::Result;
 use app::App;
 use clap::Parser;
-use crossterm::event::{self, Event};
+use crossterm::event;
 use crossterm::{
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
@@ -47,12 +47,16 @@ async fn run(
     runtime: &mut Runtime,
 ) -> Result<()> {
     while !runtime.app.should_quit {
-        terminal.draw(|frame| ui::draw(frame, &runtime.app))?;
+        runtime.update_display_state();
+
+        if runtime.should_show_splash() {
+            terminal.draw(|frame| runtime.splash.draw(frame))?;
+        } else {
+            terminal.draw(|frame| ui::draw(frame, &runtime.app))?;
+        }
 
         if event::poll(runtime.event_poll_interval)? {
-            if let Event::Key(key) = event::read()? {
-                runtime.handle_key(key).await;
-            }
+            runtime.handle_event(event::read()?).await;
         }
 
         for message in runtime.input.tick(&mut runtime.app) {
@@ -75,9 +79,9 @@ async fn main() -> Result<()> {
         ApiClient::new(&config.tui.api_base_url),
         Input::new(Duration::from_millis(config.tui.scanner_max_gap_ms)),
         Duration::from_millis(config.tui.event_poll_interval_ms),
+        Duration::from_secs(config.tui.idle_splash_after_seconds),
+        splash::Splash::new()?,
     );
-
-    splash::show(&mut terminal, runtime.event_poll_interval)?;
 
     let result = run(&mut terminal, &mut runtime).await;
 

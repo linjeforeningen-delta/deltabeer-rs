@@ -11,4 +11,5 @@ tui:
   api_base_url: "http://localhost:3000"
   event_poll_interval_ms: 20
   scanner_max_gap_ms: 80
+  idle_splash_after_seconds: 60
   locale: "nb"

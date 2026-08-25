@@ -29,6 +29,7 @@ pub(crate) struct TuiConfig {
     pub api_base_url: String,
     pub event_poll_interval_ms: u64,
     pub scanner_max_gap_ms: u64,
+    pub idle_splash_after_seconds: u64,
     pub locale: String,
 }
 

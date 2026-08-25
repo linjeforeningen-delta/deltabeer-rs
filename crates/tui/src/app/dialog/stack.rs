@@ -74,6 +74,10 @@ impl DialogStack {
         self.stack.pop();
     }
 
+    pub(crate) fn clear(&mut self) {
+        self.stack.clear();
+    }
+
     pub(crate) fn active(&self) -> Option<&(dyn Dialog + '_)> {
         match self.stack.last()? {
             DialogEntry::Normal(dialog) => Some(dialog.as_ref()),

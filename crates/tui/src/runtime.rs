@@ -2,14 +2,27 @@ use crate::api;
 use crate::api::client::ApiClient;
 use crate::app::{App, Message};
 use crate::input::Input;
-use crossterm::event::KeyEvent;
-use std::time::Duration;
+use crate::splash::Splash;
+use crossterm::event::{Event, KeyEvent};
+use std::time::{Duration, Instant};
+
+const STARTUP_SPLASH_DURATION: Duration = Duration::from_millis(1_250);
+
+pub(crate) enum DisplayState {
+    StartupSplash { started: Instant },
+    Active,
+    Idle,
+}
 
 pub(crate) struct Runtime {
     pub(crate) app: App,
     pub(crate) api: ApiClient,
     pub(crate) input: Input,
     pub(crate) event_poll_interval: Duration,
+    pub(crate) idle_timeout: Duration,
+    pub(crate) last_activity: Instant,
+    pub(crate) splash: Splash,
+    pub(crate) display_state: DisplayState,
 }
 
 impl Runtime {
@@ -18,13 +31,54 @@ impl Runtime {
         api: ApiClient,
         input: Input,
         event_poll_interval: Duration,
+        idle_timeout: Duration,
+        splash: Splash,
     ) -> Self {
         Self {
             app,
             api,
             input,
             event_poll_interval,
+            idle_timeout,
+            last_activity: Instant::now(),
+            splash,
+            display_state: DisplayState::StartupSplash {
+                started: Instant::now(),
+            },
         }
+    }
+
+    pub(crate) fn update_display_state(&mut self) {
+        match self.display_state {
+            DisplayState::StartupSplash { started }
+                if started.elapsed() >= STARTUP_SPLASH_DURATION =>
+            {
+                self.activate()
+            }
+
+            DisplayState::Active if self.last_activity.elapsed() >= self.idle_timeout => {
+                self.idle()
+            }
+
+            _ => {}
+        }
+    }
+
+    pub(crate) fn should_show_splash(&self) -> bool {
+        matches!(
+            self.display_state,
+            DisplayState::StartupSplash { .. } | DisplayState::Idle
+        )
+    }
+
+    fn activate(&mut self) {
+        self.display_state = DisplayState::Active;
+        self.last_activity = Instant::now();
+    }
+
+    fn idle(&mut self) {
+        self.display_state = DisplayState::Idle;
+        self.app.dialogs.clear();
     }
 
     pub(crate) async fn handle_key(&mut self, key: KeyEvent) {
@@ -32,6 +86,16 @@ impl Runtime {
 
         for message in messages {
             self.dispatch(message).await;
+        }
+    }
+
+    pub(crate) async fn handle_event(&mut self, event: Event) {
+        self.update_display_state();
+        self.activate();
+
+        match event {
+            Event::Key(key) => self.handle_key(key).await,
+            _ => {}
         }
     }
 
