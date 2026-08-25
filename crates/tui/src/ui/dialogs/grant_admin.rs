@@ -1,4 +1,4 @@
-use crate::ui::reccuring::user_line;
+use crate::ui::components::user_line;
 use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::App;

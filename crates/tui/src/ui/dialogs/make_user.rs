@@ -2,7 +2,7 @@ use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::App;
 use crate::app::dialog::MakeUserDialog;
-use crate::ui::reccuring::card_line;
+use crate::ui::components::card_line;
 use crate::ui::traits::Content;
 use crate::ui::widgets::form::Form;
 use ratatui::{

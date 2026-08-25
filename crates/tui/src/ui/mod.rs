@@ -1,7 +1,7 @@
 pub(crate) mod dialogs;
 pub(crate) mod layout;
 pub(crate) mod pages;
-mod reccuring;
+mod components;
 pub(crate) mod theme;
 mod traits;
 mod widgets;

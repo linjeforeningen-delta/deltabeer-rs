@@ -2,7 +2,7 @@ use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
 
 use crate::app::App;
 use crate::app::dialog::RevokeAdminDialog;
-use crate::ui::reccuring::user_line;
+use crate::ui::components::user_line;
 use ratatui::{
     Frame,
     text::{Line, Span},

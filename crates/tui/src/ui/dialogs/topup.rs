@@ -1,7 +1,7 @@
 use crate::app::App;
 use crate::app::dialog::TopUpDialog;
+use crate::ui::components::user_line;
 use crate::ui::dialogs::DialogView;
-use crate::ui::reccuring::user_line;
 use crate::ui::{layout::centered, theme::Theme};
 use ratatui::{
     prelude::*,
