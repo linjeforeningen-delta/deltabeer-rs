@@ -60,6 +60,7 @@ impl Theme {
 
     pub(crate) fn dimmed(&self, auth: &AuthState) -> Palette {
         let mut palette = self.active(auth);
+        palette.accent = Color::DarkGray;
         palette.text = Color::DarkGray;
         palette.muted = Color::DarkGray;
         palette
