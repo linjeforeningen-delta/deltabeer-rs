@@ -1,15 +1,9 @@
-use crate::{app::App, app::page::StatsPage, ui::theme::Theme};
+use crate::{app::page::StatsPage, ui::theme::Palette};
 use ratatui::{Frame, layout::Rect, style::Modifier, text::Line, widgets::Paragraph};
 
 
 impl StatsPage {
-    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
-        let palette = if app.dialogs.active().is_some() {
-            theme.dimmed()
-        } else {
-            theme.active(&app.auth)
-        };
-
+    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: Palette) {
         // Pad labels to a fixed column so the placeholder values line up regardless
         // of the locale's word lengths.
         let row = |label: &str| Line::from(format!("{label:<16}--"));

@@ -1,15 +1,9 @@
-use crate::{app::App, app::page::HomePage, ui::theme::Theme};
+use crate::{app::page::HomePage, ui::theme::Palette};
 use ratatui::{Frame, layout::Rect, text::Line, widgets::Paragraph};
 
 
 impl HomePage {
-    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
-        let palette = if app.dialogs.active().is_some() {
-            theme.dimmed()
-        } else {
-            theme.active(&app.auth)
-        };
-
+    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: Palette) {
         let content = vec![
             Line::from(t!("home.welcome").to_string()),
             Line::from(""),

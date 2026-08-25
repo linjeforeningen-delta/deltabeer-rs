@@ -1,7 +1,7 @@
+mod components;
 pub(crate) mod dialogs;
 pub(crate) mod layout;
 pub(crate) mod pages;
-mod components;
 pub(crate) mod theme;
 mod traits;
 mod widgets;
@@ -19,7 +19,8 @@ use ratatui::{
 
 pub(crate) fn draw(frame: &mut Frame, app: &App) {
     let theme = THEME;
-    let palette = theme.active(&app.auth);
+    let page_palette = pages::page_palette(app, &theme);
+    let active_palette = theme.active(&app.auth);
     let area = frame.area().inner(Margin {
         horizontal: 2,
         vertical: 1,
@@ -27,11 +28,11 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
 
     let areas = layout::app_layout(area);
 
-    let page_frame = FolderPageFrame::new(app.page.id(), palette);
+    let page_frame = FolderPageFrame::new(app.page.id(), page_palette);
     let body = FolderPageFrame::inner(areas.body);
     frame.render_widget(page_frame, areas.body);
 
-    app.page.draw(frame, body, app, &theme);
+    app.page.draw(frame, body, page_palette);
 
     if let Some(dialog) = app.dialogs.active() {
         dialog.draw(frame, app, &theme);
@@ -42,12 +43,12 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
         app.status,
         t!("hints.change_language")
     )))
-        .style(palette.text())
+        .style(active_palette.text())
         .block(
             Block::default()
                 .borders(Borders::TOP)
                 .border_type(BorderType::Rounded)
-                .border_style(palette.border()),
+                .border_style(active_palette.border()),
         );
 
     frame.render_widget(footer, areas.footer);

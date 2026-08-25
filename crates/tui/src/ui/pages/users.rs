@@ -1,4 +1,4 @@
-use crate::{app::App, app::page::UsersPage, ui::theme::Theme};
+use crate::{app::page::UsersPage, ui::theme::Palette};
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
@@ -7,13 +7,7 @@ use ratatui::{
 };
 
 impl UsersPage {
-    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
-        let palette = if app.dialogs.active().is_some() {
-            theme.dimmed()
-        } else {
-            theme.active(&app.auth)
-        };
-
+    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: Palette) {
         let header = Row::new([
             Cell::from(t!("users_table.name").to_string()),
             Cell::from(t!("users_table.username").to_string()),
