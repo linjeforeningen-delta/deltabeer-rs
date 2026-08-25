@@ -11,7 +11,7 @@ use ratatui::{
 };
 
 impl DialogView for AdminAuthDialog {
-    fn draw(&self, frame: &mut Frame, app: &App, theme: &Theme) {
+    fn draw(&self, frame: &mut Frame, _app: &App, theme: &Theme) {
         let area = centered(frame.area(), 56, 16);
 
         let palette = theme.admin();

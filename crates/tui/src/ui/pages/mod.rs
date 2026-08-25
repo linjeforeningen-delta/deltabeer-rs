@@ -9,7 +9,7 @@ pub(crate) mod users;
 
 pub(crate) fn page_palette(app: &App, theme: &Theme) -> Palette {
     if app.dialogs.active().is_some() {
-        theme.dimmed()
+        theme.dimmed(&app.auth)
     } else {
         theme.active(&app.auth)
     }

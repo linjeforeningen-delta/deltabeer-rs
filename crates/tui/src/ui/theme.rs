@@ -46,48 +46,49 @@ impl Palette {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct Theme {
-    normal: Palette,
-    admin: Palette,
-    dimmed: Palette,
-}
+pub(crate) struct Theme;
 
 impl Theme {
     const DIALOG_PADDING: Padding = Padding::new(2, 2, 1, 1);
 
     pub(crate) fn active(&self, auth: &AuthState) -> Palette {
         match auth {
-            AuthState::Normal => self.normal,
-            AuthState::Admin(_) => self.admin,
+            AuthState::Normal => self.normal(),
+            AuthState::Admin(_) => self.admin(),
         }
     }
 
+    pub(crate) fn dimmed(&self, auth: &AuthState) -> Palette {
+        let mut palette = self.active(auth);
+        palette.text = Color::DarkGray;
+        palette.muted = Color::DarkGray;
+        palette
+    }
+
     pub(crate) fn normal(&self) -> Palette {
-        self.normal
+        self.palette(Color::White, Color::Rgb(0, 66, 0))
     }
 
     pub(crate) fn admin(&self) -> Palette {
-        self.admin
+        self.palette(Color::LightRed, Color::Red)
     }
 
-    pub(crate) fn dimmed(&self) -> Palette {
-        self.dimmed
+    fn palette(&self, accent: Color, border: Color) -> Palette {
+        Palette {
+            text: Color::White,
+            muted: Color::DarkGray,
+            accent,
+            border,
+            success: Color::Green,
+            warning: Color::Yellow,
+            error: Color::LightRed,
+        }
     }
 
     pub(crate) fn dialog_block<'a>(&self, title: &'a str, palette: Palette) -> Block<'a> {
         Block::default()
             .title(title)
             .title_alignment(Alignment::Center)
-            .title_style(self.title_style(palette))
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .border_style(palette.border())
-            .padding(Self::DIALOG_PADDING)
-    }
-
-    pub(crate) fn page_block<'a>(&self, title: &'a str, palette: Palette) -> Block<'a> {
-        Block::default()
-            .title(title)
             .title_style(self.title_style(palette))
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
@@ -112,32 +113,4 @@ impl Theme {
     }
 }
 
-pub(crate) const THEME: Theme = Theme {
-    normal: Palette {
-        text: Color::White,
-        muted: Color::DarkGray,
-        accent: Color::White,
-        border: Color::Rgb(0, 66, 0),
-        success: Color::Green,
-        warning: Color::Yellow,
-        error: Color::LightRed,
-    },
-    admin: Palette {
-        text: Color::White,
-        muted: Color::DarkGray,
-        accent: Color::LightRed,
-        border: Color::Red,
-        success: Color::Green,
-        warning: Color::Yellow,
-        error: Color::LightRed,
-    },
-    dimmed: Palette {
-        text: Color::DarkGray,
-        muted: Color::DarkGray,
-        accent: Color::DarkGray,
-        border: Color::Rgb(0, 66, 0),
-        success: Color::Green,
-        warning: Color::Yellow,
-        error: Color::LightRed,
-    },
-};
+pub(crate) const THEME: Theme = Theme;
