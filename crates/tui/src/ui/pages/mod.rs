@@ -1,3 +1,8 @@
+use crate::app::App;
+use crate::ui::theme::Theme;
+use ratatui::Frame;
+use ratatui::layout::Rect;
+
 pub(crate) mod home;
 pub(crate) mod stats;
 pub(crate) mod transactions;
@@ -20,6 +25,22 @@ impl Page {
             Self::Users => t!("nav.users").to_string(),
             Self::Transactions => t!("nav.transactions").to_string(),
             Self::Stats => t!("nav.stats").to_string(),
+        }
+    }
+
+
+    pub(crate) fn draw(
+        self,
+        frame: &mut Frame,
+        area: Rect,
+        app: &App,
+        theme: &Theme,
+    ) {
+        match self {
+            Self::Home => home::draw(frame, area, app, theme),
+            Self::Users => users::draw(frame, area, app, theme),
+            Self::Transactions => transactions::draw(frame, area, app, theme),
+            Self::Stats => stats::draw(frame, area, app, theme),
         }
     }
 }
