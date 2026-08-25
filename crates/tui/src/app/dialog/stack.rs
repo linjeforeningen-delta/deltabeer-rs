@@ -23,19 +23,7 @@ impl DialogStack {
     }
 
     pub(crate) fn open(&mut self, dialog: Box<dyn Dialog>, mode: DialogOpenMode) {
-        match mode {
-            DialogOpenMode::Push => {
-                self.stack.push(DialogEntry::Normal(dialog));
-            }
-            DialogOpenMode::ReplaceTop => {
-                self.stack.pop();
-                self.stack.push(DialogEntry::Normal(dialog));
-            }
-            DialogOpenMode::Reset => {
-                self.stack.clear();
-                self.stack.push(DialogEntry::Normal(dialog));
-            }
-        }
+        self.open_entry(DialogEntry::Normal(dialog), mode);
     }
 
     pub(crate) fn open_admin(
@@ -49,17 +37,21 @@ impl DialogStack {
         dialog.set_auth_state(state);
         dialog.set_admin_context(context);
 
+        self.open_entry(DialogEntry::Admin(dialog), mode);
+    }
+
+    fn open_entry(&mut self, entry: DialogEntry, mode: DialogOpenMode) {
         match mode {
             DialogOpenMode::Push => {
-                self.stack.push(DialogEntry::Admin(dialog));
+                self.stack.push(entry);
             }
             DialogOpenMode::ReplaceTop => {
                 self.stack.pop();
-                self.stack.push(DialogEntry::Admin(dialog));
+                self.stack.push(entry);
             }
             DialogOpenMode::Reset => {
                 self.stack.clear();
-                self.stack.push(DialogEntry::Admin(dialog));
+                self.stack.push(entry);
             }
         }
     }
