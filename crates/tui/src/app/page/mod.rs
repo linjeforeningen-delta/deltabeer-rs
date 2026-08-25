@@ -49,15 +49,6 @@ pub(crate) enum Page {
 }
 
 impl Page {
-    pub(crate) fn new(id: PageId) -> Self {
-        match id {
-            PageId::Home => Self::Home(HomePage),
-            PageId::Users => Self::Users(UsersPage),
-            PageId::Transactions => Self::Transactions(TransactionsPage),
-            PageId::Stats => Self::Stats(StatsPage),
-        }
-    }
-
     pub(crate) fn id(&self) -> PageId {
         match self {
             Self::Home(_) => PageId::Home,
@@ -79,6 +70,11 @@ impl Page {
 
 impl From<PageId> for Page {
     fn from(id: PageId) -> Self {
-        Self::new(id)
+        match id {
+            PageId::Home => Self::Home(HomePage),
+            PageId::Users => Self::Users(UsersPage),
+            PageId::Transactions => Self::Transactions(TransactionsPage),
+            PageId::Stats => Self::Stats(StatsPage),
+        }
     }
 }
