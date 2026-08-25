@@ -43,13 +43,13 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
         app.status,
         t!("hints.change_language")
     )))
-        .style(active_palette.text())
-        .block(
-            Block::default()
-                .borders(Borders::TOP)
-                .border_type(BorderType::Rounded)
-                .border_style(active_palette.border()),
-        );
+    .style(active_palette.text())
+    .block(
+        Block::default()
+            .borders(Borders::TOP)
+            .border_type(BorderType::Rounded)
+            .border_style(active_palette.border()),
+    );
 
     frame.render_widget(footer, areas.footer);
 }

@@ -15,7 +15,7 @@ impl UsersPage {
             Cell::from(t!("users_table.role").to_string()),
             Cell::from(t!("users_table.balance").to_string()),
         ])
-            .style(palette.accent().add_modifier(Modifier::BOLD));
+        .style(palette.accent().add_modifier(Modifier::BOLD));
 
         // Temporary rows until API data is wired in.
         let rows = Vec::<Row>::new();
@@ -30,7 +30,7 @@ impl UsersPage {
                 Constraint::Length(12),
             ],
         )
-            .header(header);
+        .header(header);
 
         frame.render_widget(table, area);
     }

@@ -15,7 +15,7 @@ impl TransactionsPage {
             Cell::from(t!("tx_table.amount").to_string()),
             Cell::from(t!("tx_table.source").to_string()),
         ])
-            .style(palette.accent().add_modifier(Modifier::BOLD));
+        .style(palette.accent().add_modifier(Modifier::BOLD));
 
         let rows = Vec::<Row>::new();
 
@@ -29,7 +29,7 @@ impl TransactionsPage {
                 Constraint::Length(15),
             ],
         )
-            .header(header);
+        .header(header);
 
         frame.render_widget(table, area);
     }

@@ -1,7 +1,6 @@
 use crate::{app::page::HomePage, ui::theme::Palette};
 use ratatui::{Frame, layout::Rect, text::Line, widgets::Paragraph};
 
-
 impl HomePage {
     pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: Palette) {
         let content = vec![

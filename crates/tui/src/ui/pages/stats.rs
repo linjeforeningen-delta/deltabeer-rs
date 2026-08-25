@@ -1,7 +1,6 @@
 use crate::{app::page::StatsPage, ui::theme::Palette};
 use ratatui::{Frame, layout::Rect, style::Modifier, text::Line, widgets::Paragraph};
 
-
 impl StatsPage {
     pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: Palette) {
         // Pad labels to a fixed column so the placeholder values line up regardless
