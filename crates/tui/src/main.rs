@@ -47,13 +47,7 @@ async fn run(
     runtime: &mut Runtime,
 ) -> Result<()> {
     while !runtime.app.should_quit {
-        runtime.update_display_state();
-
-        if runtime.should_show_splash() {
-            terminal.draw(|frame| runtime.splash.draw(frame))?;
-        } else {
-            terminal.draw(|frame| ui::draw(frame, &runtime.app))?;
-        }
+        terminal.draw(|frame| runtime.draw(frame))?;
 
         if event::poll(runtime.event_poll_interval)? {
             runtime.handle_event(event::read()?).await;

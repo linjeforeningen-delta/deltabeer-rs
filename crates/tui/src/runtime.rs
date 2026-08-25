@@ -1,9 +1,10 @@
-use crate::api;
 use crate::api::client::ApiClient;
 use crate::app::{App, Message};
 use crate::input::Input;
 use crate::splash::Splash;
+use crate::{api, ui};
 use crossterm::event::{Event, KeyEvent};
+use ratatui::Frame;
 use std::time::{Duration, Instant};
 
 const STARTUP_SPLASH_DURATION: Duration = Duration::from_millis(1_250);
@@ -48,7 +49,20 @@ impl Runtime {
         }
     }
 
-    pub(crate) fn update_display_state(&mut self) {
+    pub(crate) fn draw(&mut self, frame: &mut Frame) {
+        self.update_display_state();
+
+        match self.display_state {
+            DisplayState::StartupSplash { .. } | DisplayState::Idle => {
+                self.splash.draw(frame);
+            }
+            DisplayState::Active => {
+                ui::draw(frame, &self.app);
+            }
+        }
+    }
+
+    fn update_display_state(&mut self) {
         match self.display_state {
             DisplayState::StartupSplash { started }
                 if started.elapsed() >= STARTUP_SPLASH_DURATION =>
@@ -64,13 +78,6 @@ impl Runtime {
         }
     }
 
-    pub(crate) fn should_show_splash(&self) -> bool {
-        matches!(
-            self.display_state,
-            DisplayState::StartupSplash { .. } | DisplayState::Idle
-        )
-    }
-
     fn activate(&mut self) {
         self.display_state = DisplayState::Active;
         self.last_activity = Instant::now();
@@ -81,7 +88,7 @@ impl Runtime {
         self.app.dialogs.clear();
     }
 
-    pub(crate) async fn handle_key(&mut self, key: KeyEvent) {
+    async fn handle_key(&mut self, key: KeyEvent) {
         let messages = self.input.handle(&mut self.app, key);
 
         for message in messages {
