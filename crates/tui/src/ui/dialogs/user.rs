@@ -16,8 +16,20 @@ impl DialogView for UserDialog {
 
         frame.render_widget(Clear, area);
 
-        // Pad labels to a fixed column so values line up regardless of locale.
-        let detail = |label: &str, value: String| Line::from(format!("{label:<13}{value}"));
+        let labels = [
+            t!("labels.program").to_string(),
+            t!("labels.card").to_string(),
+            t!("labels.role").to_string(),
+            t!("labels.balance").to_string(),
+            t!("labels.spent").to_string(),
+        ];
+        let label_width = labels
+            .iter()
+            .map(|label| label.chars().count())
+            .max()
+            .unwrap_or(0);
+        let detail =
+            |label: &str, value: String| Line::from(format!("{label:<label_width$} {value}"));
 
         let content = vec![
             Line::from(vec![
@@ -25,27 +37,18 @@ impl DialogView for UserDialog {
                 Span::raw(format!("  @{}", self.user.username)),
             ]),
             Line::from(""),
-            detail(&t!("labels.program").to_string(), self.user.program.clone()),
+            detail(&labels[0], self.user.program.clone()),
+            detail(&labels[1], self.user.card_number.to_string()),
             detail(
-                &t!("labels.card").to_string(),
-                self.user.card_number.to_string(),
-            ),
-            detail(
-                &t!("labels.role").to_string(),
+                &labels[2],
                 if matches!(self.user.role, crate::api::models::user::Role::Admin) {
                     t!("roles.admin").to_string()
                 } else {
                     t!("roles.user").to_string()
                 },
             ),
-            detail(
-                &t!("labels.balance").to_string(),
-                format!("{} Δ¢", self.user.balance.0),
-            ),
-            detail(
-                &t!("labels.spent").to_string(),
-                format!("{} Δ¢", self.user.spent.0),
-            ),
+            detail(&labels[3], format!("{} Δ¢", self.user.balance.0)),
+            detail(&labels[4], format!("{} Δ¢", self.user.spent.0)),
             Line::from(""),
             Line::from(t!("dialogs.user.amount").to_string()),
             Line::styled(format!("> {:}", self.amount), theme.selected_style(palette)),

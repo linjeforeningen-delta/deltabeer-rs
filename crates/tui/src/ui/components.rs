@@ -2,8 +2,17 @@ use crate::api::models::user::User;
 use crate::ui::theme::Palette;
 use ratatui::text::{Line, Span};
 
+fn label_width() -> usize {
+    [t!("labels.user"), t!("labels.card")]
+        .iter()
+        .map(|label| label.chars().count())
+        .max()
+        .unwrap_or(0)
+}
+
 pub(crate) fn user_line(user: &Option<User>, palette: Palette) -> Line<'static> {
-    let label = format!("{:<6}", t!("labels.user"));
+    let width = label_width();
+    let label = format!("{:<width$} ", t!("labels.user"));
     match user {
         Some(user) => Line::from(vec![
             Span::raw(label),
@@ -17,7 +26,8 @@ pub(crate) fn user_line(user: &Option<User>, palette: Palette) -> Line<'static> 
 }
 
 pub(crate) fn card_line(card: &Option<String>, palette: Palette) -> Line<'static> {
-    let label = format!("{:<6}", t!("labels.card"));
+    let width = label_width();
+    let label = format!("{:<width$} ", t!("labels.card"));
     match card {
         Some(card) => Line::from(vec![
             Span::raw(label),
