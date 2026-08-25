@@ -4,11 +4,8 @@ use crate::app::{App, Message, PageId};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
-    if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {
-        return Some(Message::Quit);
-    }
-    if key.code == KeyCode::Char('l') && key.modifiers.contains(KeyModifiers::CONTROL) {
-        return Some(Message::ToggleLanguage);
+    if let Some(message) = map_key_global(key) {
+        return Some(message);
     }
 
     let key = match app.dialogs.active_mut() {
@@ -32,6 +29,17 @@ pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
     }
 
     app.page.handle_key(key)
+}
+
+fn map_key_global(key: KeyEvent) -> Option<Message> {
+    if !key.modifiers.contains(KeyModifiers::CONTROL) {
+        return None;
+    }
+
+    match key.code {
+        KeyCode::Char('l') => Some(Message::ToggleLanguage),
+        _ => None,
+    }
 }
 
 fn map_key_base(app: &App, key: KeyEvent) -> Option<Message> {

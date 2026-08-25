@@ -3,7 +3,7 @@ use crate::app::{App, Message};
 use crate::input::Input;
 use crate::splash::Splash;
 use crate::{api, ui};
-use crossterm::event::{Event, KeyEvent};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use ratatui::Frame;
 use std::time::{Duration, Instant};
 
@@ -96,12 +96,21 @@ impl Runtime {
         }
     }
 
+    async fn handle_global_key(&mut self, key: KeyEvent) -> bool {
+        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('q') {
+            self.dispatch(Message::Quit).await;
+            true
+        } else {
+            false
+        }
+    }
+
     pub(crate) async fn handle_event(&mut self, event: Event) {
         self.update_display_state();
         self.activate();
 
         match event {
-            Event::Key(key) => self.handle_key(key).await,
+            Event::Key(key) if !self.handle_global_key(key).await => self.handle_key(key).await,
             _ => {}
         }
     }
