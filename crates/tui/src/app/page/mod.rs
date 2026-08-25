@@ -4,7 +4,7 @@ mod transactions;
 mod users;
 
 use crate::app::Message;
-use crossterm::event::KeyEvent;
+use crossterm::event::{KeyCode, KeyEvent};
 pub(crate) use home::HomePage;
 pub(crate) use stats::StatsPage;
 pub(crate) use transactions::TransactionsPage;
@@ -27,6 +27,15 @@ impl PageId {
             Self::Users => t!("nav.users").to_string(),
             Self::Transactions => t!("nav.transactions").to_string(),
             Self::Stats => t!("nav.stats").to_string(),
+        }
+    }
+    pub(crate) fn from_key(code: KeyCode) -> Option<Self> {
+        match code {
+            KeyCode::Char('1') => Some(Self::Home),
+            KeyCode::Char('2') => Some(Self::Users),
+            KeyCode::Char('3') => Some(Self::Transactions),
+            KeyCode::Char('4') => Some(Self::Stats),
+            _ => None,
         }
     }
 }

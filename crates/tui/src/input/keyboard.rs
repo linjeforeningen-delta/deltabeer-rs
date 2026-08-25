@@ -39,15 +39,15 @@ fn map_key_base(app: &App, key: KeyEvent) -> Option<Message> {
         return None;
     }
 
+    if let Some(page) = PageId::from_key(key.code) {
+        return Some(Message::Navigate(page));
+    }
+
     match key.code {
         KeyCode::Esc => Some(Message::OpenDialog {
             dialog: Box::new(preset::application::new()),
             mode: crate::app::DialogOpenMode::Push,
         }),
-        KeyCode::Char('1') => Some(Message::Navigate(PageId::Home)),
-        KeyCode::Char('2') => Some(Message::Navigate(PageId::Users)),
-        KeyCode::Char('3') => Some(Message::Navigate(PageId::Transactions)),
-        KeyCode::Char('4') => Some(Message::Navigate(PageId::Stats)),
         _ => None,
     }
 }
