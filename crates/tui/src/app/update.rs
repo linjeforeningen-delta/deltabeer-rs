@@ -4,7 +4,7 @@ use crate::api::request::ApiRequest;
 use crate::api::result::ApiResult;
 use crate::app::dialog::menu::{set_locale, toggle_locale};
 use crate::app::dialog::{DialogResult, UserDialog};
-use crate::app::{App, AppError, DialogOpenMode, Message};
+use crate::app::{App, AppError, DialogOpenMode, Message, Page};
 use crate::auth::{AdminContext, AdminSession, AuthState};
 
 impl App {
@@ -29,7 +29,7 @@ impl App {
 
             Message::CardScanned(card) => return self.handle_card_scan(card),
 
-            Message::Navigate(page) => self.page = page,
+            Message::Navigate(page) => self.page = Page::from(page),
 
             Message::Quit => self.should_quit = true,
 

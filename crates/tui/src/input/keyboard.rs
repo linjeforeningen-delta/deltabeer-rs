@@ -1,6 +1,6 @@
 use crate::app::dialog::DialogResult;
 use crate::app::dialog::menu::preset;
-use crate::app::{App, Message, Page};
+use crate::app::{App, Message, PageId};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
@@ -31,7 +31,7 @@ pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
         return Some(message);
     }
 
-    map_key_page(app, key)
+    app.page.handle_key(key)
 }
 
 fn map_key_base(app: &App, key: KeyEvent) -> Option<Message> {
@@ -44,34 +44,10 @@ fn map_key_base(app: &App, key: KeyEvent) -> Option<Message> {
             dialog: Box::new(preset::application::new()),
             mode: crate::app::DialogOpenMode::Push,
         }),
-        KeyCode::Char('1') => Some(Message::Navigate(Page::Home)),
-        KeyCode::Char('2') => Some(Message::Navigate(Page::Users)),
-        KeyCode::Char('3') => Some(Message::Navigate(Page::Transactions)),
-        KeyCode::Char('4') => Some(Message::Navigate(Page::Stats)),
+        KeyCode::Char('1') => Some(Message::Navigate(PageId::Home)),
+        KeyCode::Char('2') => Some(Message::Navigate(PageId::Users)),
+        KeyCode::Char('3') => Some(Message::Navigate(PageId::Transactions)),
+        KeyCode::Char('4') => Some(Message::Navigate(PageId::Stats)),
         _ => None,
     }
-}
-
-fn map_key_page(app: &App, key: KeyEvent) -> Option<Message> {
-    match app.page {
-        Page::Home => map_key_home(key),
-        Page::Users => map_key_users(key),
-        Page::Transactions => map_key_transactions(key),
-        Page::Stats => map_key_stats(key),
-    }
-}
-fn map_key_home(_key: KeyEvent) -> Option<Message> {
-    None
-}
-
-fn map_key_users(_key: KeyEvent) -> Option<Message> {
-    None
-}
-
-fn map_key_transactions(_key: KeyEvent) -> Option<Message> {
-    None
-}
-
-fn map_key_stats(_key: KeyEvent) -> Option<Message> {
-    None
 }

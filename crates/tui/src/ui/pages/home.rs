@@ -1,21 +1,24 @@
-use crate::{app::App, ui::theme::Theme};
+use crate::{app::App, app::page::HomePage, ui::theme::Theme};
 use ratatui::{Frame, layout::Rect, text::Line, widgets::Paragraph};
 
-pub(crate) fn draw(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
-    let palette = if app.dialogs.active().is_some() {
-        theme.dimmed()
-    } else {
-        theme.active(&app.auth)
-    };
 
-    let content = vec![
-        Line::from(t!("home.welcome").to_string()),
-        Line::from(""),
-        Line::from(t!("home.scan_hint").to_string()),
-        Line::from(""),
-    ];
+impl HomePage {
+    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
+        let palette = if app.dialogs.active().is_some() {
+            theme.dimmed()
+        } else {
+            theme.active(&app.auth)
+        };
 
-    let widget = Paragraph::new(content).style(palette.text());
+        let content = vec![
+            Line::from(t!("home.welcome").to_string()),
+            Line::from(""),
+            Line::from(t!("home.scan_hint").to_string()),
+            Line::from(""),
+        ];
 
-    frame.render_widget(widget, area);
+        let widget = Paragraph::new(content).style(palette.text());
+
+        frame.render_widget(widget, area);
+    }
 }

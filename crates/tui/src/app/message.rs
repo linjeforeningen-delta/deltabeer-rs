@@ -2,7 +2,7 @@ use crate::api::request::ApiRequest;
 use crate::api::result::ApiResult;
 use crate::app::dialog::AdminDialog;
 use crate::app::dialog::menu::Language;
-use crate::app::{Dialog, DialogOpenMode, Page};
+use crate::app::{Dialog, DialogOpenMode, PageId};
 
 #[derive(Debug)]
 pub(crate) enum Message {
@@ -23,7 +23,7 @@ pub(crate) enum Message {
     CloseDialog,
 
     CardScanned(String),
-    Navigate(Page),
+    Navigate(PageId),
     Quit,
     SetLanguage(Language),
     ToggleLanguage,

@@ -1,6 +1,6 @@
 pub(crate) mod dialogs;
 pub(crate) mod layout;
-pub mod pages;
+pub(crate) mod pages;
 mod reccuring;
 pub(crate) mod theme;
 mod traits;
@@ -27,7 +27,7 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
 
     let areas = layout::app_layout(area);
 
-    let page_frame = FolderPageFrame::new(app.page, palette);
+    let page_frame = FolderPageFrame::new(app.page.id(), palette);
     let body = FolderPageFrame::inner(areas.body);
     frame.render_widget(page_frame, areas.body);
 

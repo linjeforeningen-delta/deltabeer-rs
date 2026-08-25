@@ -4,8 +4,8 @@ use crate::api::request::ApiRequest;
 use crate::app::DialogOpenMode;
 use crate::app::dialog::AdminAuthDialog;
 use crate::app::dialog::DialogStack;
+use crate::app::page::{Page, PageId};
 use crate::auth::{AdminContext, AuthState};
-pub(crate) use crate::ui::pages::Page;
 
 pub(crate) struct App {
     pub auth: AuthState,
@@ -21,7 +21,7 @@ impl App {
     pub fn new() -> Self {
         Self {
             auth: AuthState::Normal,
-            page: Page::Home,
+            page: Page::from(PageId::Home),
             dialogs: DialogStack::new(),
             status: t!("status.ready").to_string(),
             pending_api_request: None,

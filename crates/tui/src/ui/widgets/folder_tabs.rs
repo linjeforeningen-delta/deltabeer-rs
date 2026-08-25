@@ -1,4 +1,4 @@
-use crate::{app::Page, ui::theme::Palette};
+use crate::{app::PageId, ui::theme::Palette};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -8,7 +8,7 @@ use ratatui::{
 
 /// Draws the page border and its rounded, folder-like navigation tabs.
 pub(crate) struct FolderPageFrame {
-    page: Page,
+    page: PageId,
     palette: Palette,
 }
 
@@ -16,7 +16,7 @@ impl FolderPageFrame {
     const TAB_GAP: u16 = 1;
     const TAB_HORIZONTAL_PADDING: u16 = 6;
 
-    pub(crate) fn new(page: Page, palette: Palette) -> Self {
+    pub(crate) fn new(page: PageId, palette: Palette) -> Self {
         Self { page, palette }
     }
 
@@ -136,23 +136,23 @@ impl Widget for FolderPageFrame {
             border,
         );
 
-        let mut positions = Vec::with_capacity(Page::ALL.len());
+        let mut positions = Vec::with_capacity(PageId::ALL.len());
         let mut x = area.x;
-        for page in Page::ALL {
+        for page in PageId::ALL {
             positions.push(x);
             x = x.saturating_add(
                 page.label().chars().count() as u16 + Self::TAB_HORIZONTAL_PADDING + Self::TAB_GAP,
             );
         }
 
-        for (page, &x) in Page::ALL.iter().zip(&positions) {
+        for (page, &x) in PageId::ALL.iter().zip(&positions) {
             if *page != self.page {
                 let label = page.label();
                 self.draw_tab(buffer, area, x, &label, false);
             }
         }
         // Render the selected tab last so its outline is visually in front.
-        for (page, &x) in Page::ALL.iter().zip(&positions) {
+        for (page, &x) in PageId::ALL.iter().zip(&positions) {
             if *page == self.page {
                 let label = page.label();
                 self.draw_tab(buffer, area, x, &label, true);
