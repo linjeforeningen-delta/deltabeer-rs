@@ -38,6 +38,7 @@ impl Modify for SecurityAddon {
     tags(
         (name = "admins", description = "Admin-related endpoints"),
     ),
+    modifiers(&SecurityAddon),
     security(
         ("admin_token" = [])
     ),
