@@ -2,7 +2,6 @@
 pub(crate) struct TextInput {
     value: String,
     constraint: InputConstraint,
-    max_len: Option<usize>,
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -18,13 +17,7 @@ impl TextInput {
         Self {
             value: String::new(),
             constraint,
-            max_len: None,
         }
-    }
-
-    pub(crate) fn with_value(mut self, value: impl Into<String>) -> Self {
-        self.value = value.into();
-        self
     }
 
     pub(crate) fn set_value(&mut self, value: impl Into<String>) {

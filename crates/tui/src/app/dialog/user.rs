@@ -43,7 +43,7 @@ impl DialogBehavior for UserDialog {
                 };
 
                 DialogResult::Message(Message::ApiRequest(ApiRequest::Spend {
-                    user_id: self.user.id.clone(),
+                    user_id: self.user.id,
                     amount,
                 }))
             }

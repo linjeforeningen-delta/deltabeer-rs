@@ -12,7 +12,6 @@ struct FormField<'a> {
     label: String,
     input: &'a TextInput,
     hidden: bool,
-    placeholder: Option<String>,
 }
 
 impl<'a> Form<'a> {
@@ -28,7 +27,6 @@ impl<'a> Form<'a> {
             label: label.into(),
             input,
             hidden: false,
-            placeholder: None,
         });
 
         self
@@ -43,39 +41,6 @@ impl<'a> Form<'a> {
             label: label.into(),
             input,
             hidden: true,
-            placeholder: None,
-        });
-
-        self
-    }
-
-    pub(crate) fn add_field_with_placeholder(
-        mut self,
-        label: impl Into<String>,
-        input: &'a TextInput,
-        placeholder: impl Into<String>,
-    ) -> Self {
-        self.fields.push(FormField {
-            label: label.into(),
-            input,
-            hidden: false,
-            placeholder: Some(placeholder.into()),
-        });
-
-        self
-    }
-
-    pub(crate) fn add_hidden_field_with_placeholder(
-        mut self,
-        label: impl Into<String>,
-        input: &'a TextInput,
-        placeholder: impl Into<String>,
-    ) -> Self {
-        self.fields.push(FormField {
-            label: label.into(),
-            input,
-            hidden: true,
-            placeholder: Some(placeholder.into()),
         });
 
         self

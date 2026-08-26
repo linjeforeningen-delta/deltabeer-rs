@@ -58,7 +58,7 @@ pub(crate) trait Dialog: DialogBehavior + DialogView {}
 impl<T> Dialog for T where T: DialogBehavior + DialogView {}
 
 pub(crate) trait AdminDialog: Dialog {
-    fn set_admin_context(&mut self, context: Option<AdminContext>) {}
+    fn set_admin_context(&mut self, _context: Option<AdminContext>) {}
 
     fn set_auth_state(&mut self, _state: &AuthState) {}
 }

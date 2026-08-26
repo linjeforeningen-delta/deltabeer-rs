@@ -44,7 +44,7 @@ impl Config {
 pub(crate) fn validate_locale(locale: &str) -> Result<()> {
     let available = rust_i18n::available_locales!();
 
-    if available.iter().any(|candidate| *candidate == locale) {
+    if available.contains(&locale) {
         return Ok(());
     }
 

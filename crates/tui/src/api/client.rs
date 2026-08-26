@@ -138,7 +138,7 @@ impl ApiClient {
             self.request(Method::POST, &format!("/v1/users/{user_id}/spend"))
                 .json(&amount),
         )
-        .await
+            .await
     }
 }
 
@@ -177,11 +177,6 @@ impl ApiClient {
 
         self.empty(request).await
     }
-}
-
-pub(crate) enum Authorization<'a> {
-    Session,
-    SingleUse(&'a SingleUseToken),
 }
 
 impl ApiClient {

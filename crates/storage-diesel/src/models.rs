@@ -4,6 +4,7 @@ use diesel::prelude::*;
 /// =======================
 /// users (row = schema authority)
 /// =======================
+#[allow(dead_code)]
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = users)]
 #[diesel(belongs_to(UserRow, foreign_key = created_by))]
@@ -21,6 +22,7 @@ pub(super) struct UserRow {
     pub(super) created_by: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Queryable, Identifiable)]
 #[diesel(table_name = users_with_role)]
 pub(super) struct UserWithRoleRow {
@@ -57,6 +59,7 @@ pub(super) struct NewUser {
 /// =======================
 /// admins (row = schema authority)
 /// =======================
+#[allow(dead_code)]
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = admins)]
 #[diesel(belongs_to(UserRow, foreign_key = user_id))]
@@ -91,6 +94,7 @@ pub(super) struct AdminRevoke {
 /// =======================
 /// transactions (row = schema authority)
 /// =======================
+#[allow(dead_code)]
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = transactions)]
 #[diesel(belongs_to(UserRow, foreign_key = user_id))]
@@ -119,6 +123,7 @@ pub(super) struct NewTransaction {
 /// =======================
 /// admin_tokens (row = schema authority)
 /// =======================
+#[allow(dead_code)]
 #[derive(Debug, Queryable, Identifiable, Associations)]
 #[diesel(table_name = admin_tokens)]
 #[diesel(primary_key(token))]

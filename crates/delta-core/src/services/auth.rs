@@ -109,7 +109,7 @@ where
     R: AdminRepo + ?Sized,
 {
     let dt = ctx.clock.now();
-    let hash = hash_password(&*password);
+    let hash = hash_password(&password);
 
     let grant_id = ctx.ids.generate_admin_grant_id(&dt);
 
@@ -144,7 +144,7 @@ pub async fn update_password<R>(
 where
     R: AdminRepo + ?Sized,
 {
-    let hash = hash_password(&*new_password);
+    let hash = hash_password(&new_password);
 
     ctx.repo.update_admin_password(user_id, hash).await?;
 

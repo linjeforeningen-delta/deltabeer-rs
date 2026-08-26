@@ -191,7 +191,7 @@ async fn test_token_expiration() {
             .is_ok()
     );
 
-    env.clock.0 = env.clock.0 + Duration::minutes(1);
+    env.clock.0 += Duration::minutes(1);
 
     let ctx_new = env.ctx();
     let validate_expired = validate_authorization(pass_token, &ctx_new).await;
@@ -216,18 +216,6 @@ async fn test_update_password_flow() {
 
     assert!(login(admin_id, "new-pass".to_string(), &ctx).await.is_ok());
 }
-
-// #[tokio::test]
-// async fn test_unauthorized_grant_admin() {
-//     let env = TestEnv::new();
-//     let ctx = env.ctx();
-//
-//     let fake_token = AdminToken([0u8; 32]);
-//     let target_id = UserId(Uuid::now_v7());
-//
-//     let res = grant_admin(fake_token, target_id, "password".to_string(), &ctx).await;
-//     assert!(res.is_err());
-// }
 
 #[tokio::test]
 async fn test_login_non_existent_user() {
@@ -277,7 +265,7 @@ async fn test_session_token_expiration() {
     );
 
     // Advance clock by 4 minutes (session tokens last 3m)
-    env.clock.0 = env.clock.0 + Duration::minutes(4);
+    env.clock.0 += Duration::minutes(4);
 
     let ctx_new = env.ctx();
     let validate_expired = validate_authorization(session_token, &ctx_new).await;

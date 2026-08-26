@@ -100,7 +100,7 @@ pub(crate) fn verify_password(
     hash: &PasswordHash,
 ) -> Result<PasswordCheck, DomainError> {
     let parsed_hash =
-        Argon2PasswordHash::new(&hash.as_str()).map_err(|_| DomainError::InvalidPasswordHash)?;
+        Argon2PasswordHash::new(hash.as_str()).map_err(|_| DomainError::InvalidPasswordHash)?;
 
     argon2_ctx()
         .verify_password(password.as_bytes(), &parsed_hash)

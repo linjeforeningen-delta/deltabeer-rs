@@ -131,7 +131,7 @@ async fn test_multiple_transactions_consistency() {
     setup_admin(&env, admin_id, "admin").await;
 
     for _ in 0..5 {
-        let admin_token =
+        let _admin_token =
             issue_admin_pass(admin_id, "admin".to_string(), &AuthPolicy::default(), &ctx)
                 .await
                 .unwrap();
@@ -141,18 +141,6 @@ async fn test_multiple_transactions_consistency() {
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
     assert_eq!(user.balance, Amount(1000));
 }
-
-// #[tokio::test]
-// async fn test_unauthorized_top_up() {
-//     let env = TestEnv::new();
-//     let ctx = env.ctx();
-//
-//     let user_id = setup_user(&env, "Alice", 100).await;
-//     let fake_token = delta_core::services::auth::AdminToken([0u8; 32]);
-//
-//     let res = top_up(user_id, Amount(50), fake_token, &ctx).await;
-//     assert!(res.is_err());
-// }
 
 #[tokio::test]
 async fn test_revoked_admin_cannot_top_up() {

@@ -43,7 +43,7 @@ impl DialogBehavior for AdminSessionLoginDialog {
                 };
 
                 DialogResult::Message(Message::ApiRequest(ApiRequest::StartAdminSession {
-                    user_id: admin.user_id.clone(),
+                    user_id: admin.user_id,
                     password,
                 }))
             }

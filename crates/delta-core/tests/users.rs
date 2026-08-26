@@ -210,23 +210,6 @@ async fn test_update_user_partial() {
     assert_eq!(updated.card_number, 500);
 }
 
-// #[tokio::test]
-// async fn test_create_user_unauthorized() {
-//     let env = TestEnv::new();
-//     let ctx = env.ctx();
-//
-//     let admin_id = UserId(Uuid::now_v7());
-//
-//     let req = CreateUser {
-//         name: "Unauthorized".to_string(),
-//         username: "unauth".to_string(),
-//         card_number: 777,
-//         birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
-//     };
-//     let res = create_user(admin_id, req, &ctx).await;
-//     assert!(res.is_err());
-// }
-
 #[tokio::test]
 async fn test_update_user_unauthorized() {
     let env = TestEnv::new();

@@ -4,11 +4,6 @@ use crate::{
 };
 use async_trait::async_trait;
 
-pub struct Admin {
-    id: String,
-    password_hash: String,
-}
-
 #[async_trait]
 pub trait AdminRepo {
     async fn get_admin(&self, id: UserId) -> Result<PasswordHash, RepoError>;

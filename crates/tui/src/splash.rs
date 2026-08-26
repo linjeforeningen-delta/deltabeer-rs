@@ -64,8 +64,7 @@ impl Splash {
 fn converted_lines(image: &DynamicImage, columns: u32, rows: u32) -> Vec<Line<'static>> {
     let resized = image.resize_exact(columns * 8, rows * 16, FilterType::Triangle);
     let insa = Insa::blocks();
-    let lines = insa
-        .convert(&resized)
+    insa.convert(&resized)
         .map(|((_, row), symbol)| (row, symbol))
         .fold(
             Vec::<Line<'static>>::with_capacity(rows as usize),
@@ -81,8 +80,7 @@ fn converted_lines(image: &DynamicImage, columns: u32, rows: u32) -> Vec<Line<'s
                 ));
                 lines
             },
-        );
-    lines
+        )
 }
 
 fn fitted_size(area: Rect, image_width: u32, image_height: u32) -> (u32, u32) {

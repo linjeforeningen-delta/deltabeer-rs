@@ -42,7 +42,7 @@ impl App {
     }
 
     fn handle_api_request(&mut self, request: ApiRequest) -> Option<ApiCommand> {
-        self.status = request.status_message().into();
+        self.status = request.status_message();
 
         self.request_api(request)
     }
@@ -187,7 +187,7 @@ impl App {
 
         self.active_admin = match user.role {
             Role::Admin => Some(AdminContext {
-                user_id: user.id.clone(),
+                user_id: user.id,
                 name: user.name.clone(),
             }),
             _ => None,

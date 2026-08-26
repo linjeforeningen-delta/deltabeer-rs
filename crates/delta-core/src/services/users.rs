@@ -61,7 +61,7 @@ where
     let id = ctx.ids.generate_user_id(&dt);
 
     let user = User {
-        id: id.clone(),
+        id,
         name: req.name.clone(),
         username: req.username.clone(),
         program: req.program.clone(),
