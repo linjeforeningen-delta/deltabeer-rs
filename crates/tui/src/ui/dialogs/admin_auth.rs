@@ -1,22 +1,16 @@
 use crate::app::App;
 use crate::app::dialog::AdminAuthDialog;
-use crate::ui::dialogs::DialogView;
+use crate::ui::dialogs::{DialogView, action_hint, render_dialog};
 use crate::ui::traits::Content;
 use crate::ui::widgets::form::Form;
 use crate::ui::{layout::centered, theme::Theme};
-use ratatui::{
-    Frame,
-    text::{Line, Span},
-    widgets::{Clear, Paragraph},
-};
+use ratatui::{Frame, text::Line};
 
 impl DialogView for AdminAuthDialog {
     fn draw(&self, frame: &mut Frame, _app: &App, theme: &Theme) {
         let area = centered(frame.area(), 56, 16);
 
         let palette = theme.admin();
-
-        frame.render_widget(Clear, area);
 
         let given_name = match &self.admin {
             Some(admin) => admin
@@ -42,19 +36,17 @@ impl DialogView for AdminAuthDialog {
         content.extend(form.lines(theme, palette));
         content.extend([
             Line::from(""),
-            Line::from(vec![
-                Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(format!(" {}    ", t!("hints.authenticate"))),
-                Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(format!(" {}", t!("hints.close"))),
-            ]),
+            action_hint(
+                theme,
+                palette,
+                &[
+                    ("Enter", t!("hints.authenticate").to_string()),
+                    ("Esc", t!("hints.close").to_string()),
+                ],
+            ),
         ]);
 
         let block_title = format!(" {} ", t!("dialogs.admin_auth.title"));
-        let popup = Paragraph::new(content)
-            .style(palette.text())
-            .block(theme.dialog_block(&block_title, palette));
-
-        frame.render_widget(popup, area);
+        render_dialog(frame, area, &block_title, content, palette, theme);
     }
 }

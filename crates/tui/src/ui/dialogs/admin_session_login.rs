@@ -1,22 +1,16 @@
 use crate::app::App;
 use crate::app::dialog::AdminSessionLoginDialog;
-use crate::ui::dialogs::DialogView;
+use crate::ui::dialogs::{DialogView, action_hint, render_dialog};
 use crate::ui::traits::Content;
 use crate::ui::widgets::form::Form;
 use crate::ui::{layout::centered, theme::Theme};
-use ratatui::{
-    Frame,
-    text::{Line, Span},
-    widgets::{Clear, Paragraph},
-};
+use ratatui::{Frame, text::Line};
 
 impl DialogView for AdminSessionLoginDialog {
     fn draw(&self, frame: &mut Frame, _app: &App, theme: &Theme) {
         let area = centered(frame.area(), 56, 16);
 
         let palette = theme.admin();
-
-        frame.render_widget(Clear, area);
 
         let given_name = self
             .admin
@@ -42,19 +36,17 @@ impl DialogView for AdminSessionLoginDialog {
         content.extend(form.lines(theme, palette));
         content.extend([
             Line::from(""),
-            Line::from(vec![
-                Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(format!(" {}    ", t!("hints.login"))),
-                Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(format!(" {}", t!("hints.back"))),
-            ]),
+            action_hint(
+                theme,
+                palette,
+                &[
+                    ("Enter", t!("hints.login").to_string()),
+                    ("Esc", t!("hints.back").to_string()),
+                ],
+            ),
         ]);
 
         let block_title = format!(" {} ", t!("dialogs.admin_login.title"));
-        let popup = Paragraph::new(content)
-            .style(palette.text())
-            .block(theme.dialog_block(&block_title, palette));
-
-        frame.render_widget(popup, area);
+        render_dialog(frame, area, &block_title, content, palette, theme);
     }
 }

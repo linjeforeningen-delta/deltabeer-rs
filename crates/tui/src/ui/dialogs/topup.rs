@@ -1,20 +1,15 @@
 use crate::app::App;
 use crate::app::dialog::TopUpDialog;
 use crate::ui::components::user_line;
-use crate::ui::dialogs::DialogView;
+use crate::ui::dialogs::{DialogView, action_hint, render_dialog};
 use crate::ui::{layout::centered, theme::Theme};
-use ratatui::{
-    prelude::*,
-    widgets::{Clear, Paragraph},
-};
+use ratatui::prelude::*;
 
 impl DialogView for TopUpDialog {
     fn draw(&self, frame: &mut Frame, _app: &App, theme: &Theme) {
         let area = centered(frame.area(), 56, 14);
 
         let palette = theme.admin();
-
-        frame.render_widget(Clear, area);
 
         let mut content = vec![user_line(&self.user, palette)];
 
@@ -26,19 +21,17 @@ impl DialogView for TopUpDialog {
                 theme.selected_style(palette),
             ),
             Line::from(""),
-            Line::from(vec![
-                Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(format!(" {}    ", t!("hints.top_up"))),
-                Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(format!(" {}", t!("hints.close"))),
-            ]),
+            action_hint(
+                theme,
+                palette,
+                &[
+                    ("Enter", t!("hints.top_up").to_string()),
+                    ("Esc", t!("hints.close").to_string()),
+                ],
+            ),
         ]);
 
         let block_title = format!(" {} ", t!("dialogs.topup.title"));
-        let popup = Paragraph::new(content)
-            .style(palette.text())
-            .block(theme.dialog_block(&block_title, palette));
-
-        frame.render_widget(popup, area);
+        render_dialog(frame, area, &block_title, content, palette, theme);
     }
 }

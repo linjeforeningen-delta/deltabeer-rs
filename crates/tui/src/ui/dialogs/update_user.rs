@@ -3,12 +3,12 @@ use crate::app::dialog::{UpdateUserDialog, UpdateUserStage};
 use crate::ui::components::card_line;
 use crate::ui::traits::Content;
 use crate::ui::widgets::form::Form;
-use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
-use ratatui::{
-    Frame,
-    text::{Line, Span},
-    widgets::{Clear, Paragraph},
+use crate::ui::{
+    dialogs::{DialogView, action_hint, render_dialog},
+    layout::centered,
+    theme::Theme,
 };
+use ratatui::{Frame, text::Line};
 
 impl DialogView for UpdateUserDialog {
     fn draw(&self, frame: &mut Frame, _app: &App, theme: &Theme) {
@@ -18,8 +18,6 @@ impl DialogView for UpdateUserDialog {
         match self.stage {
             UpdateUserStage::Identify => {
                 let area = centered(frame.area(), 56, 14);
-                frame.render_widget(Clear, area);
-
                 let form = Form::new(0).add_field(t!("labels.username"), &self.identifier);
 
                 let mut content = vec![
@@ -35,25 +33,21 @@ impl DialogView for UpdateUserDialog {
                 content.extend(form.lines(theme, palette));
                 content.extend([
                     Line::from(""),
-                    Line::from(vec![
-                        Span::styled("Enter", theme.key_style(palette)),
-                        Span::raw(format!(" {}    ", t!("hints.find"))),
-                        Span::styled("Esc", theme.key_style(palette)),
-                        Span::raw(format!(" {}", t!("hints.back"))),
-                    ]),
+                    action_hint(
+                        theme,
+                        palette,
+                        &[
+                            ("Enter", t!("hints.find").to_string()),
+                            ("Esc", t!("hints.back").to_string()),
+                        ],
+                    ),
                 ]);
 
-                let popup = Paragraph::new(content)
-                    .style(palette.text())
-                    .block(theme.dialog_block(&block_title, palette));
-
-                frame.render_widget(popup, area);
+                render_dialog(frame, area, &block_title, content, palette, theme);
             }
 
             UpdateUserStage::Edit => {
                 let area = centered(frame.area(), 62, 20);
-                frame.render_widget(Clear, area);
-
                 let card_str = self
                     .replacement_card
                     .clone()
@@ -81,21 +75,18 @@ impl DialogView for UpdateUserDialog {
                 content.extend(form.lines(theme, palette));
                 content.extend([
                     Line::from(""),
-                    Line::from(vec![
-                        Span::styled("↑/↓", theme.key_style(palette)),
-                        Span::raw(format!(" {}    ", t!("hints.select_field"))),
-                        Span::styled("Enter", theme.key_style(palette)),
-                        Span::raw(format!(" {}    ", t!("hints.save"))),
-                        Span::styled("Esc", theme.key_style(palette)),
-                        Span::raw(format!(" {}", t!("hints.back"))),
-                    ]),
+                    action_hint(
+                        theme,
+                        palette,
+                        &[
+                            ("↑/↓", t!("hints.select_field").to_string()),
+                            ("Enter", t!("hints.save").to_string()),
+                            ("Esc", t!("hints.back").to_string()),
+                        ],
+                    ),
                 ]);
 
-                let popup = Paragraph::new(content)
-                    .style(palette.text())
-                    .block(theme.dialog_block(&block_title, palette));
-
-                frame.render_widget(popup, area);
+                render_dialog(frame, area, &block_title, content, palette, theme);
             }
         }
     }

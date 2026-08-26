@@ -1,4 +1,8 @@
-use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
+use crate::ui::{
+    dialogs::{DialogView, render_dialog},
+    layout::centered,
+    theme::Theme,
+};
 
 use crate::app::App;
 use crate::app::dialog::MakeUserDialog;
@@ -8,7 +12,6 @@ use crate::ui::widgets::form::Form;
 use ratatui::{
     Frame,
     text::{Line, Span},
-    widgets::{Clear, Paragraph},
 };
 
 impl DialogView for MakeUserDialog {
@@ -16,8 +19,6 @@ impl DialogView for MakeUserDialog {
         let area = centered(frame.area(), 62, 20);
 
         let palette = theme.admin();
-
-        frame.render_widget(Clear, area);
 
         let form = Form::new(self.active_field)
             .add_field(t!("labels.name"), &self.name)
@@ -35,6 +36,7 @@ impl DialogView for MakeUserDialog {
                 theme.muted_style(palette),
             ),
             Line::from(""),
+            // Keep the navigation marker's selected styling explicit for this dialog.
             Line::from(vec![
                 Span::styled("↑/↓", theme.selected_style(palette)),
                 Span::raw(format!(" {}    ", t!("hints.select_field"))),
@@ -46,10 +48,6 @@ impl DialogView for MakeUserDialog {
         ]);
 
         let block_title = format!(" {} ", t!("dialogs.make_user.title"));
-        let popup = Paragraph::new(content)
-            .style(palette.text())
-            .block(theme.dialog_block(&block_title, palette));
-
-        frame.render_widget(popup, area);
+        render_dialog(frame, area, &block_title, content, palette, theme);
     }
 }

@@ -1,21 +1,19 @@
-use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
+use crate::ui::{
+    dialogs::{DialogView, action_hint, render_dialog},
+    layout::centered,
+    theme::Theme,
+};
 
 use crate::app::App;
 use crate::app::dialog::RevokeAdminDialog;
 use crate::ui::components::user_line;
-use ratatui::{
-    Frame,
-    text::{Line, Span},
-    widgets::{Clear, Paragraph},
-};
+use ratatui::{Frame, text::Line};
 
 impl DialogView for RevokeAdminDialog {
     fn draw(&self, frame: &mut Frame, _app: &App, theme: &Theme) {
         let area = centered(frame.area(), 54, 11);
 
         let palette = theme.admin();
-
-        frame.render_widget(Clear, area);
 
         let prompt = match &self.user {
             Some(user) => t!("dialogs.revoke_admin.prompt", name = user.name),
@@ -32,19 +30,17 @@ impl DialogView for RevokeAdminDialog {
                 theme.selected_style(palette),
             ),
             Line::from(""),
-            Line::from(vec![
-                Span::styled("Enter", theme.key_style(palette)),
-                Span::raw(format!(" {}    ", t!("hints.revoke"))),
-                Span::styled("Esc", theme.key_style(palette)),
-                Span::raw(format!(" {}", t!("hints.cancel"))),
-            ]),
+            action_hint(
+                theme,
+                palette,
+                &[
+                    ("Enter", t!("hints.revoke").to_string()),
+                    ("Esc", t!("hints.cancel").to_string()),
+                ],
+            ),
         ]);
 
         let block_title = format!(" {} ", t!("dialogs.revoke_admin.title"));
-        let popup = Paragraph::new(content)
-            .style(palette.text())
-            .block(theme.dialog_block(&block_title, palette));
-
-        frame.render_widget(popup, area);
+        render_dialog(frame, area, &block_title, content, palette, theme);
     }
 }

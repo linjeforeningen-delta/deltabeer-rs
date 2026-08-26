@@ -1,11 +1,14 @@
 use crate::app::App;
 use crate::app::dialog::MenuDialog;
 use crate::app::dialog::menu::{MenuKind, MenuLabel, MenuTitle};
-use crate::ui::{dialogs::DialogView, layout::centered, theme::Theme};
+use crate::ui::{
+    dialogs::{DialogView, action_hint, render_dialog},
+    layout::centered,
+    theme::Theme,
+};
 use ratatui::{
     Frame,
     text::{Line, Span},
-    widgets::{Clear, Paragraph},
 };
 
 impl DialogView for MenuDialog {
@@ -40,8 +43,6 @@ impl DialogView for MenuDialog {
         let height = self.options.len().saturating_add(4) as u16;
         let popup_area = centered(frame.area(), width, height);
 
-        frame.render_widget(Clear, popup_area);
-
         let mut lines = Vec::with_capacity(self.options.len() + 1);
 
         for option in &self.options {
@@ -56,18 +57,15 @@ impl DialogView for MenuDialog {
 
         lines.push(Line::from(""));
 
-        lines.push(Line::from(vec![
-            Span::styled("Esc", theme.key_style(palette)),
-            Span::raw(format!(" {}", t!("hints.back"))),
-        ]));
+        lines.push(action_hint(
+            theme,
+            palette,
+            &[("Esc", t!("hints.back").to_string())],
+        ));
 
         let title = format!(" {} ", title);
 
-        let popup = Paragraph::new(lines)
-            .style(palette.text())
-            .block(theme.dialog_block(&*title, palette));
-
-        frame.render_widget(popup, popup_area);
+        render_dialog(frame, popup_area, &title, lines, palette, theme);
     }
 }
 
