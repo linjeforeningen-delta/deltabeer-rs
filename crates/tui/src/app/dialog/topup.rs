@@ -14,7 +14,7 @@ pub(crate) struct TopUpDialog {
 }
 
 impl TopUpDialog {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             user: None,
             amount: TextInput::new(InputConstraint::Numeric),

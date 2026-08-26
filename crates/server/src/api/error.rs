@@ -6,7 +6,7 @@ use axum::{
 use delta_api::{ApiErrorCode, ApiErrorResponse};
 use delta_core::services::ServiceError;
 #[derive(Debug)]
-pub enum ApiError {
+pub(crate) enum ApiError {
     // Default client errors
     NotFound(&'static str),
     BadRequest(&'static str),

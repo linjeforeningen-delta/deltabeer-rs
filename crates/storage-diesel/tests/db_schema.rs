@@ -3,7 +3,7 @@ use diesel::sqlite::SqliteConnection;
 use std::path::Path;
 use std::process::{Command, Stdio};
 
-pub fn setup_test_db(path: &Path) -> SqliteConnection {
+fn setup_test_db(path: &Path) -> SqliteConnection {
     let db_url = path.to_str().unwrap();
 
     // Run migrations via diesel CLI (simple + reliable)

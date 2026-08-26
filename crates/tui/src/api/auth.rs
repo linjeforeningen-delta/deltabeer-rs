@@ -1,7 +1,7 @@
 pub(crate) use delta_api::{AdminTokenDto, Credentials};
 
 #[derive(Debug, Clone)]
-pub struct SessionToken(String);
+pub(crate) struct SessionToken(String);
 
 impl SessionToken {
     pub fn as_str(&self) -> &str {
@@ -10,10 +10,10 @@ impl SessionToken {
 }
 
 #[derive(Debug)]
-pub struct SingleUseToken(String);
+pub(crate) struct SingleUseToken(String);
 
 impl SingleUseToken {
-    pub fn as_str(&self) -> &str {
+    pub(crate) fn as_str(&self) -> &str {
         &self.0
     }
 }

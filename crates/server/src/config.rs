@@ -10,7 +10,7 @@ use std::{
 #[derive(Debug, Parser)]
 pub(crate) struct Args {
     #[arg(long, default_value = default_config_path())]
-    pub config: PathBuf,
+    pub(super) config: PathBuf,
 }
 
 const fn default_config_path() -> &'static str {
@@ -23,24 +23,24 @@ const fn default_config_path() -> &'static str {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Config {
-    pub server: ServerConfig,
-    pub auth: AuthConfig,
-    pub logging: LoggingConfig,
+    pub(super) server: ServerConfig,
+    pub(super) auth: AuthConfig,
+    pub(super) logging: LoggingConfig,
 }
 #[derive(Debug, Deserialize)]
 pub(crate) struct ServerConfig {
-    pub bind_addr: String,
-    pub database_url: String,
-    pub database_pool_size: u32,
+    pub(super) bind_addr: String,
+    pub(super) database_url: String,
+    pub(super) database_pool_size: u32,
 }
 #[derive(Debug, Deserialize)]
 pub(crate) struct AuthConfig {
-    pub single_use_token_ttl_seconds: i64,
-    pub admin_session_ttl_seconds: i64,
+    pub(super) single_use_token_ttl_seconds: i64,
+    pub(super) admin_session_ttl_seconds: i64,
 }
 #[derive(Debug, Deserialize)]
 pub(crate) struct LoggingConfig {
-    pub filter: String,
+    pub(super) filter: String,
 }
 
 impl Config {

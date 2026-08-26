@@ -9,12 +9,12 @@ use crossterm::event::{KeyCode, KeyEvent};
 
 #[derive(Debug)]
 pub(crate) struct UserDialog {
-    pub user: User,
-    pub amount: TextInput,
+    pub(crate) user: User,
+    pub(crate) amount: TextInput,
 }
 
 impl UserDialog {
-    pub fn new(user: User) -> Self {
+    pub(crate) fn new(user: User) -> Self {
         Self {
             user,
             amount: TextInput::new(InputConstraint::Numeric),

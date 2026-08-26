@@ -18,15 +18,15 @@ use delta_core::{
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-pub struct InMemoryRepo {
-    pub users: Mutex<HashMap<UserId, User>>,
-    pub admins: Mutex<HashMap<UserId, PasswordHash>>,
-    pub tokens: Mutex<HashMap<[u8; 32], (TokenData, DateTime<Utc>)>>,
-    pub transactions: Mutex<Vec<Transaction>>,
+pub(crate) struct InMemoryRepo {
+    pub(crate) users: Mutex<HashMap<UserId, User>>,
+    pub(crate) admins: Mutex<HashMap<UserId, PasswordHash>>,
+    pub(crate) tokens: Mutex<HashMap<[u8; 32], (TokenData, DateTime<Utc>)>>,
+    pub(crate) transactions: Mutex<Vec<Transaction>>,
 }
 
 impl InMemoryRepo {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             users: Mutex::new(HashMap::new()),
             admins: Mutex::new(HashMap::new()),
@@ -214,7 +214,7 @@ impl TransactionRepo for InMemoryRepo {
     }
 }
 
-pub struct TestClock(pub DateTime<Utc>);
+pub(crate) struct TestClock(pub(crate) DateTime<Utc>);
 impl Clock for TestClock {
     fn now(&self) -> DateTime<Utc> {
         self.0
@@ -224,15 +224,15 @@ impl Clock for TestClock {
     }
 }
 
-pub struct TestEnv {
-    pub repo: InMemoryRepo,
-    pub clock: TestClock,
-    pub ids: UuidIdGenerator,
-    pub tokens: OpaqueTokenSource,
+pub(crate) struct TestEnv {
+    pub(crate) repo: InMemoryRepo,
+    pub(crate) clock: TestClock,
+    pub(crate) ids: UuidIdGenerator,
+    pub(crate) tokens: OpaqueTokenSource,
 }
 
 impl TestEnv {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             repo: InMemoryRepo::new(),
             clock: TestClock(Utc::now()),
@@ -241,7 +241,7 @@ impl TestEnv {
         }
     }
 
-    pub fn ctx(&self) -> Ctx<'_, InMemoryRepo> {
+    pub(crate) fn ctx(&self) -> Ctx<'_, InMemoryRepo> {
         Ctx {
             repo: &self.repo,
             token_repo: &self.repo,

@@ -14,17 +14,17 @@ impl<T> StateRepoBounds for T where T: AdminRepo + TransactionRepo + UserRepo + 
 {}
 
 #[derive(Clone)]
-pub struct AppState {
-    pub repo: Arc<dyn StateRepoBounds>,
-    pub token_repo: Arc<dyn TokenRepo + Send + Sync>,
-    pub clock: Arc<dyn Clock + Send + Sync>,
-    pub ids: Arc<dyn IdGenerator + Send + Sync>,
-    pub tokens: Arc<dyn TokenSource + Send + Sync>,
-    pub auth_policy: AuthPolicy,
+pub(crate) struct AppState {
+    pub(crate) repo: Arc<dyn StateRepoBounds>,
+    pub(crate) token_repo: Arc<dyn TokenRepo + Send + Sync>,
+    pub(crate) clock: Arc<dyn Clock + Send + Sync>,
+    pub(crate) ids: Arc<dyn IdGenerator + Send + Sync>,
+    pub(crate) tokens: Arc<dyn TokenSource + Send + Sync>,
+    pub(crate) auth_policy: AuthPolicy,
 }
 
 impl AppState {
-    pub fn ctx(&self) -> Ctx<'_, dyn StateRepoBounds> {
+    pub(crate) fn ctx(&self) -> Ctx<'_, dyn StateRepoBounds> {
         Ctx {
             repo: &*self.repo,
             token_repo: &*self.token_repo,

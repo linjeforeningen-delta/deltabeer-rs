@@ -9,32 +9,32 @@ use delta_core::{domain::*, services::auth::AdminToken};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum MappingError {
+pub(crate) enum MappingError {
     #[error("Invalid token encoding")]
     InvalidTokenEncoding,
 }
 
-pub fn user_id_to_dto(value: &UserId) -> UserIdDto {
+pub(crate) fn user_id_to_dto(value: &UserId) -> UserIdDto {
     UserIdDto(value.0)
 }
-pub fn user_id_from_dto(value: UserIdDto) -> UserId {
+pub(crate) fn user_id_from_dto(value: UserIdDto) -> UserId {
     UserId(value.0)
 }
 
-pub fn role_to_dto(value: &Role) -> RoleDto {
+pub(crate) fn role_to_dto(value: &Role) -> RoleDto {
     match value {
         Role::Admin => RoleDto::Admin,
         Role::User => RoleDto::User,
     }
 }
-pub fn amount_to_dto(value: &Amount) -> AmountDto {
+pub(crate) fn amount_to_dto(value: &Amount) -> AmountDto {
     AmountDto(value.0)
 }
-pub fn amount_from_spend_dto(value: SpendRequestDto) -> Amount {
+pub(crate) fn amount_from_spend_dto(value: SpendRequestDto) -> Amount {
     Amount(value.0)
 }
 
-pub fn user_to_dto(value: &User) -> UserDto {
+pub(crate) fn user_to_dto(value: &User) -> UserDto {
     UserDto {
         id: user_id_to_dto(&value.id),
         name: value.name.clone(),
@@ -49,7 +49,7 @@ pub fn user_to_dto(value: &User) -> UserDto {
     }
 }
 
-pub fn user_patch_from_dto(value: UserPatchDto) -> delta_core::services::users::UpdateUser {
+pub(crate) fn user_patch_from_dto(value: UserPatchDto) -> delta_core::services::users::UpdateUser {
     delta_core::services::users::UpdateUser {
         name: value.name,
         username: value.username,
@@ -59,7 +59,7 @@ pub fn user_patch_from_dto(value: UserPatchDto) -> delta_core::services::users::
     }
 }
 
-pub fn transaction_to_dto(value: &Transaction) -> TransactionDto {
+pub(crate) fn transaction_to_dto(value: &Transaction) -> TransactionDto {
     match value {
         Transaction::Spend {
             id,
@@ -103,11 +103,11 @@ fn source_to_dto(value: TransactionSource) -> TransactionSourceDto {
     }
 }
 
-pub fn admin_token_to_dto(value: &AdminToken) -> AdminTokenDto {
+pub(crate) fn admin_token_to_dto(value: &AdminToken) -> AdminTokenDto {
     AdminTokenDto(BASE64_URL_SAFE_NO_PAD.encode(value.0))
 }
 
-pub fn admin_token_from_dto(value: AdminTokenDto) -> Result<AdminToken, MappingError> {
+pub(crate) fn admin_token_from_dto(value: AdminTokenDto) -> Result<AdminToken, MappingError> {
     let bytes = BASE64_URL_SAFE_NO_PAD
         .decode(value.0)
         .map_err(|_| MappingError::InvalidTokenEncoding)?;

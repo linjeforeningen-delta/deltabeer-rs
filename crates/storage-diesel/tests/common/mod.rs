@@ -2,7 +2,7 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use storage_diesel::{SqlitePool, create_pool};
 
-pub fn setup_test_db(path: &Path) -> SqlitePool {
+pub(crate) fn setup_test_db(path: &Path) -> SqlitePool {
     let db_url = path.to_str().unwrap();
 
     // Run migrations via diesel CLI (simple + reliable)

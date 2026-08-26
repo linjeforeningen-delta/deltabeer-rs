@@ -1,6 +1,6 @@
 mod doc;
 use axum::http::StatusCode;
-pub use doc::ApiDoc;
+pub(super) use doc::ApiDoc;
 
 use crate::api::{error::ApiError, mappings, response::ApiResult};
 use crate::state::AppState;
@@ -16,7 +16,7 @@ use delta_core::{
 };
 use uuid::Uuid;
 
-pub fn routes() -> Router<AppState> {
+pub(super) fn routes() -> Router<AppState> {
     Router::new()
         .route("/users", get(get_users))
         .route("/users/resolve/{ident}", get(resolve_user))

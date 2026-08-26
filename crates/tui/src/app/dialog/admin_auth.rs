@@ -14,18 +14,18 @@ pub(crate) struct AdminAuthDialog {
 }
 
 impl AdminAuthDialog {
-    pub fn new(admin: Option<AdminContext>) -> Self {
+    pub(crate) fn new(admin: Option<AdminContext>) -> Self {
         Self {
             admin,
             password: TextInput::new(InputConstraint::Any),
         }
     }
 
-    pub fn empty() -> Self {
+    pub(crate) fn empty() -> Self {
         Self::new(None)
     }
 
-    pub fn with_admin(admin: AdminContext) -> Self {
+    pub(crate) fn with_admin(admin: AdminContext) -> Self {
         Self::new(Some(admin))
     }
 }

@@ -11,7 +11,7 @@ pub(crate) mod v1;
 
 use crate::http::v1::ApiDoc as V1ApiDoc;
 
-pub fn routes(state: AppState) -> Router<AppState> {
+pub(crate) fn routes(state: AppState) -> Router<AppState> {
     Router::new()
         // global (non-versioned) health
         .route("/health", get(health))
@@ -62,4 +62,4 @@ async fn health() -> ApiResult<HealthResponse> {
         (path = "/v1", api = V1ApiDoc))
 )
 ]
-pub struct ApiDoc;
+pub(crate) struct ApiDoc;

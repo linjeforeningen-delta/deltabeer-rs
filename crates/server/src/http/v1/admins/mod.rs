@@ -1,5 +1,5 @@
 mod doc;
-pub use doc::ApiDoc;
+pub(super) use doc::ApiDoc;
 
 use crate::api::{error::ApiError, mappings, response::ApiResult};
 use crate::state::AppState;
@@ -20,7 +20,7 @@ use delta_api::{
 
 use delta_core::{domain::UserId, services, services::auth::AdminToken};
 
-pub fn routes(state: AppState) -> Router<AppState> {
+pub(super) fn routes(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/admins", get(get_admins))
         .nest(
@@ -41,9 +41,9 @@ pub fn routes(state: AppState) -> Router<AppState> {
 }
 
 #[derive(Clone)]
-pub struct AdminId(pub UserId);
+struct AdminId(UserId);
 
-pub async fn admin_auth_middleware(
+async fn admin_auth_middleware(
     State(state): State<AppState>,
     mut req: Request<Body>,
     next: Next,

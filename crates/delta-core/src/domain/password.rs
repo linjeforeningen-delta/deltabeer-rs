@@ -6,7 +6,7 @@ use argon2::{
 };
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct PasswordHash(pub String); // or Vec<u8>
+pub struct PasswordHash(pub(crate) String); // or Vec<u8>
 
 impl PasswordHash {
     pub fn parse(s: &str) -> Result<Self, DomainError> {
@@ -46,7 +46,7 @@ fn argon2_ctx() -> Argon2<'static> {
     Argon2::new(ARGON2_ALG, ARGON2_VERSION, params)
 }
 
-pub fn needs_rehash(hash: &PasswordHash) -> bool {
+pub(crate) fn needs_rehash(hash: &PasswordHash) -> bool {
     let parsed = Argon2PasswordHash::new(hash.as_str())
         .map_err(|_| DomainError::InvalidPasswordHash)
         .unwrap();
@@ -90,12 +90,15 @@ pub fn hash_password(password: &str) -> PasswordHash {
     PasswordHash(password_hash)
 }
 
-pub enum PasswordCheck {
+pub(crate) enum PasswordCheck {
     Verified,
     VerifiedAndNeedsRehash,
 }
 
-pub fn verify_password(password: &str, hash: &PasswordHash) -> Result<PasswordCheck, DomainError> {
+pub(crate) fn verify_password(
+    password: &str,
+    hash: &PasswordHash,
+) -> Result<PasswordCheck, DomainError> {
     let parsed_hash =
         Argon2PasswordHash::new(&hash.as_str()).map_err(|_| DomainError::InvalidPasswordHash)?;
 

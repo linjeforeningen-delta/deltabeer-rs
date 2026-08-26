@@ -1,3 +1,3 @@
-pub mod error;
-pub mod mappings;
-pub mod response;
+pub(crate) mod error;
+pub(crate) mod mappings;
+pub(crate) mod response;

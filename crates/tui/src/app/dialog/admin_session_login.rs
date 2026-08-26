@@ -14,7 +14,7 @@ pub(crate) struct AdminSessionLoginDialog {
 }
 
 impl AdminSessionLoginDialog {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             admin: None,
             password: TextInput::new(InputConstraint::Any),

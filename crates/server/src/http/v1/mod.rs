@@ -3,15 +3,11 @@ use crate::state::AppState;
 use axum::Router;
 use utoipa::OpenApi;
 
-pub mod admins;
-pub mod stats;
-pub mod users;
+pub(super) mod admins;
+pub(super) mod stats;
+pub(super) mod users;
 
-use admins::ApiDoc as AdminsApiDoc;
-use stats::ApiDoc as StatsApiDoc;
-use users::ApiDoc as UsersApiDoc;
-
-pub fn routes(state: AppState) -> Router<AppState> {
+pub(super) fn routes(state: AppState) -> Router<AppState> {
     Router::new()
         .merge(users::routes()) // /v1/users...
         .merge(admins::routes(state.clone())) // /v1/admins...
@@ -22,9 +18,9 @@ pub fn routes(state: AppState) -> Router<AppState> {
 #[derive(OpenApi)]
 #[openapi(
     nest(
-        (path = "/users", api = UsersApiDoc),
-        (path = "/admins", api = AdminsApiDoc),
-        (path = "/stats", api = StatsApiDoc),
+        (path = "/users", api = users::ApiDoc),
+        (path = "/admins", api = admins::ApiDoc),
+        (path = "/stats", api = stats::ApiDoc),
     )
 )]
-pub struct ApiDoc;
+pub(super) struct ApiDoc;
