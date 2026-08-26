@@ -739,6 +739,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "delta-api"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "utoipa",
+ "uuid",
+]
+
+[[package]]
 name = "delta-core"
 version = "0.1.0"
 dependencies = [
@@ -2981,9 +2991,9 @@ dependencies = [
  "base64 0.23.1",
  "chrono",
  "clap",
+ "delta-api",
  "delta-core",
  "serde",
- "serde_json",
  "serde_yml",
  "storage-diesel",
  "thiserror 2.0.20",
@@ -3676,6 +3686,7 @@ dependencies = [
  "chrono",
  "clap",
  "crossterm",
+ "delta-api",
  "image",
  "insa",
  "ratatui",
@@ -3684,7 +3695,6 @@ dependencies = [
  "serde",
  "serde_yml",
  "tokio",
- "uuid",
 ]
 
 [[package]]

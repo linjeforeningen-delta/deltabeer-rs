@@ -3,18 +3,15 @@ use axum::http::StatusCode;
 pub use doc::ApiDoc;
 
 use crate::api::error::ApiError;
+use crate::api::mappings;
 use crate::api::response::ApiResult;
-use crate::api::{
-    mappings,
-    transaction::{SpendRequestDto, TransactionDto},
-    user::{UserDto, UserIdDto},
-};
 use crate::state::AppState;
 use axum::{
     Json, Router,
     extract::{Json as JsonIn, Path, State},
     routing::{get, post},
 };
+use delta_api::{SpendRequestDto, TransactionDto, UserDto, UserIdDto};
 use delta_core::domain::{UserId, UserIdent};
 use delta_core::services;
 use uuid::Uuid;

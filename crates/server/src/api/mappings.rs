@@ -1,7 +1,10 @@
 //! Adapters between the HTTP contract and the backend domain.
 
-use super::{auth::AdminTokenDto, transaction::*, user::*};
 use base64::prelude::*;
+use delta_api::{
+    AdminTokenDto, AmountDto, RoleDto, SpendRequestDto, TransactionDto, TransactionIdDto,
+    TransactionKindDto, TransactionSourceDto, UserDto, UserIdDto, UserPatchDto,
+};
 use delta_core::{domain::*, services::auth::AdminToken};
 use thiserror::Error;
 

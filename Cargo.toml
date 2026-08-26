@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["crates/cli", "crates/delta-core",
-    "crates/delta-core",
+    "crates/delta-api",
     "crates/storage-diesel",
     "crates/server",
     "crates/tui",

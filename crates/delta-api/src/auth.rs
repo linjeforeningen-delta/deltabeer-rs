@@ -1,4 +1,4 @@
-use super::user::UserIdDto;
+use crate::UserIdDto;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

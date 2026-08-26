@@ -8,7 +8,6 @@ pub struct StatsDto {
     pub total_balance: u32,
     pub total_spent: u32,
 }
-
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct StatsSummaryDto {

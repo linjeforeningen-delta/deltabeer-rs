@@ -2,9 +2,9 @@ mod doc;
 pub use doc::ApiDoc;
 
 use crate::api::response::ApiResult;
-use crate::api::stats::*;
 use crate::state::AppState;
 use axum::{Router, extract::State, routing::get};
+use delta_api::{StatsDto, StatsSummaryDto};
 
 pub fn routes() -> Router<AppState> {
     Router::new().nest(

@@ -3,27 +3,8 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use delta_api::{ApiErrorCode, ApiErrorResponse};
 use delta_core::services::ServiceError;
-use serde::Serialize;
-use utoipa::ToSchema;
-
-#[derive(Debug, Clone, Copy, Serialize, ToSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ApiErrorCode {
-    InvalidUserIdentifier,
-    BadRequest,
-    NotFound,
-    Conflict,
-    Unauthorized,
-    Forbidden,
-    InternalError,
-}
-
-#[derive(Serialize, ToSchema)]
-pub struct ApiErrorResponse {
-    pub code: ApiErrorCode,
-    pub message: Option<String>,
-}
 #[derive(Debug)]
 pub enum ApiError {
     // Default client errors

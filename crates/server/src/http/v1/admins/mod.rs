@@ -2,13 +2,8 @@ mod doc;
 pub use doc::ApiDoc;
 
 use crate::api::error::ApiError;
+use crate::api::mappings;
 use crate::api::response::ApiResult;
-use crate::api::{
-    auth::{AdminTokenDto, Credentials, PasswordDto},
-    mappings,
-    transaction::{TopupRequestDto, TransactionDto},
-    user::{RoleDto, UserCreateRequestDto, UserDto, UserIdDto, UserPatchDto},
-};
 use crate::state::AppState;
 use axum::{
     Extension, Json, Router,
@@ -19,6 +14,10 @@ use axum::{
     middleware::Next,
     response::Response,
     routing::{get, patch, post},
+};
+use delta_api::{
+    AdminTokenDto, Credentials, PasswordDto, RoleDto, TopupRequestDto, TransactionDto,
+    UserCreateRequestDto, UserDto, UserIdDto, UserPatchDto,
 };
 
 use delta_core::domain::UserId;

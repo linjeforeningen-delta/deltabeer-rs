@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -8,11 +9,26 @@ use uuid::Uuid;
 #[schema(value_type = String, format = "uuid", example = "c56a4180-65aa-42ec-a945-5fd21dec0538")]
 pub struct UserIdDto(pub Uuid);
 
+impl fmt::Display for UserIdDto {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum RoleDto {
     Admin,
     User,
+}
+
+impl fmt::Display for RoleDto {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Admin => "Admin",
+            Self::User => "User",
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
