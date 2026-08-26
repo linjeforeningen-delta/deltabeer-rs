@@ -9,10 +9,6 @@ pub(crate) struct Palette {
     muted: Color,
     accent: Color,
     border: Color,
-
-    success: Color,
-    warning: Color,
-    error: Color,
 }
 
 impl Palette {
@@ -30,18 +26,6 @@ impl Palette {
 
     pub(crate) fn border(self) -> Style {
         Style::default().fg(self.border)
-    }
-
-    pub(crate) fn success(self) -> Style {
-        Style::default().fg(self.success)
-    }
-
-    pub(crate) fn warning(self) -> Style {
-        Style::default().fg(self.warning)
-    }
-
-    pub(crate) fn error(self) -> Style {
-        Style::default().fg(self.error)
     }
 }
 
@@ -80,9 +64,6 @@ impl Theme {
             muted: Color::DarkGray,
             accent,
             border,
-            success: Color::Green,
-            warning: Color::Yellow,
-            error: Color::LightRed,
         }
     }
 
