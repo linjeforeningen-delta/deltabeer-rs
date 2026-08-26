@@ -4,7 +4,6 @@ members = ["crates/cli", "crates/delta-core",
     "crates/delta-core",
     "crates/storage-diesel",
     "crates/server",
-    "crates/cli",
     "crates/tui",
 ]
 
