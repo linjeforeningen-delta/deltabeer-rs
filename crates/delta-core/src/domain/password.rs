@@ -46,38 +46,35 @@ fn argon2_ctx() -> Argon2<'static> {
     Argon2::new(ARGON2_ALG, ARGON2_VERSION, params)
 }
 
-pub(crate) fn needs_rehash(hash: &PasswordHash) -> bool {
-    let parsed = Argon2PasswordHash::new(hash.as_str())
-        .map_err(|_| DomainError::InvalidPasswordHash)
-        .unwrap();
+pub(crate) fn needs_rehash(hash: &PasswordHash) -> Result<bool, DomainError> {
+    let parsed =
+        Argon2PasswordHash::new(hash.as_str()).map_err(|_| DomainError::InvalidPasswordHash)?;
 
     if parsed.algorithm != ARGON2_ALG.ident() {
-        return true;
+        return Ok(true);
     }
 
     if parsed.version != Some(ARGON2_VERSION.into()) {
-        return true;
+        return Ok(true);
     }
 
-    let params = Params::try_from(&parsed)
-        .map_err(|_| DomainError::InvalidPasswordHash)
-        .unwrap();
+    let params = Params::try_from(&parsed).map_err(|_| DomainError::InvalidPasswordHash)?;
 
     if params.m_cost() < ARGON2_MEMORY_COST {
-        return true;
+        return Ok(true);
     }
 
     // time cost
     if params.t_cost() < ARGON2_TIME_COST {
-        return true;
+        return Ok(true);
     }
 
     // parallelism
     if params.p_cost() < ARGON2_PARALLELISM {
-        return true;
+        return Ok(true);
     }
 
-    false
+    Ok(false)
 }
 
 pub fn hash_password(password: &str) -> PasswordHash {
@@ -106,7 +103,7 @@ pub(crate) fn verify_password(
         .verify_password(password.as_bytes(), &parsed_hash)
         .map_err(|_| DomainError::InvalidPassword)?;
 
-    if needs_rehash(hash) {
+    if needs_rehash(hash)? {
         Ok(PasswordCheck::VerifiedAndNeedsRehash)
     } else {
         Ok(PasswordCheck::Verified)
@@ -139,7 +136,7 @@ mod tests {
             .to_string();
 
         let hash = PasswordHash(password_hash);
-        assert!(needs_rehash(&hash));
+        assert!(needs_rehash(&hash).unwrap());
 
         let result = verify_password(password, &hash).unwrap();
         assert!(matches!(result, PasswordCheck::VerifiedAndNeedsRehash));
@@ -164,6 +161,13 @@ mod tests {
             .to_string();
 
         let hash = PasswordHash(password_hash);
-        assert!(needs_rehash(&hash));
+        assert!(needs_rehash(&hash).unwrap());
+    }
+
+    #[test]
+    fn test_needs_rehash_invalid_hash() {
+        let hash = PasswordHash("not a password hash".to_owned());
+
+        assert_eq!(needs_rehash(&hash), Err(DomainError::InvalidPasswordHash));
     }
 }
