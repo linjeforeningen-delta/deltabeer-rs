@@ -1,6 +1,7 @@
-use crate::domain::DomainError;
-use crate::ports::TokenError;
-use crate::ports::repo::RepoError;
+use crate::{
+    domain::DomainError,
+    ports::{TokenError, repo::RepoError},
+};
 use thiserror::Error;
 
 #[derive(Debug, Error)]

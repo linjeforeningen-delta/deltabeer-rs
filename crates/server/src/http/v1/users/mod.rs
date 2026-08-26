@@ -2,9 +2,7 @@ mod doc;
 use axum::http::StatusCode;
 pub use doc::ApiDoc;
 
-use crate::api::error::ApiError;
-use crate::api::mappings;
-use crate::api::response::ApiResult;
+use crate::api::{error::ApiError, mappings, response::ApiResult};
 use crate::state::AppState;
 use axum::{
     Json, Router,
@@ -12,8 +10,10 @@ use axum::{
     routing::{get, post},
 };
 use delta_api::{SpendRequestDto, TransactionDto, UserDto, UserIdDto};
-use delta_core::domain::{UserId, UserIdent};
-use delta_core::services;
+use delta_core::{
+    domain::{UserId, UserIdent},
+    services,
+};
 use uuid::Uuid;
 
 pub fn routes() -> Router<AppState> {

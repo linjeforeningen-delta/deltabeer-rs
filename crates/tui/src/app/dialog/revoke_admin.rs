@@ -1,5 +1,4 @@
-use crate::api::request::ApiRequest;
-use crate::api::result::ApiResult;
+use crate::api::{request::ApiRequest, result::ApiResult};
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::{AppError, Message};
 use crate::model::User;

@@ -1,6 +1,8 @@
-use crate::domain::UserId;
-use crate::ports::{Clock, RepoError, TokenError, TokenRepo, TokenSource};
-use crate::services::auth::{AdminToken, TokenData, TokenKind};
+use crate::{
+    domain::UserId,
+    ports::{Clock, RepoError, TokenError, TokenRepo, TokenSource},
+    services::auth::{AdminToken, TokenData, TokenKind},
+};
 use async_trait::async_trait;
 use chrono::Duration;
 

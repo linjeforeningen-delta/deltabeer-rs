@@ -1,9 +1,10 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use std::fmt::Debug;
 
-use crate::app::dialog::menu::option::MenuOption;
-use crate::app::dialog::{AdminDialog, DialogBehavior, DialogResult};
-use crate::auth::{AdminContext, AuthState};
+use crate::{
+    app::dialog::{AdminDialog, DialogBehavior, DialogResult, menu::option::MenuOption},
+    auth::{AdminContext, AuthState},
+};
 
 #[derive(Debug)]
 pub(crate) struct MenuDialog {

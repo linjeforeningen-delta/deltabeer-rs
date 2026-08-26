@@ -1,5 +1,7 @@
-use crate::domain::{ActionRecord, AdminGrantId, PasswordHash, UserId};
-use crate::ports::repo::RepoError;
+use crate::{
+    domain::{ActionRecord, AdminGrantId, PasswordHash, UserId},
+    ports::repo::RepoError,
+};
 use async_trait::async_trait;
 
 pub struct Admin {

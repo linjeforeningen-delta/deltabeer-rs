@@ -1,5 +1,4 @@
-use crate::api::auth::AdminTokenDto;
-use crate::api::request::ApiRequest;
+use crate::api::{auth::AdminTokenDto, request::ApiRequest};
 
 pub(crate) struct ApiCommand {
     pub request: ApiRequest,

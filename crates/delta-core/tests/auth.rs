@@ -2,11 +2,13 @@ mod common;
 
 use chrono::{Duration, Utc};
 use common::TestEnv;
-use delta_core::domain::{Amount, AuthPolicy, Role, User, UserId};
-use delta_core::ports::repo::{AdminRepo, UserRepo};
-use delta_core::services::auth::{
-    grant_admin, issue_admin_pass, issue_admin_session, login, update_password,
-    validate_authorization,
+use delta_core::{
+    domain::{Amount, AuthPolicy, Role, User, UserId},
+    ports::repo::{AdminRepo, UserRepo},
+    services::auth::{
+        grant_admin, issue_admin_pass, issue_admin_session, login, update_password,
+        validate_authorization,
+    },
 };
 use uuid::Uuid;
 

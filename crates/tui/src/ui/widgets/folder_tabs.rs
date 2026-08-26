@@ -1,4 +1,5 @@
-use crate::{app::PageId, ui::theme::Palette};
+use crate::app::PageId;
+use crate::ui::theme::Palette;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,

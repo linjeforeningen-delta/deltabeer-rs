@@ -1,5 +1,4 @@
-use crate::api::request::ApiRequest;
-use crate::api::result::ApiResult;
+use crate::api::{request::ApiRequest, result::ApiResult};
 use crate::app::dialog::AdminDialog;
 use crate::app::dialog::menu::Language;
 use crate::app::{Dialog, DialogOpenMode, PageId};

@@ -1,9 +1,11 @@
-use crate::app::App;
-use crate::app::dialog::AdminAuthDialog;
-use crate::ui::dialogs::{DialogView, action_hint, render_dialog};
-use crate::ui::traits::Content;
-use crate::ui::widgets::form::Form;
-use crate::ui::{layout::centered, theme::Theme};
+use crate::app::{App, dialog::AdminAuthDialog};
+use crate::ui::{
+    dialogs::{DialogView, action_hint, render_dialog},
+    layout::centered,
+    theme::Theme,
+    traits::Content,
+    widgets::form::Form,
+};
 use ratatui::{Frame, text::Line};
 
 impl DialogView for AdminAuthDialog {

@@ -13,14 +13,12 @@ mod runtime;
 mod splash;
 mod ui;
 
-use crate::api::client::ApiClient;
-use crate::input::Input;
+use crate::{api::client::ApiClient, input::Input};
 use anyhow::Result;
 use app::App;
 use clap::Parser;
-use crossterm::event;
 use crossterm::{
-    execute,
+    event, execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{Terminal, backend::CrosstermBackend};

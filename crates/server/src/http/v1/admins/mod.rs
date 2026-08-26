@@ -1,9 +1,7 @@
 mod doc;
 pub use doc::ApiDoc;
 
-use crate::api::error::ApiError;
-use crate::api::mappings;
-use crate::api::response::ApiResult;
+use crate::api::{error::ApiError, mappings, response::ApiResult};
 use crate::state::AppState;
 use axum::{
     Extension, Json, Router,
@@ -20,9 +18,7 @@ use delta_api::{
     UserCreateRequestDto, UserDto, UserIdDto, UserPatchDto,
 };
 
-use delta_core::domain::UserId;
-use delta_core::services;
-use delta_core::services::auth::AdminToken;
+use delta_core::{domain::UserId, services, services::auth::AdminToken};
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()

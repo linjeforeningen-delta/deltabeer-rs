@@ -1,5 +1,7 @@
-use crate::ports::repo::RepoError;
-use crate::services::auth::{AdminToken, TokenData};
+use crate::{
+    ports::repo::RepoError,
+    services::auth::{AdminToken, TokenData},
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 

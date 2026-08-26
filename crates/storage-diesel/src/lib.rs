@@ -2,9 +2,11 @@ mod mappings;
 mod models;
 mod schema;
 
-use crate::mappings::MappingError;
-use crate::models::{
-    AdminTokenRow, NewAdminGrant, NewAdminToken, NewTransaction, NewUser, UserWithRoleRow,
+use crate::{
+    mappings::MappingError,
+    models::{
+        AdminTokenRow, NewAdminGrant, NewAdminToken, NewTransaction, NewUser, UserWithRoleRow,
+    },
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};

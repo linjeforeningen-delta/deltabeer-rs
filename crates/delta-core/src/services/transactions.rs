@@ -1,7 +1,8 @@
-use crate::domain::{Amount, Transaction, UserId};
-use crate::ports::repo::{TransactionRepo, UserRepo};
-use crate::services::ServiceError;
-use crate::services::context::Ctx;
+use crate::{
+    domain::{Amount, Transaction, UserId},
+    ports::repo::{TransactionRepo, UserRepo},
+    services::{ServiceError, context::Ctx},
+};
 
 pub async fn spend<R>(
     user_id: UserId,

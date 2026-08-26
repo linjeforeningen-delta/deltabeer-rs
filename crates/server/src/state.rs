@@ -1,8 +1,8 @@
-use delta_core::domain::AuthPolicy;
-use delta_core::ports::{
-    AdminRepo, Clock, IdGenerator, TokenRepo, TokenSource, TransactionRepo, UserRepo,
+use delta_core::{
+    domain::AuthPolicy,
+    ports::{AdminRepo, Clock, IdGenerator, TokenRepo, TokenSource, TransactionRepo, UserRepo},
+    services::context::Ctx,
 };
-use delta_core::services::context::Ctx;
 use std::sync::Arc;
 
 pub(crate) trait StateRepoBounds:

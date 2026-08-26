@@ -1,10 +1,14 @@
 mod common;
 
 use common::TestEnv;
-use delta_core::domain::{Amount, AuthPolicy, Role, User, UserId};
-use delta_core::ports::repo::{AdminRepo, UserRepo};
-use delta_core::services::auth::issue_admin_pass;
-use delta_core::services::transactions::{spend, top_up};
+use delta_core::{
+    domain::{Amount, AuthPolicy, Role, User, UserId},
+    ports::repo::{AdminRepo, UserRepo},
+    services::{
+        auth::issue_admin_pass,
+        transactions::{spend, top_up},
+    },
+};
 use uuid::Uuid;
 
 fn random_card_number() -> u32 {

@@ -2,8 +2,7 @@ use crate::domain::{
     ActionRecord, AuthPolicy, PasswordCheck, UserId, hash_password, verify_password,
 };
 use crate::ports::repo::{AdminRepo, UserRepo};
-use crate::services::ServiceError;
-use crate::services::context::Ctx;
+use crate::services::{ServiceError, context::Ctx};
 use chrono::{DateTime, Utc};
 
 const TOKEN_BYTE_SIZE: usize = 32;

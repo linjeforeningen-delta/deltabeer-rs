@@ -1,4 +1,5 @@
-use crate::{app::page::HomePage, ui::theme::Palette};
+use crate::app::page::HomePage;
+use crate::ui::theme::Palette;
 use ratatui::{Frame, layout::Rect, text::Line, widgets::Paragraph};
 
 impl HomePage {

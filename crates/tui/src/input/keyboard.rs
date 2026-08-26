@@ -1,6 +1,7 @@
-use crate::app::dialog::DialogResult;
-use crate::app::dialog::menu::preset;
-use crate::app::{App, Message, PageId};
+use crate::app::{
+    App, Message, PageId,
+    dialog::{DialogResult, menu::preset},
+};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {

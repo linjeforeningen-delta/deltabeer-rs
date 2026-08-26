@@ -1,4 +1,5 @@
-use crate::{app::page::StatsPage, ui::theme::Palette};
+use crate::app::page::StatsPage;
+use crate::ui::theme::Palette;
 use ratatui::{Frame, layout::Rect, style::Modifier, text::Line, widgets::Paragraph};
 
 impl StatsPage {

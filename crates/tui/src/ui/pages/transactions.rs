@@ -1,4 +1,5 @@
-use crate::{app::page::TransactionsPage, ui::theme::Palette};
+use crate::app::page::TransactionsPage;
+use crate::ui::theme::Palette;
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},

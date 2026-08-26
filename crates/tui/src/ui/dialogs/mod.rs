@@ -1,6 +1,5 @@
 use crate::app::App;
-use crate::ui::theme::Palette;
-use crate::ui::theme::Theme;
+use crate::ui::theme::{Palette, Theme};
 use ratatui::{
     Frame,
     layout::Rect,

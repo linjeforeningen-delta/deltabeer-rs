@@ -7,8 +7,7 @@ mod traits;
 mod widgets;
 
 use crate::app::App;
-use crate::ui::theme::THEME;
-use crate::ui::widgets::folder_tabs::FolderPageFrame;
+use crate::ui::{theme::THEME, widgets::folder_tabs::FolderPageFrame};
 use ratatui::layout::Margin;
 use ratatui::widgets::BorderType;
 use ratatui::{

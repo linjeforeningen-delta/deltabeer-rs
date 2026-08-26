@@ -2,9 +2,11 @@ mod common;
 
 use chrono::NaiveDate;
 use common::TestEnv;
-use delta_core::domain::{Amount, Role, User, UserId};
-use delta_core::ports::repo::{AdminRepo, UserRepo};
-use delta_core::services::users::{CreateUser, UpdateUser, create_user, resolve_user, update_user};
+use delta_core::{
+    domain::{Amount, Role, User, UserId},
+    ports::repo::{AdminRepo, UserRepo},
+    services::users::{CreateUser, UpdateUser, create_user, resolve_user, update_user},
+};
 use uuid::Uuid;
 
 fn random_card_number() -> u32 {

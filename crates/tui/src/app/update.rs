@@ -1,6 +1,4 @@
-use crate::api::command::ApiCommand;
-use crate::api::request::ApiRequest;
-use crate::api::result::ApiResult;
+use crate::api::{command::ApiCommand, request::ApiRequest, result::ApiResult};
 use crate::app::dialog::menu::{set_locale, toggle_locale};
 use crate::app::dialog::{DialogResult, UserDialog};
 use crate::app::{App, AppError, DialogOpenMode, Message};

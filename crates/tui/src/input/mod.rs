@@ -1,10 +1,8 @@
 mod keyboard;
 mod scanner;
 
-use crate::{
-    app::{App, Message},
-    input::scanner::{Scanner, ScannerResult},
-};
+use crate::app::{App, Message};
+use crate::input::scanner::{Scanner, ScannerResult};
 use crossterm::event::KeyEvent;
 use std::time::Duration;
 

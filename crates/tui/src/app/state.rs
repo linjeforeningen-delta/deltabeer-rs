@@ -1,10 +1,9 @@
-use crate::api::auth::SingleUseToken;
-use crate::api::command::ApiCommand;
-use crate::api::request::ApiRequest;
+use crate::api::{auth::SingleUseToken, command::ApiCommand, request::ApiRequest};
 use crate::app::DialogOpenMode;
-use crate::app::dialog::AdminAuthDialog;
-use crate::app::dialog::DialogStack;
-use crate::app::page::{Page, PageId};
+use crate::app::{
+    dialog::{AdminAuthDialog, DialogStack},
+    page::{Page, PageId},
+};
 use crate::auth::{AdminContext, AuthState};
 
 pub(crate) struct App {

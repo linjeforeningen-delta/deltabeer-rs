@@ -1,8 +1,10 @@
-use crate::app::App;
-use crate::app::dialog::TopUpDialog;
-use crate::ui::components::user_line;
-use crate::ui::dialogs::{DialogView, action_hint, render_dialog};
-use crate::ui::{layout::centered, theme::Theme};
+use crate::app::{App, dialog::TopUpDialog};
+use crate::ui::{
+    components::user_line,
+    dialogs::{DialogView, action_hint, render_dialog},
+    layout::centered,
+    theme::Theme,
+};
 use ratatui::prelude::*;
 
 impl DialogView for TopUpDialog {

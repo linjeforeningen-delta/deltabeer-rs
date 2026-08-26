@@ -1,7 +1,9 @@
 use crate::api::request::ApiRequest;
-use crate::app::dialog::{AdminDialog, DialogBehavior, DialogResult};
-use crate::app::fields::input::InputConstraint;
 use crate::app::{Message, TextInput};
+use crate::app::{
+    dialog::{AdminDialog, DialogBehavior, DialogResult},
+    fields::input::InputConstraint,
+};
 use crate::auth::AdminContext;
 use crossterm::event::{KeyCode, KeyEvent};
 

@@ -1,5 +1,7 @@
-use crate::domain::{ActionRecord, User, UserId};
-use crate::ports::repo::RepoError;
+use crate::{
+    domain::{ActionRecord, User, UserId},
+    ports::repo::RepoError,
+};
 use async_trait::async_trait;
 
 #[async_trait]

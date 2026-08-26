@@ -1,12 +1,14 @@
-use crate::app::App;
-use crate::app::dialog::{UpdateUserDialog, UpdateUserStage};
-use crate::ui::components::card_line;
-use crate::ui::traits::Content;
-use crate::ui::widgets::form::Form;
+use crate::app::{
+    App,
+    dialog::{UpdateUserDialog, UpdateUserStage},
+};
 use crate::ui::{
+    components::card_line,
     dialogs::{DialogView, action_hint, render_dialog},
     layout::centered,
     theme::Theme,
+    traits::Content,
+    widgets::form::Form,
 };
 use ratatui::{Frame, text::Line};
 

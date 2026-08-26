@@ -1,8 +1,10 @@
-use crate::app::App;
-use crate::app::dialog::UserDialog;
+use crate::app::{App, dialog::UserDialog};
 use crate::model::Role;
-use crate::ui::dialogs::{DialogView, action_hint, render_dialog};
-use crate::ui::{layout::centered, theme::Theme};
+use crate::ui::{
+    dialogs::{DialogView, action_hint, render_dialog},
+    layout::centered,
+    theme::Theme,
+};
 use ratatui::{
     Frame,
     text::{Line, Span},

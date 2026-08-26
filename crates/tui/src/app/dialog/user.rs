@@ -1,8 +1,9 @@
 use crate::api::request::ApiRequest;
-use crate::app::dialog::menu::preset::admin;
-use crate::app::dialog::{DialogBehavior, DialogResult};
-use crate::app::fields::input::InputConstraint;
 use crate::app::{DialogOpenMode, Message, TextInput};
+use crate::app::{
+    dialog::{DialogBehavior, DialogResult, menu::preset::admin},
+    fields::input::InputConstraint,
+};
 use crate::model::{Role, User};
 use crossterm::event::{KeyCode, KeyEvent};
 

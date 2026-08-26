@@ -1,8 +1,8 @@
-use crate::api::client::ApiClient;
+use crate::api::{self, client::ApiClient};
 use crate::app::{App, Message};
 use crate::input::Input;
 use crate::splash::Splash;
-use crate::{api, ui};
+use crate::ui;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use ratatui::Frame;
 use std::time::{Duration, Instant};

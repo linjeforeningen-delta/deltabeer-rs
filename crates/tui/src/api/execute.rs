@@ -1,10 +1,8 @@
-use crate::api::auth::Credentials;
-use crate::api::command::ApiCommand;
-use crate::api::mappings;
-use crate::api::request::ApiRequest;
-use crate::api::result::ApiResult;
-use crate::app::AppError;
-use crate::{api::client::ApiClient, app::Message};
+use crate::api::{
+    auth::Credentials, client::ApiClient, command::ApiCommand, mappings, request::ApiRequest,
+    result::ApiResult,
+};
+use crate::app::{AppError, Message};
 
 pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Message {
     match command.request {

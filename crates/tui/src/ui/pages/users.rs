@@ -1,4 +1,5 @@
-use crate::{app::page::UsersPage, ui::theme::Palette};
+use crate::app::page::UsersPage;
+use crate::ui::theme::Palette;
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},

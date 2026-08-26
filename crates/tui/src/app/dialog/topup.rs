@@ -1,8 +1,9 @@
-use crate::api::request::ApiRequest;
-use crate::api::result::ApiResult;
-use crate::app::dialog::{DialogBehavior, DialogResult};
-use crate::app::fields::input::InputConstraint;
+use crate::api::{request::ApiRequest, result::ApiResult};
 use crate::app::{AppError, Message, TextInput};
+use crate::app::{
+    dialog::{DialogBehavior, DialogResult},
+    fields::input::InputConstraint,
+};
 use crate::model::User;
 use crossterm::event::{KeyCode, KeyEvent};
 
