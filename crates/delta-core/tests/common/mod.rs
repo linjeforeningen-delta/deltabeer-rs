@@ -214,7 +214,7 @@ impl TransactionRepo for InMemoryRepo {
     }
 }
 
-pub(crate) struct TestClock(pub(crate) DateTime<Utc>);
+pub(crate) struct TestClock(pub DateTime<Utc>);
 impl Clock for TestClock {
     fn now(&self) -> DateTime<Utc> {
         self.0
@@ -225,14 +225,14 @@ impl Clock for TestClock {
 }
 
 pub(crate) struct TestEnv {
-    pub(crate) repo: InMemoryRepo,
-    pub(crate) clock: TestClock,
+    pub repo: InMemoryRepo,
+    pub clock: TestClock,
     pub(crate) ids: UuidIdGenerator,
     pub(crate) tokens: OpaqueTokenSource,
 }
 
 impl TestEnv {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             repo: InMemoryRepo::new(),
             clock: TestClock(Utc::now()),
@@ -241,7 +241,7 @@ impl TestEnv {
         }
     }
 
-    pub(crate) fn ctx(&self) -> Ctx<'_, InMemoryRepo> {
+    pub fn ctx(&self) -> Ctx<'_, InMemoryRepo> {
         Ctx {
             repo: &self.repo,
             token_repo: &self.repo,
