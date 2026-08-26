@@ -122,7 +122,7 @@ mod tests {
         let password = "password123";
         let hash = hash_password(password);
         let result = verify_password(password, &hash).unwrap();
-        matches!(result, PasswordCheck::Verified);
+        assert!(matches!(result, PasswordCheck::Verified));
     }
 
     #[test]
