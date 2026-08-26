@@ -14,7 +14,7 @@ impl Modify for SecurityAddon {
             SecurityScheme::Http(
                 HttpBuilder::new()
                     .scheme(HttpAuthScheme::Bearer)
-                    .bearer_format("JWT") // or "opaque"
+                    .bearer_format("opaque")
                     .description(Some("Admin authorization using Bearer token".to_string()))
                     .build(),
             ),
