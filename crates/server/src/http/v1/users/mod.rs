@@ -4,7 +4,11 @@ pub use doc::ApiDoc;
 
 use crate::api::error::ApiError;
 use crate::api::response::ApiResult;
-use crate::api::{mappings::*, transaction::*, user::*};
+use crate::api::{
+    mappings,
+    transaction::{SpendRequestDto, TransactionDto},
+    user::{UserDto, UserIdDto},
+};
 use crate::state::AppState;
 use axum::{
     Json, Router,
@@ -51,7 +55,7 @@ async fn get_users(State(state): State<AppState>) -> ApiResult<Vec<UserDto>> {
     let users = services::users::list_users(&state.ctx()).await?;
     Ok((
         StatusCode::OK,
-        Json(users.iter().map(user_to_dto).collect()),
+        Json(users.iter().map(mappings::user_to_dto).collect()),
     ))
 }
 
@@ -75,7 +79,7 @@ async fn resolve_user(
 
     let user_id = services::users::resolve_user(user_ident, &state.ctx()).await?;
 
-    Ok((StatusCode::OK, Json(user_id_to_dto(&user_id))))
+    Ok((StatusCode::OK, Json(mappings::user_id_to_dto(&user_id))))
 }
 
 #[utoipa::path(
@@ -93,9 +97,10 @@ async fn get_user(
     State(state): State<AppState>,
     Path(user_id): Path<UserIdDto>,
 ) -> ApiResult<UserDto> {
-    let user = services::users::view_user(user_id_from_dto(user_id), &state.ctx()).await?;
+    let user =
+        services::users::view_user(mappings::user_id_from_dto(user_id), &state.ctx()).await?;
 
-    Ok((StatusCode::OK, Json(user_to_dto(&user))))
+    Ok((StatusCode::OK, Json(mappings::user_to_dto(&user))))
 }
 
 #[utoipa::path(
@@ -115,8 +120,12 @@ async fn spend(
     Path(user_id): Path<UserIdDto>,
     JsonIn(payload): JsonIn<SpendRequestDto>,
 ) -> ApiResult<TransactionDto> {
-    let amount = amount_from_spend_dto(payload);
+    let amount = mappings::amount_from_spend_dto(payload);
     let transaction =
-        services::transactions::spend(user_id_from_dto(user_id), amount, &state.ctx()).await?;
-    Ok((StatusCode::OK, Json(transaction_to_dto(&transaction))))
+        services::transactions::spend(mappings::user_id_from_dto(user_id), amount, &state.ctx())
+            .await?;
+    Ok((
+        StatusCode::OK,
+        Json(mappings::transaction_to_dto(&transaction)),
+    ))
 }
