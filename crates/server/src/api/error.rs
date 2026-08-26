@@ -7,9 +7,21 @@ use delta_core::services::ServiceError;
 use serde::Serialize;
 use utoipa::ToSchema;
 
+#[derive(Debug, Clone, Copy, Serialize, ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ApiErrorCode {
+    InvalidUserIdentifier,
+    BadRequest,
+    NotFound,
+    Conflict,
+    Unauthorized,
+    Forbidden,
+    InternalError,
+}
+
 #[derive(Serialize, ToSchema)]
-pub struct ErrorBody {
-    pub code: &'static str,
+pub struct ApiErrorResponse {
+    pub code: ApiErrorCode,
     pub message: Option<String>,
 }
 #[derive(Debug)]
@@ -29,15 +41,15 @@ pub enum ApiError {
 }
 
 impl ApiError {
-    fn code(&self) -> &'static str {
+    fn code(&self) -> ApiErrorCode {
         match self {
-            ApiError::InvalidUserIdentifier => "invalid_user_identifier",
-            ApiError::BadRequest(_) => "bad_request",
-            ApiError::NotFound(_) => "not_found",
-            ApiError::Conflict(_) => "conflict",
-            ApiError::Unauthorized(_) => "unauthorized",
-            ApiError::Forbidden(_) => "forbidden",
-            ApiError::Internal(_) => "internal_error",
+            ApiError::InvalidUserIdentifier => ApiErrorCode::InvalidUserIdentifier,
+            ApiError::BadRequest(_) => ApiErrorCode::BadRequest,
+            ApiError::NotFound(_) => ApiErrorCode::NotFound,
+            ApiError::Conflict(_) => ApiErrorCode::Conflict,
+            ApiError::Unauthorized(_) => ApiErrorCode::Unauthorized,
+            ApiError::Forbidden(_) => ApiErrorCode::Forbidden,
+            ApiError::Internal(_) => ApiErrorCode::InternalError,
         }
     }
 
@@ -55,7 +67,7 @@ impl ApiError {
 }
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
-        let body = ErrorBody {
+        let body = ApiErrorResponse {
             code: self.code(),
             message: match self {
                 ApiError::BadRequest(msg)

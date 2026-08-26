@@ -1,8 +1,8 @@
 mod doc;
 pub use doc::ApiDoc;
 
-use super::types::*;
 use crate::api::response::ApiResult;
+use crate::api::stats::*;
 use crate::state::AppState;
 use axum::{Router, extract::State, routing::get};
 

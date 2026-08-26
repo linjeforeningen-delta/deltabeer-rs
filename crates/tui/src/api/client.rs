@@ -5,6 +5,7 @@ use serde::de::DeserializeOwned;
 
 use crate::api::models::auth::SessionToken;
 use crate::api::models::auth::{AdminToken, Credentials, SingleUseToken};
+use crate::api::models::error::ApiErrorResponse;
 use crate::api::models::transaction::Transaction;
 use crate::api::models::user::{User, UserCreateRequest, UserId, UserPatch};
 
@@ -54,16 +55,12 @@ impl ApiClient {
     }
 
     async fn api_error(status: StatusCode, response: reqwest::Response) -> anyhow::Error {
-        let text = response.text().await.ok();
-
-        match text {
-            Some(body) if !body.is_empty() => {
-                anyhow!("HTTP {status}: {body}")
-            }
-
-            _ => {
-                anyhow!("HTTP {status}: API request failed")
-            }
+        match response.json::<ApiErrorResponse>().await {
+            Ok(error) => match error.message {
+                Some(message) => anyhow!("HTTP {status} [{}]: {message}", error.code),
+                None => anyhow!("HTTP {status} [{}]", error.code),
+            },
+            Err(_) => anyhow!("HTTP {status}: API request failed"),
         }
     }
 }

@@ -1,9 +1,9 @@
 mod doc;
 pub use doc::ApiDoc;
 
-use super::types::*;
+use crate::api::error::ApiError;
 use crate::api::response::ApiResult;
-use crate::http::v1::types::UserDto;
+use crate::api::{auth::*, mappings::*, transaction::*, user::*};
 use crate::state::AppState;
 use axum::{
     Extension, Json, Router,
@@ -16,7 +16,7 @@ use axum::{
     routing::{get, patch, post},
 };
 
-use delta_core::domain::{Amount, UserId};
+use delta_core::domain::UserId;
 use delta_core::services;
 use delta_core::services::auth::AdminToken;
 
@@ -47,7 +47,7 @@ pub async fn admin_auth_middleware(
     State(state): State<AppState>,
     mut req: Request<Body>,
     next: Next,
-) -> Result<Response, StatusCode> {
+) -> Result<Response, ApiError> {
     let path = req.uri().path();
 
     // Allow unauthenticated access to /admins/pass
@@ -63,18 +63,17 @@ pub async fn admin_auth_middleware(
 
     let token = match auth_header.and_then(|h| h.strip_prefix("Bearer ")) {
         Some(token) => token,
-        None => return Err(StatusCode::UNAUTHORIZED),
+        None => return Err(ApiError::Unauthorized("Not authorized")),
     };
 
     // Wrap token (no validation yet)
-    let admin_token: AdminToken = AdminTokenDto(token.to_string())
-        .try_into()
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let admin_token: AdminToken = admin_token_from_dto(AdminTokenDto(token.to_string()))
+        .map_err(|_| ApiError::Unauthorized("Not authorized"))?;
 
     // Validate token via core
     let admin_id = services::auth::validate_authorization(admin_token.clone(), &state.ctx())
         .await
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+        .map_err(|_| ApiError::Unauthorized("Not authorized"))?;
 
     // Attach admin identity to request
     req.extensions_mut().insert(AdminId(admin_id));
@@ -95,7 +94,7 @@ async fn get_admins(State(state): State<AppState>) -> ApiResult<Vec<UserDto>> {
     let admins = services::users::list_admins(&state.ctx()).await?;
     Ok((
         StatusCode::OK,
-        Json(admins.iter().map(UserDto::from).collect()),
+        Json(admins.iter().map(user_to_dto).collect()),
     ))
 }
 
@@ -113,13 +112,13 @@ async fn pass(
     State(state): State<AppState>,
     JsonIn(payload): JsonIn<Credentials>,
 ) -> ApiResult<AdminTokenDto> {
-    let admin_id = UserId::from(payload.user_id);
+    let admin_id = user_id_from_dto(payload.user_id);
     let password = payload.password;
     let token =
         services::auth::issue_admin_pass(admin_id, password, &state.auth_policy, &state.ctx())
             .await?;
 
-    Ok((StatusCode::OK, Json(AdminTokenDto::from(&token))))
+    Ok((StatusCode::OK, Json(admin_token_to_dto(&token))))
 }
 
 #[utoipa::path(
@@ -136,7 +135,7 @@ async fn login(
 ) -> ApiResult<AdminTokenDto> {
     let token =
         services::auth::issue_admin_session(admin_id, &state.auth_policy, &state.ctx()).await?;
-    Ok((StatusCode::OK, Json(AdminTokenDto::from(&token))))
+    Ok((StatusCode::OK, Json(admin_token_to_dto(&token))))
 }
 
 #[utoipa::path(
@@ -189,7 +188,7 @@ async fn new_user(
     .await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
-    Ok((StatusCode::OK, Json(UserDto::from(&user))))
+    Ok((StatusCode::OK, Json(user_to_dto(&user))))
 }
 
 #[utoipa::path(
@@ -210,23 +209,17 @@ async fn update_user(
     Path(user_id): Path<UserIdDto>,
     JsonIn(payload): JsonIn<UserPatchDto>,
 ) -> ApiResult<UserDto> {
-    let user_id = UserId::from(user_id);
+    let user_id = user_id_from_dto(user_id);
     services::users::update_user(
         admin_id,
         user_id,
-        services::users::UpdateUser {
-            name: payload.name,
-            username: payload.username,
-            program: payload.program,
-            card_number: payload.card_number,
-            comments: payload.comments,
-        },
+        user_patch_from_dto(payload),
         &state.ctx(),
     )
     .await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
-    Ok((StatusCode::OK, Json(UserDto::from(&user))))
+    Ok((StatusCode::OK, Json(user_to_dto(&user))))
 }
 
 #[utoipa::path(
@@ -248,13 +241,13 @@ async fn topup(
     JsonIn(payload): JsonIn<TopupRequestDto>,
 ) -> ApiResult<TransactionDto> {
     let transaction = services::transactions::top_up(
-        UserId::from(user_id),
-        Amount(payload.0),
+        user_id_from_dto(user_id),
+        delta_core::domain::Amount(payload.0),
         admin_id,
         &state.ctx(),
     )
     .await?;
-    Ok((StatusCode::OK, Json(TransactionDto::from(&transaction))))
+    Ok((StatusCode::OK, Json(transaction_to_dto(&transaction))))
 }
 
 #[utoipa::path(
@@ -275,13 +268,13 @@ async fn grant_admin(
     Path(user_id): Path<UserIdDto>,
     JsonIn(payload): JsonIn<PasswordDto>,
 ) -> ApiResult<UserDto> {
-    let user_id = UserId::from(user_id);
+    let user_id = user_id_from_dto(user_id);
     let password = payload.0;
 
     services::auth::grant_admin(admin_id, user_id, password, &state.ctx()).await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
-    Ok((StatusCode::OK, Json(UserDto::from(&user))))
+    Ok((StatusCode::OK, Json(user_to_dto(&user))))
 }
 
 #[utoipa::path(
@@ -300,9 +293,9 @@ async fn revoke_admin(
     Extension(AdminId(admin_id)): Extension<AdminId>,
     Path(user_id): Path<UserIdDto>,
 ) -> ApiResult<UserDto> {
-    let user_id = UserId::from(user_id);
+    let user_id = user_id_from_dto(user_id);
     services::auth::revoke_admin(admin_id, user_id, &state.ctx()).await?;
 
     let user = services::users::view_user(user_id, &state.ctx()).await?;
-    Ok((StatusCode::OK, Json(UserDto::from(&user))))
+    Ok((StatusCode::OK, Json(user_to_dto(&user))))
 }

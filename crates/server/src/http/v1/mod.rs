@@ -4,9 +4,7 @@ use axum::Router;
 use utoipa::OpenApi;
 
 pub mod admins;
-mod mappings;
 pub mod stats;
-mod types;
 pub mod users;
 
 use admins::ApiDoc as AdminsApiDoc;
