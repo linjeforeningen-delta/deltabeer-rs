@@ -1,13 +1,48 @@
-use anyhow::{Context, Result, anyhow};
 use chrono::NaiveDate;
 use reqwest::{Client, Method, RequestBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 
-use crate::api::models::auth::SessionToken;
-use crate::api::models::auth::{AdminToken, Credentials, SingleUseToken};
-use crate::api::models::error::ApiErrorResponse;
-use crate::api::models::transaction::Transaction;
-use crate::api::models::user::{User, UserCreateRequest, UserId, UserPatch};
+use crate::api::auth::{AdminTokenDto, Credentials, SessionToken, SingleUseToken};
+use delta_api::{
+    ApiErrorCode, ApiErrorResponse, TransactionDto, UserCreateRequestDto, UserDto, UserIdDto,
+    UserPatchDto,
+};
+
+#[derive(Debug)]
+pub(crate) enum ApiClientError {
+    Transport {
+        message: String,
+    },
+    Api {
+        status: StatusCode,
+        code: ApiErrorCode,
+        message: Option<String>,
+    },
+    InvalidResponse {
+        message: String,
+    },
+}
+
+impl std::fmt::Display for ApiClientError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Transport { message } => write!(f, "API request failed: {message}"),
+            Self::Api {
+                status,
+                code,
+                message: Some(message),
+            } => write!(f, "HTTP {status} [{code}]: {message}"),
+            Self::Api {
+                status,
+                code,
+                message: None,
+            } => write!(f, "HTTP {status} [{code}]"),
+            Self::InvalidResponse { message } => write!(f, "Invalid API response: {message}"),
+        }
+    }
+}
+
+type Result<T> = std::result::Result<T, ApiClientError>;
 
 #[derive(Clone)]
 pub(crate) struct ApiClient {
@@ -31,7 +66,12 @@ impl ApiClient {
     where
         T: DeserializeOwned,
     {
-        let response = request.send().await.context("API request failed")?;
+        let response = request
+            .send()
+            .await
+            .map_err(|error| ApiClientError::Transport {
+                message: error.to_string(),
+            })?;
 
         let status = response.status();
 
@@ -39,11 +79,21 @@ impl ApiClient {
             return Err(Self::api_error(status, response).await);
         }
 
-        response.json::<T>().await.context("Invalid API response")
+        response
+            .json::<T>()
+            .await
+            .map_err(|error| ApiClientError::InvalidResponse {
+                message: error.to_string(),
+            })
     }
 
     async fn empty(&self, request: RequestBuilder) -> Result<()> {
-        let response = request.send().await.context("API request failed")?;
+        let response = request
+            .send()
+            .await
+            .map_err(|error| ApiClientError::Transport {
+                message: error.to_string(),
+            })?;
 
         let status = response.status();
 
@@ -54,33 +104,36 @@ impl ApiClient {
         Ok(())
     }
 
-    async fn api_error(status: StatusCode, response: reqwest::Response) -> anyhow::Error {
+    async fn api_error(status: StatusCode, response: reqwest::Response) -> ApiClientError {
         match response.json::<ApiErrorResponse>().await {
-            Ok(error) => match error.message {
-                Some(message) => anyhow!("HTTP {status} [{}]: {message}", error.code),
-                None => anyhow!("HTTP {status} [{}]", error.code),
+            Ok(error) => ApiClientError::Api {
+                status,
+                code: error.code,
+                message: error.message,
             },
-            Err(_) => anyhow!("HTTP {status}: API request failed"),
+            Err(error) => ApiClientError::InvalidResponse {
+                message: error.to_string(),
+            },
         }
     }
 }
 
 impl ApiClient {
-    pub(crate) async fn user(&self, user_id: UserId) -> Result<User> {
+    pub(crate) async fn user(&self, user_id: UserIdDto) -> Result<UserDto> {
         self.json(self.request(Method::GET, &format!("/v1/users/{user_id}")))
             .await
     }
 
-    pub(crate) async fn resolve_user(&self, identifier: &str) -> Result<UserId> {
+    pub(crate) async fn resolve_user(&self, identifier: &str) -> Result<UserIdDto> {
         self.json(self.request(Method::GET, &format!("/v1/users/resolve/{identifier}")))
             .await
     }
 
-    pub(crate) async fn users(&self) -> Result<Vec<User>> {
+    pub(crate) async fn users(&self) -> Result<Vec<UserDto>> {
         self.json(self.request(Method::GET, "/v1/users")).await
     }
 
-    pub(crate) async fn spend(&self, user_id: &UserId, amount: u32) -> Result<Transaction> {
+    pub(crate) async fn spend(&self, user_id: &UserIdDto, amount: u32) -> Result<TransactionDto> {
         self.json(
             self.request(Method::POST, &format!("/v1/users/{user_id}/spend"))
                 .json(&amount),
@@ -94,11 +147,10 @@ impl ApiClient {
         &self,
         credentials: &Credentials,
     ) -> Result<SingleUseToken> {
-        let admin_token: AdminToken = self
+        let admin_token: AdminTokenDto = self
             .json(
                 self.request(Method::POST, "/v1/admins/pass")
-                    .json(credentials)
-                    .into(),
+                    .json(credentials),
             )
             .await?;
 
@@ -106,7 +158,7 @@ impl ApiClient {
     }
 
     pub(crate) async fn create_session(&self, token: &SingleUseToken) -> Result<SessionToken> {
-        let admin_token: AdminToken = self
+        let admin_token: AdminTokenDto = self
             .json(
                 self.http
                     .post(format!("{}/v1/admins/session", self.base))
@@ -117,11 +169,11 @@ impl ApiClient {
         Ok(admin_token.into())
     }
 
-    pub(crate) async fn logout(&self, token: AdminToken) -> Result<()> {
+    pub(crate) async fn logout(&self, token: AdminTokenDto) -> Result<()> {
         let request = self
             .http
             .delete(format!("{}/v1/admins/session", self.base))
-            .bearer_auth(token.as_str());
+            .bearer_auth(token.0.as_str());
 
         self.empty(request).await
     }
@@ -135,10 +187,10 @@ pub(crate) enum Authorization<'a> {
 impl ApiClient {
     pub(crate) async fn top_up(
         &self,
-        user_id: UserId,
+        user_id: UserIdDto,
         amount: u32,
-        token: AdminToken,
-    ) -> Result<Transaction> {
+        token: AdminTokenDto,
+    ) -> Result<TransactionDto> {
         let request = self
             .http
             .post(format!(
@@ -147,7 +199,7 @@ impl ApiClient {
             ))
             .json(&amount);
 
-        let request = request.bearer_auth(token.as_str());
+        let request = request.bearer_auth(token.0.as_str());
 
         self.json(request).await
     }
@@ -159,9 +211,9 @@ impl ApiClient {
         program: String,
         card_number: u32,
         birthdate: NaiveDate,
-        token: AdminToken,
-    ) -> Result<User> {
-        let content = UserCreateRequest {
+        token: AdminTokenDto,
+    ) -> Result<UserDto> {
+        let content = UserCreateRequestDto {
             name,
             username,
             program,
@@ -172,17 +224,17 @@ impl ApiClient {
             .http
             .post(format!("{}/v1/admins/user_management/create", self.base))
             .json(&content)
-            .bearer_auth(token.as_str());
+            .bearer_auth(token.0.as_str());
 
         self.json(request).await
     }
 
     pub(crate) async fn update_user(
         &self,
-        user_id: UserId,
-        patch: UserPatch,
-        token: AdminToken,
-    ) -> Result<User> {
+        user_id: UserIdDto,
+        patch: UserPatchDto,
+        token: AdminTokenDto,
+    ) -> Result<UserDto> {
         let request = self
             .http
             .patch(format!(
@@ -190,16 +242,16 @@ impl ApiClient {
                 self.base
             ))
             .json(&patch)
-            .bearer_auth(token.as_str());
+            .bearer_auth(token.0.as_str());
 
         self.json(request).await
     }
 
     pub(crate) async fn grant_admin_privileges(
         &self,
-        user_id: UserId,
+        user_id: UserIdDto,
         password: String,
-        token: AdminToken,
+        token: AdminTokenDto,
     ) -> Result<()> {
         let request = self
             .http
@@ -208,15 +260,15 @@ impl ApiClient {
                 self.base
             ))
             .json(&password)
-            .bearer_auth(token.as_str());
+            .bearer_auth(token.0.as_str());
 
         self.empty(request).await
     }
 
     pub(crate) async fn revoke_admin_privileges(
         &self,
-        user_id: UserId,
-        token: AdminToken,
+        user_id: UserIdDto,
+        token: AdminTokenDto,
     ) -> Result<()> {
         let request = self
             .http
@@ -224,7 +276,7 @@ impl ApiClient {
                 "{}/v1/admins/user_management/{user_id}/admin",
                 self.base
             ))
-            .bearer_auth(token.as_str());
+            .bearer_auth(token.0.as_str());
 
         self.empty(request).await
     }

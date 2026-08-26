@@ -1,4 +1,4 @@
-use crate::api::models::user::UserId;
+use crate::model::UserId;
 
 #[derive(Debug, Clone)]
 pub(crate) struct AdminContext {

@@ -19,7 +19,8 @@ chrono.workspace = true
 serde.workspace = true
 serde_yml.workspace = true
 clap.workspace = true
-uuid.workspace = true
 reqwest.workspace = true
+uuid.workspace = true
+delta-api = { path = "../delta-api" }
 tokio = { version = "1.53.1", features = ["rt", "rt-multi-thread", "macros"] }
 rust-i18n = "3"

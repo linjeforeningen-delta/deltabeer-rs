@@ -1,8 +1,8 @@
-use crate::api::models::user::{User, UserPatch};
 use crate::api::request::ApiRequest;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
 use crate::app::{AppError, Message, TextInput};
+use crate::model::{User, UserPatch};
 use crossterm::event::{KeyCode, KeyEvent};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

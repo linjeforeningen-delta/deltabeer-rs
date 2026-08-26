@@ -1,5 +1,6 @@
+use crate::api::auth::Credentials;
 use crate::api::command::ApiCommand;
-use crate::api::models::auth::Credentials;
+use crate::api::mappings;
 use crate::api::request::ApiRequest;
 use crate::api::result::ApiResult;
 use crate::app::AppError;
@@ -9,27 +10,38 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
     match command.request {
         ApiRequest::LookupUser(identifier) => {
             let user_id = match api.resolve_user(&identifier).await {
-                Ok(user_id) => user_id,
+                Ok(user_id) => mappings::user_id_from_dto(user_id),
                 Err(error) => {
                     return Message::Failed(AppError::Api(error.to_string()));
                 }
             };
 
-            match api.user(user_id).await {
-                Ok(user) => Message::ApiResponse(ApiResult::LookupUser(user)),
+            match api.user(mappings::user_id_to_dto(user_id)).await {
+                Ok(user) => {
+                    Message::ApiResponse(ApiResult::LookupUser(mappings::user_from_dto(user)))
+                }
                 Err(error) => Message::Failed(AppError::Api(error.to_string())),
             }
         }
 
-        ApiRequest::Spend { user_id, amount } => match api.spend(&user_id, amount).await {
-            Ok(transaction) => Message::ApiResponse(ApiResult::Spend(transaction)),
-            Err(error) => Message::Failed(AppError::Api(error.to_string())),
-        },
+        ApiRequest::Spend { user_id, amount } => {
+            match api.spend(&mappings::user_id_to_dto(user_id), amount).await {
+                Ok(transaction) => Message::ApiResponse(ApiResult::Spend(
+                    mappings::transaction_from_dto(transaction),
+                )),
+                Err(error) => Message::Failed(AppError::Api(error.to_string())),
+            }
+        }
 
         ApiRequest::TopUp { user_id, amount } => {
             if let Some(token) = command.authorization {
-                match api.top_up(user_id, amount, token).await {
-                    Ok(transaction) => Message::ApiResponse(ApiResult::TopUp(transaction)),
+                match api
+                    .top_up(mappings::user_id_to_dto(user_id), amount, token)
+                    .await
+                {
+                    Ok(transaction) => Message::ApiResponse(ApiResult::TopUp(
+                        mappings::transaction_from_dto(transaction),
+                    )),
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
                 }
             } else {
@@ -40,7 +52,10 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
         }
 
         ApiRequest::AuthenticateAdmin { user_id, password } => match api
-            .request_admin_token(&Credentials { user_id, password })
+            .request_admin_token(&Credentials {
+                user_id: mappings::user_id_to_dto(user_id),
+                password,
+            })
             .await
         {
             Ok(token) => Message::ApiResponse(ApiResult::AuthenticateAdmin(token)),
@@ -50,7 +65,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
         ApiRequest::StartAdminSession { user_id, password } => {
             let single_use = match api
                 .request_admin_token(&Credentials {
-                    user_id: user_id.clone(),
+                    user_id: mappings::user_id_to_dto(user_id),
                     password,
                 })
                 .await
@@ -67,7 +82,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
 
         ApiRequest::EndAdminSession => {
             if let Some(token) = command.authorization {
-                match api.logout(token.into()).await {
+                match api.logout(token).await {
                     Ok(()) => Message::ApiResponse(ApiResult::EndAdminSession),
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
                 }
@@ -90,7 +105,9 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     .make_user(name, username, program, card_number, birthdate, token)
                     .await
                 {
-                    Ok(user) => Message::ApiResponse(ApiResult::MakeUser(user)),
+                    Ok(user) => {
+                        Message::ApiResponse(ApiResult::MakeUser(mappings::user_from_dto(user)))
+                    }
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
                 }
             } else {
@@ -102,8 +119,17 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
 
         ApiRequest::UpdateUser { user_id, patch } => {
             if let Some(token) = command.authorization {
-                match api.update_user(user_id, patch, token).await {
-                    Ok(user) => Message::ApiResponse(ApiResult::UpdateUser(user)),
+                match api
+                    .update_user(
+                        mappings::user_id_to_dto(user_id),
+                        mappings::user_patch_to_dto(patch),
+                        token,
+                    )
+                    .await
+                {
+                    Ok(user) => {
+                        Message::ApiResponse(ApiResult::UpdateUser(mappings::user_from_dto(user)))
+                    }
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
                 }
             } else {
@@ -115,7 +141,10 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
 
         ApiRequest::GrantAdmin { user_id, password } => {
             if let Some(token) = command.authorization {
-                match api.grant_admin_privileges(user_id, password, token).await {
+                match api
+                    .grant_admin_privileges(mappings::user_id_to_dto(user_id), password, token)
+                    .await
+                {
                     Ok(()) => Message::ApiResponse(ApiResult::GrantAdmin(user_id)),
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
                 }
@@ -128,7 +157,10 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
 
         ApiRequest::RevokeAdmin { user_id } => {
             if let Some(token) = command.authorization {
-                match api.revoke_admin_privileges(user_id, token).await {
+                match api
+                    .revoke_admin_privileges(mappings::user_id_to_dto(user_id), token)
+                    .await
+                {
                     Ok(()) => Message::ApiResponse(ApiResult::RevokeAdmin(user_id)),
                     Err(error) => Message::Failed(AppError::Api(error.to_string())),
                 }

@@ -1,4 +1,4 @@
-use crate::api::models::user::User;
+use crate::model::User;
 use crate::ui::theme::Palette;
 use ratatui::text::{Line, Span};
 

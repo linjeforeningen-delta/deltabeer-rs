@@ -1,4 +1,4 @@
-use crate::api::models::user::{UserId, UserPatch};
+use crate::model::{UserId, UserPatch};
 use chrono::NaiveDate;
 
 #[derive(Debug)]

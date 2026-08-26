@@ -1,6 +1,5 @@
-use crate::api::models::auth::{SessionToken, SingleUseToken};
-use crate::api::models::transaction::Transaction;
-use crate::api::models::user::{User, UserId};
+use crate::api::auth::{SessionToken, SingleUseToken};
+use crate::model::{Transaction, User, UserId};
 
 #[derive(Debug)]
 pub(crate) enum ApiResult {

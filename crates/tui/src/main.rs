@@ -8,6 +8,7 @@ mod app;
 pub(crate) mod auth;
 mod config;
 mod input;
+mod model;
 mod runtime;
 mod splash;
 mod ui;

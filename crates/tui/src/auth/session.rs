@@ -1,5 +1,5 @@
-use crate::api::models::auth::SessionToken;
-use crate::api::models::user::UserId;
+use crate::api::auth::SessionToken;
+use crate::model::UserId;
 
 #[derive(Debug, Clone)]
 pub(crate) struct AdminSession {

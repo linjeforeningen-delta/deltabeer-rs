@@ -1,9 +1,9 @@
-use crate::api::models::user::{Role, User};
 use crate::api::request::ApiRequest;
 use crate::app::dialog::menu::preset::admin;
 use crate::app::dialog::{DialogBehavior, DialogResult};
 use crate::app::fields::input::InputConstraint;
 use crate::app::{DialogOpenMode, Message, TextInput};
+use crate::model::{Role, User};
 use crossterm::event::{KeyCode, KeyEvent};
 
 #[derive(Debug)]

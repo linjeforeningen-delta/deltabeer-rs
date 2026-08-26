@@ -1,5 +1,6 @@
 use crate::app::App;
 use crate::app::dialog::UserDialog;
+use crate::model::Role;
 use crate::ui::dialogs::{DialogView, action_hint, render_dialog};
 use crate::ui::{layout::centered, theme::Theme};
 use ratatui::{
@@ -38,7 +39,7 @@ impl DialogView for UserDialog {
             detail(&labels[1], self.user.card_number.to_string()),
             detail(
                 &labels[2],
-                if matches!(self.user.role, crate::api::models::user::Role::Admin) {
+                if matches!(self.user.role, Role::Admin) {
                     t!("roles.admin").to_string()
                 } else {
                     t!("roles.user").to_string()

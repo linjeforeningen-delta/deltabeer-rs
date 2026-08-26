@@ -1,7 +1,7 @@
-use crate::api::models::auth::AdminToken;
+use crate::api::auth::AdminTokenDto;
 use crate::api::request::ApiRequest;
 
 pub(crate) struct ApiCommand {
     pub request: ApiRequest,
-    pub authorization: Option<AdminToken>,
+    pub authorization: Option<AdminTokenDto>,
 }

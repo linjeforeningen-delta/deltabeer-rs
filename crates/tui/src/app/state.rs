@@ -1,5 +1,5 @@
+use crate::api::auth::SingleUseToken;
 use crate::api::command::ApiCommand;
-use crate::api::models::auth::SingleUseToken;
 use crate::api::request::ApiRequest;
 use crate::app::DialogOpenMode;
 use crate::app::dialog::AdminAuthDialog;
