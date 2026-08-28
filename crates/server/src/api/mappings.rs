@@ -2,8 +2,8 @@
 
 use base64::prelude::*;
 use delta_api::{
-    AdminTokenDto, AmountDto, RoleDto, SpendRequestDto, TransactionDto, TransactionIdDto,
-    TransactionKindDto, TransactionSourceDto, UserDto, UserIdDto, UserPatchDto,
+    AdminTokenDto, AmountDto, RoleDto, SpendRequestDto, StatsDto, StatsSummaryDto, TransactionDto,
+    TransactionIdDto, TransactionKindDto, TransactionSourceDto, UserDto, UserIdDto, UserPatchDto,
 };
 use delta_core::{domain::*, services::auth::AdminToken};
 use thiserror::Error;
@@ -32,6 +32,23 @@ pub(crate) fn amount_to_dto(value: &Amount) -> AmountDto {
 }
 pub(crate) fn amount_from_spend_dto(value: SpendRequestDto) -> Amount {
     Amount(value.0)
+}
+
+pub(crate) fn stats_to_dto(value: &Stats) -> StatsDto {
+    StatsDto {
+        total_users: value.total_users,
+        total_balance: value.total_balance.0,
+        total_spent: value.total_spent.0,
+    }
+}
+
+pub(crate) fn stats_summary_to_dto(value: &Stats) -> StatsSummaryDto {
+    StatsSummaryDto {
+        total_users: value.total_users,
+        total_balance: value.total_balance.0,
+        total_spent: value.total_spent.0,
+        total_transactions: value.total_transactions,
+    }
 }
 
 pub(crate) fn user_to_dto(value: &User) -> UserDto {

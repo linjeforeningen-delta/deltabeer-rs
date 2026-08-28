@@ -13,6 +13,11 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             Err(error) => Message::Failed(error.into()),
         },
 
+        ApiRequest::Stats => match api.stats().await {
+            Ok(stats) => Message::ApiResponse(ApiResult::Stats(mappings::stats_from_dto(stats))),
+            Err(error) => Message::Failed(error.into()),
+        },
+
         ApiRequest::LookupUser(identifier) => {
             let user_id = match api.resolve_user(&identifier).await {
                 Ok(user_id) => mappings::user_id_from_dto(user_id),

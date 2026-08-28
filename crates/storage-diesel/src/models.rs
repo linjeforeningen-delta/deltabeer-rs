@@ -1,5 +1,18 @@
 use crate::schema::{admin_tokens, admins, transactions, users, users_with_role};
 use diesel::prelude::*;
+use diesel::sql_types::BigInt;
+
+#[derive(Debug, QueryableByName)]
+pub(super) struct StatsRow {
+    #[diesel(sql_type = BigInt)]
+    pub(super) total_users: i64,
+    #[diesel(sql_type = BigInt)]
+    pub(super) total_balance: i64,
+    #[diesel(sql_type = BigInt)]
+    pub(super) total_spent: i64,
+    #[diesel(sql_type = BigInt)]
+    pub(super) total_transactions: i64,
+}
 
 /// =======================
 /// users (row = schema authority)

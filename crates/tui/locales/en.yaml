@@ -47,6 +47,8 @@ stats:
   total_balance: "Total balance"
   total_spent: "Total spent"
   transactions: "Transactions"
+  loading: "Loading statistics..."
+  empty: "No statistics available."
 
 labels:
   user: "User"
@@ -149,6 +151,7 @@ dialogs:
 status:
   ready: "Ready for card"
   users_loaded: "Loaded %{count} users"
+  stats_loaded: "Statistics loaded"
   user_loaded: "User %{name} loaded"
   spend_success: "Spent %{amount} successfully"
   topup_success: "Topped up %{amount} successfully"
@@ -164,6 +167,7 @@ status:
 progress:
   looking_up: "Looking up user..."
   listing_users: "Loading users..."
+  loading_stats: "Loading statistics..."
   spending: "Spending..."
   topping_up: "Topping up..."
   authenticating: "Authenticating admin..."

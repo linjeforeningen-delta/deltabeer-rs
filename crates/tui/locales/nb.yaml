@@ -47,6 +47,8 @@ stats:
   total_balance: "Total saldo"
   total_spent: "Totalt brukt"
   transactions: "Transaksjoner"
+  loading: "Laster statistikk..."
+  empty: "Ingen statistikk tilgjengelig."
 
 labels:
   user: "Bruker"
@@ -149,6 +151,7 @@ dialogs:
 status:
   ready: "Klar for kort"
   users_loaded: "Lastet %{count} brukere"
+  stats_loaded: "Statistikk lastet"
   user_loaded: "Bruker %{name} lastet"
   spend_success: "Trakk %{amount}"
   topup_success: "Fylte på %{amount}"
@@ -164,6 +167,7 @@ status:
 progress:
   looking_up: "Slår opp bruker..."
   listing_users: "Laster brukere..."
+  loading_stats: "Laster statistikk..."
   spending: "Trekker beløp..."
   topping_up: "Fyller på..."
   authenticating: "Autentiserer admin..."

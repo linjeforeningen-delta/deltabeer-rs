@@ -3,6 +3,7 @@ mod admin;
 mod error;
 mod password;
 mod policy;
+mod stats;
 mod transaction;
 mod user;
 
@@ -11,5 +12,6 @@ pub use admin::*;
 pub use error::*;
 pub use password::*;
 pub use policy::*;
+pub use stats::*;
 pub use transaction::*;
 pub use user::*;

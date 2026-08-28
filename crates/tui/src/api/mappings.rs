@@ -1,6 +1,6 @@
 use crate::model::{
-    Amount, Role, Transaction, TransactionId, TransactionKind, TransactionSource, User, UserId,
-    UserPatch,
+    Amount, Role, Stats, Transaction, TransactionId, TransactionKind, TransactionSource, User,
+    UserId, UserPatch,
 };
 use delta_api::{
     RoleDto, TransactionDto, TransactionKindDto, TransactionSourceDto, UserDto, UserIdDto,
@@ -12,6 +12,15 @@ pub(crate) fn user_id_from_dto(value: UserIdDto) -> UserId {
 }
 pub(crate) fn user_id_to_dto(value: UserId) -> UserIdDto {
     UserIdDto(value.0)
+}
+
+pub(crate) fn stats_from_dto(value: delta_api::StatsSummaryDto) -> Stats {
+    Stats {
+        total_users: value.total_users,
+        total_balance: Amount(value.total_balance),
+        total_spent: Amount(value.total_spent),
+        total_transactions: value.total_transactions,
+    }
 }
 
 pub(crate) fn user_from_dto(value: UserDto) -> User {

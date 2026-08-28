@@ -5,8 +5,8 @@ use serde::de::DeserializeOwned;
 use crate::api::auth::{AdminTokenDto, Credentials, SessionToken, SingleUseToken};
 use crate::app::AppError;
 use delta_api::{
-    ApiErrorCode, ApiErrorResponse, TransactionDto, UserCreateRequestDto, UserDto, UserIdDto,
-    UserPatchDto,
+    ApiErrorCode, ApiErrorResponse, StatsSummaryDto, TransactionDto, UserCreateRequestDto, UserDto,
+    UserIdDto, UserPatchDto,
 };
 
 #[derive(Debug)]
@@ -156,6 +156,11 @@ impl ApiClient {
 
     pub(crate) async fn users(&self) -> Result<Vec<UserDto>> {
         self.json(self.request(Method::GET, "/v1/users")).await
+    }
+
+    pub(crate) async fn stats(&self) -> Result<StatsSummaryDto> {
+        self.json(self.request(Method::GET, "/v1/stats/summary"))
+            .await
     }
 
     pub(crate) async fn spend(&self, user_id: &UserIdDto, amount: u32) -> Result<TransactionDto> {

@@ -6,6 +6,7 @@ pub(crate) fn localize_status(status: &StatusMessage) -> String {
     match status {
         StatusMessage::Ready => t!("status.ready").to_string(),
         StatusMessage::UsersLoaded(count) => t!("status.users_loaded", count = count).to_string(),
+        StatusMessage::StatsLoaded => t!("status.stats_loaded").to_string(),
         StatusMessage::UserLoaded(name) => t!("status.user_loaded", name = name).to_string(),
         StatusMessage::SpendSuccess(amount) => {
             t!("status.spend_success", amount = amount).to_string()
@@ -89,6 +90,7 @@ fn localize_progress(progress: &ProgressMessage) -> String {
     let key = match progress {
         ProgressMessage::LookingUp => "progress.looking_up",
         ProgressMessage::ListingUsers => "progress.listing_users",
+        ProgressMessage::LoadingStats => "progress.loading_stats",
         ProgressMessage::Spending => "progress.spending",
         ProgressMessage::ToppingUp => "progress.topping_up",
         ProgressMessage::Authenticating => "progress.authenticating",

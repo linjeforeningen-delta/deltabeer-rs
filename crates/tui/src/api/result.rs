@@ -1,9 +1,10 @@
 use crate::api::auth::{SessionToken, SingleUseToken};
-use crate::model::{Transaction, User, UserId};
+use crate::model::{Stats, Transaction, User, UserId};
 
 #[derive(Debug)]
 pub(crate) enum ApiResult {
     Users(Vec<User>),
+    Stats(Stats),
     LookupUser(User),
     Spend(Transaction),
     TopUp(Transaction),

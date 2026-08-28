@@ -15,17 +15,37 @@ impl StatsPage {
             .map(|label| label.chars().count())
             .max()
             .unwrap_or(0);
-        let row = |label: &str| Line::from(format!("{label:<label_width$}  --"));
+        if self.loading {
+            frame.render_widget(
+                Paragraph::new(t!("stats.loading").to_string()).style(palette.muted()),
+                area,
+            );
+            return;
+        }
+        let Some(stats) = self.stats else {
+            frame.render_widget(
+                Paragraph::new(t!("stats.empty").to_string()).style(palette.muted()),
+                area,
+            );
+            return;
+        };
+        let values = [
+            stats.total_users.to_string(),
+            format!("{} Δ¢", stats.total_balance.0),
+            format!("{} Δ¢", stats.total_spent.0),
+            stats.total_transactions.to_string(),
+        ];
+        let row = |label: &str, value: &str| Line::from(format!("{label:<label_width$}  {value}"));
         let content = vec![
             Line::styled(
                 t!("stats.title").to_string(),
                 palette.accent().add_modifier(Modifier::BOLD),
             ),
             Line::from(""),
-            row(&labels[0]),
-            row(&labels[1]),
-            row(&labels[2]),
-            row(&labels[3]),
+            row(&labels[0], &values[0]),
+            row(&labels[1], &values[1]),
+            row(&labels[2], &values[2]),
+            row(&labels[3], &values[3]),
         ];
 
         let widget = Paragraph::new(content).style(palette.text());

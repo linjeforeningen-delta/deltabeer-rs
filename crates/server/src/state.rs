@@ -1,17 +1,21 @@
 use delta_core::{
     domain::AuthPolicy,
-    ports::{AdminRepo, Clock, IdGenerator, TokenRepo, TokenSource, TransactionRepo, UserRepo},
+    ports::{
+        AdminRepo, Clock, IdGenerator, StatsRepo, TokenRepo, TokenSource, TransactionRepo, UserRepo,
+    },
     services::context::Ctx,
 };
 use std::sync::Arc;
 
 pub(crate) trait StateRepoBounds:
-    AdminRepo + TransactionRepo + UserRepo + Send + Sync + 'static
+    AdminRepo + StatsRepo + TransactionRepo + UserRepo + Send + Sync + 'static
 {
 }
 
-impl<T> StateRepoBounds for T where T: AdminRepo + TransactionRepo + UserRepo + Send + Sync + 'static
-{}
+impl<T> StateRepoBounds for T where
+    T: AdminRepo + StatsRepo + TransactionRepo + UserRepo + Send + Sync + 'static
+{
+}
 
 #[derive(Clone)]
 pub(crate) struct AppState {

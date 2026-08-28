@@ -28,6 +28,14 @@ impl std::fmt::Display for Role {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Amount(pub(crate) u32);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Stats {
+    pub(crate) total_users: u32,
+    pub(crate) total_balance: Amount,
+    pub(crate) total_spent: Amount,
+    pub(crate) total_transactions: u32,
+}
+
 #[derive(Debug, Clone)]
 pub(crate) struct User {
     pub(crate) id: UserId,

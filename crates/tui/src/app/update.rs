@@ -34,6 +34,9 @@ impl App {
                 if page == crate::app::PageId::Users {
                     return self.update(Message::ApiRequest(ApiRequest::ListUsers));
                 }
+                if page == crate::app::PageId::Stats {
+                    return self.update(Message::ApiRequest(ApiRequest::Stats));
+                }
             }
 
             Message::Quit => self.should_quit = true,
@@ -84,6 +87,13 @@ impl App {
                     page.set_users(users);
                 }
                 self.status = StatusMessage::UsersLoaded(count);
+                None
+            }
+            ApiResult::Stats(stats) => {
+                if let crate::app::Page::Stats(page) = &mut self.page {
+                    page.set_stats(stats);
+                }
+                self.status = StatusMessage::StatsLoaded;
                 None
             }
             ApiResult::LookupUser(user) => {
@@ -155,6 +165,13 @@ impl App {
             self.status,
             StatusMessage::Progress(crate::app::ProgressMessage::ListingUsers)
         ) && let crate::app::Page::Users(page) = &mut self.page
+        {
+            page.finish_loading();
+        }
+        if matches!(
+            self.status,
+            StatusMessage::Progress(crate::app::ProgressMessage::LoadingStats)
+        ) && let crate::app::Page::Stats(page) = &mut self.page
         {
             page.finish_loading();
         }

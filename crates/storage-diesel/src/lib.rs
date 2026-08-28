@@ -5,17 +5,20 @@ mod schema;
 use crate::{
     mappings::MappingError,
     models::{
-        AdminTokenRow, NewAdminGrant, NewAdminToken, NewTransaction, NewUser, UserWithRoleRow,
+        AdminTokenRow, NewAdminGrant, NewAdminToken, NewTransaction, NewUser, StatsRow,
+        UserWithRoleRow,
     },
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use delta_core::ports::repo::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo};
+use delta_core::ports::repo::{
+    AdminRepo, RepoError, StatsRepo, TokenRepo, TransactionRepo, UserRepo,
+};
 use diesel::prelude::*;
 use thiserror::Error;
 
 use delta_core::domain::{
-    ActionRecord, AdminGrantId, Amount, PasswordHash, Transaction, TransactionId,
+    ActionRecord, AdminGrantId, Amount, PasswordHash, Stats, Transaction, TransactionId,
     TransactionSource, User, UserId, normalize_username,
 };
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
@@ -203,6 +206,30 @@ impl UserRepo for DieselRepo {
                 ))
                 .execute(conn)?;
             Ok(())
+        })
+    }
+}
+
+#[async_trait]
+impl StatsRepo for DieselRepo {
+    async fn stats(&self) -> Result<Stats, RepoError> {
+        repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            let row = diesel::sql_query(concat!(
+                "SELECT COUNT(*) AS total_users, ",
+                "CAST(COALESCE(SUM(balance), 0) AS INTEGER) AS total_balance, ",
+                "CAST(COALESCE(SUM(spent), 0) AS INTEGER) AS total_spent, ",
+                "(SELECT COUNT(*) FROM transactions) AS total_transactions ",
+                "FROM users",
+            ))
+            .get_result::<StatsRow>(conn)?;
+
+            Ok(Stats {
+                total_users: u32::try_from(row.total_users).map_err(|_| RepoError::Internal)?,
+                total_balance: Amount::try_from(row.total_balance)?,
+                total_spent: Amount::try_from(row.total_spent)?,
+                total_transactions: u32::try_from(row.total_transactions)
+                    .map_err(|_| RepoError::Internal)?,
+            })
         })
     }
 }

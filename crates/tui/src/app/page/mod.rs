@@ -75,7 +75,7 @@ impl From<PageId> for Page {
             PageId::Home => Self::Home(HomePage),
             PageId::Users => Self::Users(UsersPage::new()),
             PageId::Transactions => Self::Transactions(TransactionsPage),
-            PageId::Stats => Self::Stats(StatsPage),
+            PageId::Stats => Self::Stats(StatsPage::new()),
         }
     }
 }

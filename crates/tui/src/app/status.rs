@@ -4,6 +4,7 @@ use super::error::AppError;
 pub(crate) enum StatusMessage {
     Ready,
     UsersLoaded(usize),
+    StatsLoaded,
     UserLoaded(String),
     SpendSuccess(u32),
     TopUpSuccess(u32),
@@ -22,6 +23,7 @@ pub(crate) enum StatusMessage {
 pub(crate) enum ProgressMessage {
     LookingUp,
     ListingUsers,
+    LoadingStats,
     Spending,
     ToppingUp,
     Authenticating,
