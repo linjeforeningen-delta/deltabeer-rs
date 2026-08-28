@@ -99,7 +99,7 @@ impl App {
             ApiResult::TopUp(transaction) => {
                 self.status = StatusMessage::TopUpSuccess(transaction.amount.0);
                 self.dialogs.close_to_admin_menu();
-                self.request_api(ApiRequest::LookupUser(transaction.user_id.to_string()))
+                None
             }
 
             ApiResult::AuthenticateAdmin(_) => {
@@ -127,13 +127,13 @@ impl App {
             ApiResult::MakeUser(user) => {
                 self.status = StatusMessage::UserCreated(user.name.clone());
                 self.dialogs.close_to_admin_menu();
-                self.request_api(ApiRequest::LookupUser(user.id.to_string()))
+                None
             }
 
             ApiResult::UpdateUser(user) => {
                 self.status = StatusMessage::UserUpdated(user.name.clone());
                 self.dialogs.close_to_admin_menu();
-                self.request_api(ApiRequest::LookupUser(user.id.to_string()))
+                None
             }
 
             ApiResult::GrantAdmin(user_id) => {
@@ -193,12 +193,8 @@ impl App {
             _ => None,
         };
 
-        let mode = if self.dialogs.is_admin_menu_active() {
-            DialogOpenMode::Push
-        } else {
-            DialogOpenMode::Reset
-        };
-        self.dialogs.open(Box::new(UserDialog::new(user)), mode);
+        self.dialogs
+            .open(Box::new(UserDialog::new(user)), DialogOpenMode::Reset);
 
         if previous_session_needs_logout {
             self.request_api(ApiRequest::EndAdminSession)

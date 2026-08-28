@@ -77,13 +77,6 @@ impl DialogStack {
         }
     }
 
-    pub(crate) fn is_admin_menu_active(&self) -> bool {
-        matches!(
-            self.stack.last(),
-            Some(DialogEntry::Admin(dialog)) if dialog.is_admin_menu()
-        )
-    }
-
     pub(crate) fn clear(&mut self) {
         self.stack.clear();
     }
