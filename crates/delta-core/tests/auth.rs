@@ -264,8 +264,8 @@ async fn test_session_token_expiration() {
             .is_ok()
     );
 
-    // Advance clock by 4 minutes (session tokens last 3m)
-    env.clock.0 += Duration::minutes(4);
+    // Advance clock by 11 minutes (session tokens last 10m)
+    env.clock.0 += Duration::minutes(11);
 
     let ctx_new = env.ctx();
     let validate_expired = validate_authorization(session_token, &ctx_new).await;

@@ -4,7 +4,7 @@ server:
   database_pool_size: 16
 auth:
   single_use_token_ttl_seconds: 15
-  admin_session_ttl_seconds: 180
+  admin_session_ttl_seconds: 600
 logging:
   filter: "tower_http=info,axum=info,server=debug"
 tui:

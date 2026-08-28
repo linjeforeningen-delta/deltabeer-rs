@@ -10,7 +10,7 @@ impl Default for AuthPolicy {
     fn default() -> Self {
         Self {
             single_use_token_ttl: Duration::seconds(15),
-            admin_session_ttl: Duration::minutes(3),
+            admin_session_ttl: Duration::minutes(10),
         }
     }
 }
