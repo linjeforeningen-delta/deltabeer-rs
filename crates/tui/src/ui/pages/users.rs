@@ -8,7 +8,7 @@ use ratatui::{
 };
 
 impl UsersPage {
-    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: Palette) {
+    pub(crate) fn draw(&mut self, frame: &mut Frame, area: Rect, palette: Palette) {
         let chunks = Layout::vertical([Constraint::Length(3), Constraint::Min(1)]).split(area);
         let search = Paragraph::new(self.search.as_str())
             .style(if self.search_active {
@@ -16,11 +16,15 @@ impl UsersPage {
             } else {
                 palette.muted()
             })
-            .block(Block::default().title(" Search (/) ").borders(Borders::ALL));
+            .block(
+                Block::default()
+                    .title(format!(" {} (/) ", t!("users.search")))
+                    .borders(Borders::ALL),
+            );
         frame.render_widget(search, chunks[0]);
         if self.loading {
             frame.render_widget(
-                Paragraph::new("Loading users...").style(palette.muted()),
+                Paragraph::new(t!("users.loading").to_string()).style(palette.muted()),
                 chunks[1],
             );
             return;
@@ -28,28 +32,28 @@ impl UsersPage {
         let visible = self.visible_users();
         if self.users.is_empty() {
             frame.render_widget(
-                Paragraph::new("No users found.").style(palette.muted()),
+                Paragraph::new(t!("users.empty").to_string()).style(palette.muted()),
                 chunks[1],
             );
             return;
         }
         if visible.is_empty() {
             frame.render_widget(
-                Paragraph::new("No users match the search.").style(palette.muted()),
+                Paragraph::new(t!("users.no_match").to_string()).style(palette.muted()),
                 chunks[1],
             );
             return;
         }
 
         let header = Row::new([
-            self.header("Name", UserSort::Name),
-            self.header("Username", UserSort::Username),
-            self.header("Program", UserSort::Program),
-            self.header("Card", UserSort::Card),
-            self.header("Role", UserSort::Role),
-            self.header("Birthdate", UserSort::Birthdate),
-            self.header("Balance", UserSort::Balance),
-            self.header("Spent", UserSort::Spent),
+            self.header(UserSort::Name),
+            self.header(UserSort::Username),
+            self.header(UserSort::Program),
+            self.header(UserSort::Card),
+            self.header(UserSort::Role),
+            self.header(UserSort::Birthdate),
+            self.header(UserSort::Balance),
+            self.header(UserSort::Spent),
         ])
         .style(palette.accent().add_modifier(Modifier::BOLD));
         let rows = visible.iter().map(|user| {
@@ -83,10 +87,12 @@ impl UsersPage {
             ],
         )
         .header(header);
-        frame.render_widget(table, chunks[1]);
+        self.table_state
+            .select(self.selected_visible_index(&visible));
+        frame.render_stateful_widget(table, chunks[1], &mut self.table_state);
     }
 
-    fn header(&self, label: &str, field: UserSort) -> Cell<'static> {
+    fn header(&self, field: UserSort) -> Cell<'static> {
         let indicator = if self.sort_field == field {
             match self.sort_order {
                 SortOrder::Ascending => " ↑",
@@ -95,6 +101,22 @@ impl UsersPage {
         } else {
             ""
         };
-        Cell::from(format!("{label}{indicator}"))
+        Cell::from(format!("{}{indicator}", field.label()))
+    }
+}
+
+impl UserSort {
+    fn label(self) -> String {
+        t!(match self {
+            Self::Name => "users_table.name",
+            Self::Username => "users_table.username",
+            Self::Program => "users_table.program",
+            Self::Card => "users_table.card",
+            Self::Role => "users_table.role",
+            Self::Birthdate => "users_table.birthdate",
+            Self::Balance => "users_table.balance",
+            Self::Spent => "users_table.spent",
+        })
+        .to_string()
     }
 }

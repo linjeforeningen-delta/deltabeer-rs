@@ -57,7 +57,7 @@ impl Runtime {
                 self.splash.draw(frame);
             }
             DisplayState::Active => {
-                ui::draw(frame, &self.app);
+                ui::draw(frame, &mut self.app);
             }
         }
     }

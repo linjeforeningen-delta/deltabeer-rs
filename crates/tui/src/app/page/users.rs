@@ -1,7 +1,8 @@
 use crate::api::request::ApiRequest;
 use crate::app::{Message, TextInput};
 use crate::model::{User, UserId};
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use ratatui::widgets::TableState;
 use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -60,6 +61,7 @@ pub(crate) struct UsersPage {
     pub(crate) sort_order: SortOrder,
     pub(crate) selected_user_id: Option<UserId>,
     pub(crate) loading: bool,
+    pub(crate) table_state: TableState,
 }
 
 impl UsersPage {
@@ -72,6 +74,7 @@ impl UsersPage {
             sort_order: SortOrder::Ascending,
             selected_user_id: None,
             loading: true,
+            table_state: TableState::default(),
         }
     }
 
@@ -79,6 +82,10 @@ impl UsersPage {
         self.users = users;
         self.loading = false;
         self.reconcile_selection();
+    }
+
+    pub(crate) fn finish_loading(&mut self) {
+        self.loading = false;
     }
 
     pub(crate) fn visible_users(&self) -> Vec<&User> {
@@ -157,9 +164,15 @@ impl UsersPage {
             .and_then(|id| visible.iter().position(|u| u.id == id));
         let next = match current {
             Some(i) => (i as i32 + delta).clamp(0, visible.len() as i32 - 1) as usize,
-            None => usize::from(delta >= 0).min(visible.len() - 1),
+            None if delta >= 0 => 0,
+            None => visible.len() - 1,
         };
         self.selected_user_id = Some(visible[next].id);
+    }
+
+    pub(crate) fn selected_visible_index(&self, visible: &[&User]) -> Option<usize> {
+        self.selected_user_id
+            .and_then(|id| visible.iter().position(|user| user.id == id))
     }
 
     pub(crate) fn handle_key(&mut self, key: KeyEvent) -> Option<Message> {
@@ -192,6 +205,9 @@ impl UsersPage {
             }
             KeyCode::Up => self.move_selection(-1),
             KeyCode::Down => self.move_selection(1),
+            KeyCode::Tab if key.modifiers.contains(KeyModifiers::SHIFT) => {
+                self.sort_field = self.sort_field.previous()
+            }
             KeyCode::Tab => self.sort_field = self.sort_field.next(),
             KeyCode::BackTab => self.sort_field = self.sort_field.previous(),
             KeyCode::Char('s') => self.sort_order = self.sort_order.toggle(),

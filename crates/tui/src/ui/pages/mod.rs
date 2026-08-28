@@ -16,7 +16,7 @@ pub(crate) fn page_palette(app: &App, theme: &Theme) -> Palette {
 }
 
 impl Page {
-    pub(crate) fn draw(&self, frame: &mut Frame, area: Rect, palette: Palette) {
+    pub(crate) fn draw(&mut self, frame: &mut Frame, area: Rect, palette: Palette) {
         match self {
             Page::Home(page) => page.draw(frame, area, palette),
             Page::Users(page) => page.draw(frame, area, palette),

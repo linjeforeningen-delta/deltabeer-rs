@@ -151,6 +151,13 @@ impl App {
     }
 
     fn handle_error(&mut self, error: AppError) -> Option<ApiCommand> {
+        if matches!(
+            self.status,
+            StatusMessage::Progress(crate::app::ProgressMessage::ListingUsers)
+        ) && let crate::app::Page::Users(page) = &mut self.page
+        {
+            page.finish_loading();
+        }
         tracing::warn!(error_code = error.code(), "application request failed");
         self.status = StatusMessage::Error(error);
         None

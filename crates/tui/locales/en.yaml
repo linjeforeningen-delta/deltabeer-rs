@@ -20,8 +20,18 @@ home:
 users_table:
   name: "Name"
   username: "Username"
+  program: "Program"
   card: "Card"
   role: "Role"
+  birthdate: "Birthdate"
+  balance: "Balance"
+  spent: "Spent"
+
+users:
+  search: "Search"
+  loading: "Loading users..."
+  empty: "No users found."
+  no_match: "No users match the search."
   balance: "Balance"
 
 tx_table:

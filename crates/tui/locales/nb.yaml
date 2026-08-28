@@ -20,8 +20,18 @@ home:
 users_table:
   name: "Navn"
   username: "Brukernavn"
+  program: "Program"
   card: "Kort"
   role: "Rolle"
+  birthdate: "Fødselsdato"
+  balance: "Saldo"
+  spent: "Brukt"
+
+users:
+  search: "Søk"
+  loading: "Laster brukere..."
+  empty: "Ingen brukere funnet."
+  no_match: "Ingen brukere samsvarer med søket."
   balance: "Saldo"
 
 tx_table:

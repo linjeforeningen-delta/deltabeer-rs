@@ -19,7 +19,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
 };
 
-pub(crate) fn draw(frame: &mut Frame, app: &App) {
+pub(crate) fn draw(frame: &mut Frame, app: &mut App) {
     let theme = THEME;
     let page_palette = pages::page_palette(app, &theme);
     let active_palette = theme.active(&app.auth);
