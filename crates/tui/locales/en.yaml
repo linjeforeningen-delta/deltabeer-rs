@@ -156,6 +156,14 @@ progress:
 
 errors:
   api: "API Error"
+  unauthorized: "Authorization failed"
+  forbidden: "You are not allowed to perform this action"
+  not_found: "User not found"
+  invalid_user_identifier: "Invalid user identifier"
+  conflict: "This operation conflicts with the current state"
+  bad_request: "The request was invalid"
+  network: "Network error"
+  invalid_response: "The server returned an invalid response"
   validation: "Validation Error"
   authentication: "Authentication Error"
 

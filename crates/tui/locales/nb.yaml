@@ -156,6 +156,14 @@ progress:
 
 errors:
   api: "API-feil"
+  unauthorized: "Autorisasjon mislyktes"
+  forbidden: "Du har ikke tilgang til å utføre denne handlingen"
+  not_found: "Bruker ikke funnet"
+  invalid_user_identifier: "Ugyldig brukeridentifikator"
+  conflict: "Handlingen er i konflikt med gjeldende tilstand"
+  bad_request: "Forespørselen var ugyldig"
+  network: "Nettverksfeil"
+  invalid_response: "Serveren returnerte et ugyldig svar"
   validation: "Valideringsfeil"
   authentication: "Autentiseringsfeil"
 

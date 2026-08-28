@@ -10,7 +10,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             let user_id = match api.resolve_user(&identifier).await {
                 Ok(user_id) => mappings::user_id_from_dto(user_id),
                 Err(error) => {
-                    return Message::Failed(AppError::Api(error.to_string()));
+                    return Message::Failed(error.into());
                 }
             };
 
@@ -18,7 +18,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 Ok(user) => {
                     Message::ApiResponse(ApiResult::LookupUser(mappings::user_from_dto(user)))
                 }
-                Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                Err(error) => Message::Failed(error.into()),
             }
         }
 
@@ -27,7 +27,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 Ok(transaction) => Message::ApiResponse(ApiResult::Spend(
                     mappings::transaction_from_dto(transaction),
                 )),
-                Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                Err(error) => Message::Failed(error.into()),
             }
         }
 
@@ -40,7 +40,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Ok(transaction) => Message::ApiResponse(ApiResult::TopUp(
                         mappings::transaction_from_dto(transaction),
                     )),
-                    Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                    Err(error) => Message::Failed(error.into()),
                 }
             } else {
                 Message::Failed(AppError::Authentication(
@@ -57,7 +57,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             .await
         {
             Ok(token) => Message::ApiResponse(ApiResult::AuthenticateAdmin(token)),
-            Err(error) => Message::Failed(AppError::Api(error.to_string())),
+            Err(error) => Message::Failed(error.into()),
         },
 
         ApiRequest::StartAdminSession { user_id, password } => {
@@ -69,12 +69,12 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                 .await
             {
                 Ok(token) => token,
-                Err(error) => return Message::Failed(AppError::Api(error.to_string())),
+                Err(error) => return Message::Failed(error.into()),
             };
 
             match api.create_session(&single_use).await {
                 Ok(token) => Message::ApiResponse(ApiResult::StartAdminSession { user_id, token }),
-                Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                Err(error) => Message::Failed(error.into()),
             }
         }
 
@@ -82,7 +82,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
             if let Some(token) = command.authorization {
                 match api.logout(token).await {
                     Ok(()) => Message::ApiResponse(ApiResult::EndAdminSession),
-                    Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                    Err(error) => Message::Failed(error.into()),
                 }
             } else {
                 Message::Failed(AppError::Authentication(
@@ -106,7 +106,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Ok(user) => {
                         Message::ApiResponse(ApiResult::MakeUser(mappings::user_from_dto(user)))
                     }
-                    Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                    Err(error) => Message::Failed(error.into()),
                 }
             } else {
                 Message::Failed(AppError::Authentication(
@@ -128,7 +128,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Ok(user) => {
                         Message::ApiResponse(ApiResult::UpdateUser(mappings::user_from_dto(user)))
                     }
-                    Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                    Err(error) => Message::Failed(error.into()),
                 }
             } else {
                 Message::Failed(AppError::Authentication(
@@ -144,7 +144,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     .await
                 {
                     Ok(()) => Message::ApiResponse(ApiResult::GrantAdmin(user_id)),
-                    Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                    Err(error) => Message::Failed(error.into()),
                 }
             } else {
                 Message::Failed(AppError::Authentication(
@@ -160,7 +160,7 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     .await
                 {
                     Ok(()) => Message::ApiResponse(ApiResult::RevokeAdmin(user_id)),
-                    Err(error) => Message::Failed(AppError::Api(error.to_string())),
+                    Err(error) => Message::Failed(error.into()),
                 }
             } else {
                 Message::Failed(AppError::Authentication(

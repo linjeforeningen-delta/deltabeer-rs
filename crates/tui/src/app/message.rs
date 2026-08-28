@@ -30,7 +30,16 @@ pub(crate) enum Message {
 
 #[derive(Debug)]
 pub(crate) enum AppError {
-    Api(String),
+    /// The API returned an error that has no distinct TUI behavior.
+    Api,
+    Unauthorized,
+    Forbidden,
+    NotFound,
+    InvalidUserIdentifier,
+    Conflict,
+    BadRequest,
+    Transport,
+    InvalidResponse,
     Validation(String),
     Authentication(String),
     SessionExpired,

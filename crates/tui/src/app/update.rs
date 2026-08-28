@@ -134,8 +134,48 @@ impl App {
 
     fn handle_error(&mut self, error: AppError) -> Option<ApiCommand> {
         match error {
-            AppError::Api(error) => {
-                self.status = format!("{}: {}", t!("errors.api"), error);
+            AppError::Api => {
+                self.status = t!("errors.api").to_string();
+                None
+            }
+
+            AppError::Unauthorized => {
+                self.status = t!("errors.unauthorized").to_string();
+                None
+            }
+
+            AppError::Forbidden => {
+                self.status = t!("errors.forbidden").to_string();
+                None
+            }
+
+            AppError::NotFound => {
+                self.status = t!("errors.not_found").to_string();
+                None
+            }
+
+            AppError::InvalidUserIdentifier => {
+                self.status = t!("errors.invalid_user_identifier").to_string();
+                None
+            }
+
+            AppError::Conflict => {
+                self.status = t!("errors.conflict").to_string();
+                None
+            }
+
+            AppError::BadRequest => {
+                self.status = t!("errors.bad_request").to_string();
+                None
+            }
+
+            AppError::Transport => {
+                self.status = t!("errors.network").to_string();
+                None
+            }
+
+            AppError::InvalidResponse => {
+                self.status = t!("errors.invalid_response").to_string();
                 None
             }
 

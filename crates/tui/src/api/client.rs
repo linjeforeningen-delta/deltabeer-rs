@@ -3,6 +3,7 @@ use reqwest::{Client, Method, RequestBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 
 use crate::api::auth::{AdminTokenDto, Credentials, SessionToken, SingleUseToken};
+use crate::app::AppError;
 use delta_api::{
     ApiErrorCode, ApiErrorResponse, TransactionDto, UserCreateRequestDto, UserDto, UserIdDto,
     UserPatchDto,
@@ -21,6 +22,24 @@ pub(crate) enum ApiClientError {
     InvalidResponse {
         message: String,
     },
+}
+
+impl From<ApiClientError> for AppError {
+    fn from(error: ApiClientError) -> Self {
+        match error {
+            ApiClientError::Transport { .. } => Self::Transport,
+            ApiClientError::InvalidResponse { .. } => Self::InvalidResponse,
+            ApiClientError::Api { code, .. } => match code {
+                ApiErrorCode::InvalidUserIdentifier => Self::InvalidUserIdentifier,
+                ApiErrorCode::BadRequest => Self::BadRequest,
+                ApiErrorCode::NotFound => Self::NotFound,
+                ApiErrorCode::Conflict => Self::Conflict,
+                ApiErrorCode::Unauthorized => Self::Unauthorized,
+                ApiErrorCode::Forbidden => Self::Forbidden,
+                ApiErrorCode::InternalError => Self::Api,
+            },
+        }
+    }
 }
 
 impl std::fmt::Display for ApiClientError {
