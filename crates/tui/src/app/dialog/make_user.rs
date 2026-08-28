@@ -1,5 +1,5 @@
 use crate::api::request::ApiRequest;
-use crate::app::{AppError, Message, TextInput};
+use crate::app::{AppError, Message, TextInput, ValidationMessage};
 use crate::app::{
     dialog::{DialogBehavior, DialogResult},
     fields::input::InputConstraint,
@@ -57,7 +57,7 @@ impl MakeUserDialog {
 
         if name.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.name_required").to_string(),
+                ValidationMessage::NameRequired,
             )));
         }
 
@@ -65,7 +65,7 @@ impl MakeUserDialog {
 
         if username.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.username_required").to_string(),
+                ValidationMessage::UsernameRequired,
             )));
         }
 
@@ -73,7 +73,7 @@ impl MakeUserDialog {
 
         if program.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.program_required").to_string(),
+                ValidationMessage::ProgramRequired,
             )));
         }
 
@@ -83,14 +83,14 @@ impl MakeUserDialog {
 
             Err(_) => {
                 return DialogResult::Message(Message::Failed(AppError::Validation(
-                    t!("validation.birthdate_format").to_string(),
+                    ValidationMessage::BirthdateFormat,
                 )));
             }
         };
 
         let Some(card) = &self.card else {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.scan_card_first").to_string(),
+                ValidationMessage::ScanCardFirst,
             )));
         };
 
@@ -99,7 +99,7 @@ impl MakeUserDialog {
 
             Err(_) => {
                 return DialogResult::Message(Message::Failed(AppError::Validation(
-                    t!("validation.invalid_card").to_string(),
+                    ValidationMessage::InvalidCard,
                 )));
             }
         };

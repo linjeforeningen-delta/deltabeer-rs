@@ -1,5 +1,5 @@
 use crate::api::request::ApiRequest;
-use crate::app::{AppError, Message, TextInput};
+use crate::app::{AppError, Message, TextInput, ValidationMessage};
 use crate::app::{
     dialog::{DialogBehavior, DialogResult},
     fields::input::InputConstraint,
@@ -50,7 +50,7 @@ impl DialogBehavior for AdminAuthDialog {
                     Some(admin) => admin,
                     None => {
                         return DialogResult::Message(Message::Failed(AppError::Validation(
-                            t!("validation.admin_required_auth").to_string(),
+                            ValidationMessage::AdminRequiredAuth,
                         )));
                     }
                 };

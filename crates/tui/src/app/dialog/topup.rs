@@ -1,5 +1,5 @@
 use crate::api::{request::ApiRequest, result::ApiResult};
-use crate::app::{AppError, Message, TextInput};
+use crate::app::{AppError, Message, TextInput, ValidationMessage};
 use crate::app::{
     dialog::{DialogBehavior, DialogResult},
     fields::input::InputConstraint,
@@ -37,14 +37,14 @@ impl DialogBehavior for TopUpDialog {
 
             KeyCode::Enter => {
                 let Some(amount) = self.amount.as_u32() else {
-                    return DialogResult::Message(Message::Status(
-                        t!("validation.invalid_amount").to_string(),
-                    ));
+                    return DialogResult::Message(Message::Failed(AppError::Validation(
+                        ValidationMessage::InvalidAmount,
+                    )));
                 };
 
                 let Some(user) = &self.user else {
                     return DialogResult::Message(Message::Failed(AppError::Validation(
-                        t!("validation.card_required_topup").to_string(),
+                        ValidationMessage::CardRequiredTopUp,
                     )));
                 };
 

@@ -1,7 +1,7 @@
 use crate::api::{command::ApiCommand, request::ApiRequest, result::ApiResult};
 use crate::app::dialog::menu::{set_locale, toggle_locale};
 use crate::app::dialog::{DialogResult, UserDialog};
-use crate::app::{App, AppError, AuthorizationOperation, DialogOpenMode, Message};
+use crate::app::{App, AppError, DialogOpenMode, Message, StatusMessage};
 use crate::auth::{AdminContext, AdminSession, AuthState};
 use crate::model::{Role, User};
 
@@ -72,17 +72,17 @@ impl App {
     fn handle_api_result_default(&mut self, result: ApiResult) -> Option<ApiCommand> {
         match result {
             ApiResult::LookupUser(user) => {
-                self.status = t!("status.user_loaded", name = user.name).to_string();
+                self.status = StatusMessage::UserLoaded(user.name.clone());
                 self.open_user_dialog(user)
             }
 
             ApiResult::Spend(transaction) => {
-                self.status = t!("status.spend_success", amount = transaction.amount.0).to_string();
+                self.status = StatusMessage::SpendSuccess(transaction.amount.0);
                 self.dialogs.close();
                 None
             }
             ApiResult::TopUp(transaction) => {
-                self.status = t!("status.topup_success", amount = transaction.amount.0).to_string();
+                self.status = StatusMessage::TopUpSuccess(transaction.amount.0);
                 self.dialogs.close();
                 self.request_api(ApiRequest::LookupUser(transaction.user_id.to_string()))
             }
@@ -93,7 +93,7 @@ impl App {
 
             ApiResult::StartAdminSession { user_id, token } => {
                 self.auth = AuthState::Admin(AdminSession::new(user_id, token));
-                self.status = t!("status.session_started").to_string();
+                self.status = StatusMessage::SessionStarted;
                 self.dialogs.close();
                 self.dialogs.set_auth_state(&self.auth);
                 None
@@ -102,30 +102,30 @@ impl App {
             ApiResult::EndAdminSession => {
                 self.auth = AuthState::Normal;
                 self.dialogs.set_auth_state(&self.auth);
-                self.status = t!("status.session_ended").to_string();
+                self.status = StatusMessage::SessionEnded;
                 None
             }
 
             ApiResult::MakeUser(user) => {
-                self.status = t!("status.user_created", name = user.name).to_string();
+                self.status = StatusMessage::UserCreated(user.name.clone());
                 self.dialogs.close();
                 self.request_api(ApiRequest::LookupUser(user.id.to_string()))
             }
 
             ApiResult::UpdateUser(user) => {
-                self.status = t!("status.user_updated", name = user.name).to_string();
+                self.status = StatusMessage::UserUpdated(user.name.clone());
                 self.dialogs.close();
                 self.request_api(ApiRequest::LookupUser(user.id.to_string()))
             }
 
             ApiResult::GrantAdmin(user_id) => {
-                self.status = t!("status.admin_granted", id = user_id).to_string();
+                self.status = StatusMessage::AdminGranted(user_id.to_string());
                 self.dialogs.close();
                 None
             }
 
             ApiResult::RevokeAdmin(user_id) => {
-                self.status = t!("status.admin_revoked", id = user_id).to_string();
+                self.status = StatusMessage::AdminRevoked(user_id.to_string());
                 self.dialogs.close();
                 None
             }
@@ -133,75 +133,8 @@ impl App {
     }
 
     fn handle_error(&mut self, error: AppError) -> Option<ApiCommand> {
-        match error {
-            AppError::Api => {
-                self.status = t!("errors.api").to_string();
-                None
-            }
-
-            AppError::Unauthorized => {
-                self.status = t!("errors.unauthorized").to_string();
-                None
-            }
-
-            AppError::Forbidden => {
-                self.status = t!("errors.forbidden").to_string();
-                None
-            }
-
-            AppError::NotFound => {
-                self.status = t!("errors.not_found").to_string();
-                None
-            }
-
-            AppError::InvalidUserIdentifier => {
-                self.status = t!("errors.invalid_user_identifier").to_string();
-                None
-            }
-
-            AppError::Conflict => {
-                self.status = t!("errors.conflict").to_string();
-                None
-            }
-
-            AppError::BadRequest => {
-                self.status = t!("errors.bad_request").to_string();
-                None
-            }
-
-            AppError::Transport => {
-                self.status = t!("errors.network").to_string();
-                None
-            }
-
-            AppError::InvalidResponse => {
-                self.status = t!("errors.invalid_response").to_string();
-                None
-            }
-
-            AppError::Validation(error) => {
-                self.status = format!("{}: {}", t!("errors.validation"), error);
-                None
-            }
-
-            AppError::MissingAuthorization { operation } => {
-                let message = match operation {
-                    AuthorizationOperation::TopUp => t!("auth_errors.topup"),
-                    AuthorizationOperation::EndAdminSession => t!("auth_errors.end_session"),
-                    AuthorizationOperation::CreateUser => t!("auth_errors.create_user"),
-                    AuthorizationOperation::UpdateUser => t!("auth_errors.update_user"),
-                    AuthorizationOperation::GrantAdmin => t!("auth_errors.grant"),
-                    AuthorizationOperation::RevokeAdmin => t!("auth_errors.revoke"),
-                };
-                self.status = format!("{}: {}", t!("errors.authentication"), message);
-                None
-            }
-
-            AppError::SessionExpired => {
-                self.status = t!("status.session_expired").to_string();
-                None
-            }
-        }
+        self.status = StatusMessage::Error(error);
+        None
     }
 
     fn handle_card_scan(&mut self, card: String) -> Option<ApiCommand> {
@@ -221,7 +154,7 @@ impl App {
             None => card,
         };
 
-        self.status = t!("progress.looking_up").to_string();
+        self.status = StatusMessage::Progress(crate::app::ProgressMessage::LookingUp);
 
         self.request_api(ApiRequest::LookupUser(card))
     }

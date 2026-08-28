@@ -1,5 +1,6 @@
 use crate::api::{auth::SingleUseToken, command::ApiCommand, request::ApiRequest};
 use crate::app::DialogOpenMode;
+use crate::app::StatusMessage;
 use crate::app::{
     dialog::{AdminAuthDialog, DialogStack},
     page::{Page, PageId},
@@ -10,7 +11,7 @@ pub(crate) struct App {
     pub auth: AuthState,
     pub page: Page,
     pub dialogs: DialogStack,
-    pub status: String,
+    pub status: StatusMessage,
     pending_api_request: Option<ApiRequest>,
     pub(crate) active_admin: Option<AdminContext>,
     pub should_quit: bool,
@@ -22,7 +23,7 @@ impl App {
             auth: AuthState::Normal,
             page: Page::from(PageId::Home),
             dialogs: DialogStack::new(),
-            status: t!("status.ready").to_string(),
+            status: StatusMessage::Ready,
             pending_api_request: None,
             active_admin: None,
             should_quit: false,

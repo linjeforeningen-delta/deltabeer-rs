@@ -1,5 +1,5 @@
 use crate::api::request::ApiRequest;
-use crate::app::{DialogOpenMode, Message, TextInput};
+use crate::app::{AppError, DialogOpenMode, Message, TextInput, ValidationMessage};
 use crate::app::{
     dialog::{DialogBehavior, DialogResult, menu::preset::admin},
     fields::input::InputConstraint,
@@ -37,9 +37,9 @@ impl DialogBehavior for UserDialog {
 
             KeyCode::Enter => {
                 let Some(amount) = self.amount.as_u32() else {
-                    return DialogResult::Message(Message::Status(
-                        t!("validation.invalid_amount").to_string(),
-                    ));
+                    return DialogResult::Message(Message::Failed(AppError::Validation(
+                        ValidationMessage::InvalidAmount,
+                    )));
                 };
 
                 DialogResult::Message(Message::ApiRequest(ApiRequest::Spend {

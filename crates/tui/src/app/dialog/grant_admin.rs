@@ -1,5 +1,5 @@
 use crate::api::{request::ApiRequest, result::ApiResult};
-use crate::app::{AppError, Message, TextInput};
+use crate::app::{AppError, Message, TextInput, ValidationMessage};
 use crate::app::{
     dialog::{DialogBehavior, DialogResult},
     fields::input::InputConstraint,
@@ -50,7 +50,7 @@ impl GrantAdminDialog {
     fn submit(&self) -> DialogResult<KeyEvent> {
         let Some(user) = &self.user else {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.card_required_grant").to_string(),
+                ValidationMessage::CardRequiredGrant,
             )));
         };
 
@@ -58,7 +58,7 @@ impl GrantAdminDialog {
 
         if password.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.password_required").to_string(),
+                ValidationMessage::PasswordRequired,
             )));
         }
 
@@ -66,13 +66,13 @@ impl GrantAdminDialog {
 
         if confirm_password.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.confirm_required").to_string(),
+                ValidationMessage::ConfirmRequired,
             )));
         }
 
         if password != confirm_password {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.passwords_mismatch").to_string(),
+                ValidationMessage::PasswordsMismatch,
             )));
         }
 

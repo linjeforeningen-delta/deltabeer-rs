@@ -1,3 +1,4 @@
+use crate::app::{ProgressMessage, StatusMessage};
 use crate::model::{UserId, UserPatch};
 use chrono::NaiveDate;
 
@@ -53,19 +54,19 @@ impl ApiRequest {
         )
     }
 
-    pub(crate) fn status_message(&self) -> String {
-        match self {
-            Self::LookupUser(_) => t!("progress.looking_up"),
-            Self::Spend { .. } => t!("progress.spending"),
-            Self::TopUp { .. } => t!("progress.topping_up"),
-            Self::AuthenticateAdmin { .. } => t!("progress.authenticating"),
-            Self::StartAdminSession { .. } => t!("progress.starting_session"),
-            Self::EndAdminSession => t!("progress.ending_session"),
-            Self::MakeUser { .. } => t!("progress.creating_user"),
-            Self::UpdateUser { .. } => t!("progress.updating_user"),
-            Self::GrantAdmin { .. } => t!("progress.granting_admin"),
-            Self::RevokeAdmin { .. } => t!("progress.revoking_admin"),
-        }
-        .to_string()
+    pub(crate) fn status_message(&self) -> StatusMessage {
+        let progress = match self {
+            Self::LookupUser(_) => ProgressMessage::LookingUp,
+            Self::Spend { .. } => ProgressMessage::Spending,
+            Self::TopUp { .. } => ProgressMessage::ToppingUp,
+            Self::AuthenticateAdmin { .. } => ProgressMessage::Authenticating,
+            Self::StartAdminSession { .. } => ProgressMessage::StartingSession,
+            Self::EndAdminSession => ProgressMessage::EndingSession,
+            Self::MakeUser { .. } => ProgressMessage::CreatingUser,
+            Self::UpdateUser { .. } => ProgressMessage::UpdatingUser,
+            Self::GrantAdmin { .. } => ProgressMessage::GrantingAdmin,
+            Self::RevokeAdmin { .. } => ProgressMessage::RevokingAdmin,
+        };
+        StatusMessage::Progress(progress)
     }
 }

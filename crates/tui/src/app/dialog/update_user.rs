@@ -1,5 +1,5 @@
 use crate::api::request::ApiRequest;
-use crate::app::{AppError, Message, TextInput};
+use crate::app::{AppError, Message, StatusMessage, TextInput, ValidationMessage};
 use crate::app::{
     dialog::{DialogBehavior, DialogResult},
     fields::input::InputConstraint,
@@ -77,28 +77,28 @@ impl UpdateUserDialog {
     fn submit(&self) -> DialogResult<KeyEvent> {
         let Some(user) = &self.user else {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.user_not_identified").to_string(),
+                ValidationMessage::UserNotIdentified,
             )));
         };
 
         let name = self.name.as_str().trim();
         if name.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.name_required").to_string(),
+                ValidationMessage::NameRequired,
             )));
         }
 
         let username = self.username.as_str().trim();
         if username.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.username_required").to_string(),
+                ValidationMessage::UsernameRequired,
             )));
         }
 
         let program = self.program.as_str().trim();
         if program.is_empty() {
             return DialogResult::Message(Message::Failed(AppError::Validation(
-                t!("validation.program_required").to_string(),
+                ValidationMessage::ProgramRequired,
             )));
         }
 
@@ -110,7 +110,7 @@ impl UpdateUserDialog {
                     Ok(c) => c,
                     Err(_) => {
                         return DialogResult::Message(Message::Failed(AppError::Validation(
-                            t!("validation.invalid_card").to_string(),
+                            ValidationMessage::InvalidCard,
                         )));
                     }
                 };
@@ -153,7 +153,7 @@ impl UpdateUserDialog {
             && card_opt.is_none()
             && comments_opt.is_none()
         {
-            return DialogResult::Message(Message::Status(t!("status.no_changes").to_string()));
+            return DialogResult::Message(Message::Status(StatusMessage::NoChanges));
         }
 
         let patch = UserPatch {

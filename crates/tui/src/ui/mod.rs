@@ -39,7 +39,7 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
 
     let footer = Paragraph::new(Line::from(format!(
         "{}  |  {}",
-        app.status,
+        app.status.localized(),
         t!("hints.change_language")
     )))
     .style(active_palette.text())

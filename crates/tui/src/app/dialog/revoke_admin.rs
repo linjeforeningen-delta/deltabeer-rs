@@ -1,6 +1,6 @@
 use crate::api::{request::ApiRequest, result::ApiResult};
 use crate::app::dialog::{DialogBehavior, DialogResult};
-use crate::app::{AppError, Message};
+use crate::app::{AppError, Message, ValidationMessage};
 use crate::model::User;
 use crossterm::event::{KeyCode, KeyEvent};
 
@@ -21,7 +21,7 @@ impl DialogBehavior for RevokeAdminDialog {
             KeyCode::Enter => {
                 let Some(user) = &self.user else {
                     return DialogResult::Message(Message::Failed(AppError::Validation(
-                        t!("validation.card_required_revoke").to_string(),
+                        ValidationMessage::CardRequiredRevoke,
                     )));
                 };
 
