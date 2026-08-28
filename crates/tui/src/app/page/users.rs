@@ -210,16 +210,16 @@ impl UsersPage {
                 self.loading = true;
                 return PageResult::Message(Message::ApiRequest(ApiRequest::ListUsers));
             }
-            KeyCode::Enter => {
-                let user = self
-                    .visible_users()
-                    .into_iter()
-                    .find(|u| Some(u.id) == self.selected_user_id);
-                let Some(user) = user else {
-                    return PageResult::Unhandled(key);
-                };
-                return PageResult::Message(Message::OpenUser(user.clone()));
-            }
+            // KeyCode::Enter => {
+            //     let user = self
+            //         .visible_users()
+            //         .into_iter()
+            //         .find(|u| Some(u.id) == self.selected_user_id);
+            //     let Some(user) = user else {
+            //         return PageResult::Unhandled(key);
+            //     };
+            //     return PageResult::Message(Message::OpenUser(user.clone()));
+            // }
             _ => return PageResult::Unhandled(key),
         }
         PageResult::Consumed
