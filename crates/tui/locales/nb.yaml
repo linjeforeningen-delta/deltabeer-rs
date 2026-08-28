@@ -72,6 +72,7 @@ menu:
   admin: "Admin"
   application: "Program"
   language: "Språk"
+  about: "Om programmet"
   change_language: "Bytt språk"
   quit: "Avslutt"
   top_up: "Fyll på"
@@ -85,6 +86,13 @@ menu:
 languages:
   en: "Engelsk"
   nb: "Norsk bokmål"
+
+about:
+  title: "Om programmet"
+  application_name: "DeltaBeer"
+  version: "Versjon: %{version}"
+  first_release: "Første lansering: %{date}"
+  updated: "Oppdatert: %{date}"
 
 hints:
   change_language: "Ctrl+L: Bytt språk"

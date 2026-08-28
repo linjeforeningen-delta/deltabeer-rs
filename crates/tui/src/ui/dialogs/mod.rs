@@ -7,6 +7,7 @@ use ratatui::{
     widgets::{Clear, Paragraph},
 };
 
+mod about;
 pub(crate) mod admin_auth;
 pub(crate) mod admin_session_login;
 mod grant_admin;

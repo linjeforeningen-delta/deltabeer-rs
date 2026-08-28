@@ -71,6 +71,7 @@ impl DialogView for MenuDialog {
 
 fn option_label(label: MenuLabel) -> String {
     match label {
+        MenuLabel::About => t!("menu.about").to_string(),
         MenuLabel::ChangeLanguage => t!("menu.change_language").to_string(),
         MenuLabel::Quit => t!("menu.quit").to_string(),
         MenuLabel::English => t!("languages.en").to_string(),

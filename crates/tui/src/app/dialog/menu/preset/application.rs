@@ -6,6 +6,10 @@ pub(crate) fn new() -> MenuDialog {
     MenuDialog::new(
         MenuTitle::Application,
         vec![
+            MenuOption::new(MenuLabel::About, 'A', || Message::OpenDialog {
+                dialog: Box::new(crate::app::AboutDialog::new()),
+                mode: DialogOpenMode::Push,
+            }),
             MenuOption::new(MenuLabel::ChangeLanguage, 'L', || Message::OpenDialog {
                 dialog: Box::new(super::language::new()),
                 mode: DialogOpenMode::Push,

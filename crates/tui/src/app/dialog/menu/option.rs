@@ -9,6 +9,7 @@ pub(crate) struct MenuOption {
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum MenuLabel {
+    About,
     ChangeLanguage,
     Quit,
     English,
