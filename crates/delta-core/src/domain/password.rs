@@ -1,5 +1,5 @@
 use crate::domain::DomainError;
-use argon2::password_hash::SaltString;
+use argon2::password_hash::phc::Salt;
 use argon2::{
     Algorithm, Argon2, Params, PasswordHash as Argon2PasswordHash, PasswordHasher,
     PasswordVerifier, Version,
@@ -28,10 +28,10 @@ const ARGON2_PARALLELISM: u32 = 1;
 const ARGON2_HASH_LENGTH: usize = 32;
 const SALT_LENGTH: usize = 16;
 
-fn generate_salt() -> SaltString {
+fn generate_salt() -> Salt {
     let mut bytes = [0u8; SALT_LENGTH];
     getrandom::fill(&mut bytes).expect("OS randomness must be available");
-    SaltString::encode_b64(&bytes).expect("valid salt bytes must encode")
+    Salt::new(&bytes).expect("valid salt bytes must encode")
 }
 
 fn argon2_ctx() -> Argon2<'static> {
@@ -80,7 +80,7 @@ pub(crate) fn needs_rehash(hash: &PasswordHash) -> Result<bool, DomainError> {
 pub fn hash_password(password: &str) -> PasswordHash {
     let salt = generate_salt();
     let password_hash = argon2_ctx()
-        .hash_password(password.as_bytes(), &salt)
+        .hash_password_with_salt(password.as_bytes(), &salt)
         .expect("argon2 hashing must succeed")
         .to_string();
 
@@ -131,7 +131,7 @@ mod tests {
         let params = Params::new(1024, 1, 1, Some(ARGON2_HASH_LENGTH)).unwrap();
         let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
         let password_hash = argon2
-            .hash_password(password.as_bytes(), &salt)
+            .hash_password_with_salt(password.as_bytes(), &salt)
             .unwrap()
             .to_string();
 
@@ -156,7 +156,7 @@ mod tests {
         .unwrap();
         let argon2 = Argon2::new(Algorithm::Argon2i, Version::V0x13, params); // Argon2i instead of Argon2id
         let password_hash = argon2
-            .hash_password(password.as_bytes(), &salt)
+            .hash_password_with_salt(password.as_bytes(), &salt)
             .unwrap()
             .to_string();
 
