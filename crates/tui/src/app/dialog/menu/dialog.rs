@@ -37,6 +37,10 @@ impl MenuDialog {
 }
 
 impl AdminDialog for MenuDialog {
+    fn is_admin_menu(&self) -> bool {
+        matches!(self.kind, MenuKind::Admin { .. })
+    }
+
     fn set_admin_context(&mut self, _context: Option<AdminContext>) {}
 
     fn set_auth_state(&mut self, state: &AuthState) {

@@ -66,6 +66,24 @@ impl DialogStack {
         self.stack.pop();
     }
 
+    pub(crate) fn close_to_admin_menu(&mut self) {
+        while !matches!(
+            self.stack.last(),
+            Some(DialogEntry::Admin(dialog)) if dialog.is_admin_menu()
+        ) {
+            if self.stack.pop().is_none() {
+                break;
+            }
+        }
+    }
+
+    pub(crate) fn is_admin_menu_active(&self) -> bool {
+        matches!(
+            self.stack.last(),
+            Some(DialogEntry::Admin(dialog)) if dialog.is_admin_menu()
+        )
+    }
+
     pub(crate) fn clear(&mut self) {
         self.stack.clear();
     }
