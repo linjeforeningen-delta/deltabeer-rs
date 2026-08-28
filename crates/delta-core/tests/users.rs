@@ -89,6 +89,110 @@ async fn test_user_lifecycle() {
 }
 
 #[tokio::test]
+async fn test_create_and_update_user_normalize_username() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+    let admin_id = UserId(Uuid::now_v7());
+    setup_admin(&env, admin_id, "admin").await;
+
+    let user_id = create_user(
+        admin_id,
+        CreateUser {
+            name: "Alice".to_string(),
+            username: "AlIcE".to_string(),
+            program: "Computer Science".to_string(),
+            card_number: 111,
+            birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
+        },
+        &ctx,
+    )
+    .await
+    .unwrap();
+
+    update_user(
+        admin_id,
+        user_id,
+        UpdateUser {
+            name: None,
+            username: Some("BOB".to_string()),
+            program: None,
+            card_number: None,
+            comments: None,
+        },
+        &ctx,
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(
+        UserRepo::get_user(&env.repo, &user_id)
+            .await
+            .unwrap()
+            .username,
+        "bob"
+    );
+}
+
+#[tokio::test]
+async fn test_username_lookup_is_case_insensitive_for_legacy_rows() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+    let user_id = UserId(Uuid::now_v7());
+    let user = User {
+        id: user_id,
+        name: "Alice".to_string(),
+        username: "Alice".to_string(),
+        program: "Computer Science".to_string(),
+        card_number: 123,
+        role: Role::User,
+        birthdate: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+        comments: "".to_string(),
+        balance: Amount(0),
+        spent: Amount(0),
+    };
+    UserRepo::insert_user(
+        &env.repo,
+        user,
+        delta_core::domain::ActionRecord {
+            actor: user_id,
+            at: env.clock.0,
+        },
+    )
+    .await
+    .unwrap();
+
+    for query in ["Alice", "ALICE", "alice"] {
+        assert_eq!(
+            resolve_user(
+                delta_core::domain::UserIdent::Username(query.to_string()),
+                &ctx
+            )
+            .await
+            .unwrap(),
+            user_id
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_casing_only_duplicate_username_is_rejected() {
+    let env = TestEnv::new();
+    let ctx = env.ctx();
+    let admin_id = UserId(Uuid::now_v7());
+    setup_admin(&env, admin_id, "admin").await;
+
+    let request = || CreateUser {
+        name: "Alice".to_string(),
+        username: "Alice".to_string(),
+        program: "Computer Science".to_string(),
+        card_number: random_card_number(),
+        birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
+    };
+    create_user(admin_id, request(), &ctx).await.unwrap();
+    assert!(create_user(admin_id, request(), &ctx).await.is_err());
+}
+
+#[tokio::test]
 async fn test_create_user_underage() {
     let env = TestEnv::new();
     let ctx = env.ctx();

@@ -36,6 +36,11 @@ pub enum UserIdent {
     Username(String),
 }
 
+/// Returns the canonical form used for usernames throughout the backend.
+pub fn normalize_username(username: &str) -> String {
+    username.to_lowercase()
+}
+
 impl<'a> TryFrom<&'a str> for UserIdent {
     type Error = DomainError;
 
@@ -56,7 +61,7 @@ impl<'a> TryFrom<&'a str> for UserIdent {
 
         // Username (letters only)
         if s.chars().all(|c| c.is_ascii_alphabetic()) {
-            return Ok(UserIdent::Username(s.to_string()));
+            return Ok(UserIdent::Username(normalize_username(s)));
         }
 
         Err(DomainError::InvalidIdent)

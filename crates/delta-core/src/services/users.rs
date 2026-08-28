@@ -1,5 +1,5 @@
 use crate::{
-    domain::{ActionRecord, Amount, Role, User, UserId, UserIdent},
+    domain::{ActionRecord, Amount, Role, User, UserId, UserIdent, normalize_username},
     ports::repo::UserRepo,
     services::{ServiceError, context::Ctx},
 };
@@ -12,7 +12,11 @@ where
     Ok(match ident {
         UserIdent::Id(id) => ctx.repo.get_user(&id).await.map(|u| u.id)?,
         UserIdent::Card(card) => ctx.repo.get_user_by_card(card).await.map(|u| u.id)?,
-        UserIdent::Username(name) => ctx.repo.get_user_by_name(&name).await.map(|u| u.id)?,
+        UserIdent::Username(name) => ctx
+            .repo
+            .get_user_by_name(&normalize_username(&name))
+            .await
+            .map(|u| u.id)?,
     })
 }
 
@@ -60,10 +64,12 @@ where
     let dt = ctx.clock.now();
     let id = ctx.ids.generate_user_id(&dt);
 
+    let username = normalize_username(&req.username);
+
     let user = User {
         id,
         name: req.name.clone(),
-        username: req.username.clone(),
+        username,
         program: req.program.clone(),
         card_number: req.card_number,
         role: Role::User,
@@ -88,7 +94,7 @@ pub struct UpdateUser {
 }
 
 pub async fn update_user<R>(
-    actor: UserId,
+    _actor: UserId,
     user_id: UserId,
     req: UpdateUser,
     ctx: &Ctx<'_, R>,
@@ -98,7 +104,8 @@ where
 {
     let mut user = ctx.repo.get_user(&user_id).await?;
     user.name = req.name.unwrap_or(user.name);
-    user.username = req.username.unwrap_or(user.username);
+    let username = normalize_username(req.username.as_deref().unwrap_or(&user.username));
+    user.username = username;
     user.program = req.program.unwrap_or(user.program);
     user.card_number = req.card_number.unwrap_or(user.card_number);
     user.comments = req.comments.unwrap_or(user.comments);
@@ -138,7 +145,7 @@ mod tests {
                 .lock()
                 .unwrap()
                 .values()
-                .find(|u| u.username == name)
+                .find(|u| normalize_username(&u.username) == normalize_username(name))
                 .cloned()
                 .ok_or(RepoError::NotFound)
         }
@@ -165,11 +172,24 @@ mod tests {
                 .collect())
         }
         async fn insert_user(&self, user: User, _record: ActionRecord) -> Result<(), RepoError> {
-            self.users.lock().unwrap().insert(user.id, user);
+            let mut users = self.users.lock().unwrap();
+            if users.values().any(|other| {
+                normalize_username(&other.username) == normalize_username(&user.username)
+            }) {
+                return Err(RepoError::Conflict);
+            }
+            users.insert(user.id, user);
             Ok(())
         }
         async fn update_user(&self, user: User) -> Result<(), RepoError> {
-            self.users.lock().unwrap().insert(user.id, user);
+            let mut users = self.users.lock().unwrap();
+            if users.values().any(|other| {
+                other.id != user.id
+                    && normalize_username(&other.username) == normalize_username(&user.username)
+            }) {
+                return Err(RepoError::Conflict);
+            }
+            users.insert(user.id, user);
             Ok(())
         }
     }

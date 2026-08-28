@@ -16,12 +16,16 @@ use thiserror::Error;
 
 use delta_core::domain::{
     ActionRecord, AdminGrantId, Amount, PasswordHash, Transaction, TransactionId,
-    TransactionSource, User, UserId,
+    TransactionSource, User, UserId, normalize_username,
 };
 use delta_core::services::auth::{AdminToken, TokenData, TokenKind};
 use diesel::OptionalExtension;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sqlite::SqliteConnection;
+
+diesel::define_sql_function! {
+    fn lower(value: diesel::sql_types::Text) -> diesel::sql_types::Text;
+}
 
 pub type SqlitePool = Pool<ConnectionManager<SqliteConnection>>;
 
@@ -94,10 +98,10 @@ impl UserRepo for DieselRepo {
 
     async fn get_user_by_name(&self, user_name: &str) -> Result<User, RepoError> {
         use crate::schema::users_with_role::dsl::*;
-        let user_name = user_name.to_owned();
+        let user_name = normalize_username(user_name);
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
             let row = users_with_role
-                .filter(username.eq(user_name))
+                .filter(lower(username).eq(user_name))
                 .first::<UserWithRoleRow>(conn)?;
 
             Ok(User::try_from(&row)?)
@@ -142,12 +146,22 @@ impl UserRepo for DieselRepo {
 
     async fn insert_user(&self, user: User, record: ActionRecord) -> Result<(), RepoError> {
         use crate::schema::users::dsl::*;
+        let username_value = normalize_username(&user.username);
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            if users
+                .filter(lower(username).eq(&username_value))
+                .select(id)
+                .first::<String>(conn)
+                .optional()?
+                .is_some()
+            {
+                return Err(RepoError::Conflict);
+            }
             diesel::insert_into(users)
                 .values(&NewUser {
                     id: user.id.0.to_string(),
                     name: user.name,
-                    username: user.username,
+                    username: username_value,
                     program: user.program,
                     card_number: user.card_number as i64,
                     birthdate: user.birthdate.format("%Y-%m-%d").to_string(),
@@ -164,11 +178,23 @@ impl UserRepo for DieselRepo {
 
     async fn update_user(&self, user: User) -> Result<(), RepoError> {
         use crate::schema::users::dsl::*;
+        let username_value = normalize_username(&user.username);
+        let user_id_value = user.id.0.to_string();
         repo_call!(self.pool, |conn: &mut SqliteConnection| {
+            if users
+                .filter(lower(username).eq(&username_value))
+                .filter(id.ne(&user_id_value))
+                .select(id)
+                .first::<String>(conn)
+                .optional()?
+                .is_some()
+            {
+                return Err(RepoError::Conflict);
+            }
             diesel::update(users.find(user.id.0.to_string()))
                 .set((
                     name.eq(user.name),
-                    username.eq(user.username),
+                    username.eq(username_value),
                     program.eq(user.program),
                     card_number.eq(user.card_number as i64),
                     comments.eq(user.comments),

@@ -9,6 +9,7 @@ use delta_core::{
     ports::repo::{AdminRepo, RepoError, TokenRepo, TransactionRepo, UserRepo},
     services::auth::{AdminToken, TokenData, TokenKind},
 };
+use diesel::RunQueryDsl;
 use storage_diesel::DieselRepo;
 use tempfile::TempDir;
 use uuid::Uuid;
@@ -50,7 +51,7 @@ fn create_action_record(actor: UserId) -> ActionRecord {
 async fn test_user_repo_insert_and_get() {
     let (repo, _dir) = setup().await;
     let user_id = UserId(Uuid::now_v7());
-    let user = create_test_user(user_id, "alice");
+    let user = create_test_user(user_id, "AlIcE");
     let record = create_action_record(user_id);
 
     UserRepo::insert_user(&repo, user.clone(), record)
@@ -61,7 +62,7 @@ async fn test_user_repo_insert_and_get() {
         .await
         .expect("get failed");
     assert_eq!(retrieved.id, user.id);
-    assert_eq!(retrieved.username, user.username);
+    assert_eq!(retrieved.username, "alice");
 }
 
 #[tokio::test]
@@ -75,10 +76,19 @@ async fn test_user_repo_get_by_name_and_card() {
         .await
         .expect("insert failed");
 
-    let by_name = UserRepo::get_user_by_name(&repo, "bob")
-        .await
-        .expect("get_by_name failed");
-    assert_eq!(by_name.id, user.id);
+    // Simulate a legacy row that predates username normalization.
+    let mut conn = repo.pool().get().unwrap();
+    diesel::sql_query("UPDATE users SET username = 'BoB' WHERE id = ?")
+        .bind::<diesel::sql_types::Text, _>(user_id.0.to_string())
+        .execute(&mut conn)
+        .unwrap();
+
+    for query in ["bob", "Bob", "BOB"] {
+        let by_name = UserRepo::get_user_by_name(&repo, query)
+            .await
+            .expect("get_by_name failed");
+        assert_eq!(by_name.id, user.id);
+    }
 
     let by_card = UserRepo::get_user_by_card(&repo, user.card_number)
         .await
@@ -98,6 +108,7 @@ async fn test_user_repo_update() {
         .expect("insert failed");
 
     user.name = "Charlie Updated".to_string();
+    user.username = "ChArLiE".to_string();
     user.balance = Amount(100);
     UserRepo::update_user(&repo, user.clone())
         .await
@@ -107,6 +118,7 @@ async fn test_user_repo_update() {
         .await
         .expect("get failed");
     assert_eq!(retrieved.name, "Charlie Updated");
+    assert_eq!(retrieved.username, "charlie");
     assert_eq!(retrieved.balance, Amount(100));
 }
 
@@ -343,7 +355,7 @@ async fn test_user_repo_insert_duplicate_username() {
         .unwrap();
 
     let user2_id = UserId(Uuid::now_v7());
-    let mut user2 = create_test_user(user2_id, "alice"); // same username
+    let mut user2 = create_test_user(user2_id, "ALICE"); // same username, different casing
     user2.card_number = 9999; // different card number
     let result = UserRepo::insert_user(&repo, user2, create_action_record(user1_id)).await;
     assert!(matches!(result, Err(RepoError::Conflict)));

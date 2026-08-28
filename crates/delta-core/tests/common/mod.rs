@@ -51,7 +51,10 @@ impl UserRepo for InMemoryRepo {
             .lock()
             .unwrap()
             .values()
-            .find(|u| u.username == name)
+            .find(|u| {
+                delta_core::domain::normalize_username(&u.username)
+                    == delta_core::domain::normalize_username(name)
+            })
             .cloned()
             .ok_or(RepoError::NotFound)
     }
@@ -78,11 +81,26 @@ impl UserRepo for InMemoryRepo {
             .collect())
     }
     async fn insert_user(&self, user: User, _record: ActionRecord) -> Result<(), RepoError> {
-        self.users.lock().unwrap().insert(user.id, user);
+        let mut users = self.users.lock().unwrap();
+        if users.values().any(|other| {
+            delta_core::domain::normalize_username(&other.username)
+                == delta_core::domain::normalize_username(&user.username)
+        }) {
+            return Err(RepoError::Conflict);
+        }
+        users.insert(user.id, user);
         Ok(())
     }
     async fn update_user(&self, user: User) -> Result<(), RepoError> {
-        self.users.lock().unwrap().insert(user.id, user);
+        let mut users = self.users.lock().unwrap();
+        if users.values().any(|other| {
+            other.id != user.id
+                && delta_core::domain::normalize_username(&other.username)
+                    == delta_core::domain::normalize_username(&user.username)
+        }) {
+            return Err(RepoError::Conflict);
+        }
+        users.insert(user.id, user);
         Ok(())
     }
 }
