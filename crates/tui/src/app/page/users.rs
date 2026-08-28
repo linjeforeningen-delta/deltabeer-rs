@@ -120,8 +120,8 @@ impl UsersPage {
             user.balance.0.to_string(),
             user.spent.0.to_string(),
         ]
-            .iter()
-            .any(|field| field.to_lowercase().contains(query))
+        .iter()
+        .any(|field| field.to_lowercase().contains(query))
     }
 
     fn compare(left: &User, right: &User, field: UserSort) -> Ordering {
