@@ -1,11 +1,12 @@
 mod home;
+mod result;
 mod stats;
 mod transactions;
 mod users;
 
-use crate::app::Message;
 use crossterm::event::{KeyCode, KeyEvent};
 pub(crate) use home::HomePage;
+pub(crate) use result::PageResult;
 pub(crate) use stats::StatsPage;
 pub(crate) use transactions::TransactionsPage;
 pub(crate) use users::{SortOrder, UserSort, UsersPage};
@@ -58,7 +59,7 @@ impl Page {
         }
     }
 
-    pub(crate) fn handle_key(&mut self, key: KeyEvent) -> Option<Message> {
+    pub(crate) fn handle_key(&mut self, key: KeyEvent) -> PageResult<KeyEvent> {
         match self {
             Self::Home(page) => page.handle_key(key),
             Self::Users(page) => page.handle_key(key),

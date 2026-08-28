@@ -1,6 +1,7 @@
 use crate::app::{
     App, Message, PageId,
     dialog::{DialogResult, menu::preset},
+    page::PageResult,
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -25,11 +26,11 @@ pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
         None => key,
     };
 
-    if let Some(message) = app.page.handle_key(key) {
-        return Some(message);
+    match app.page.handle_key(key) {
+        PageResult::Consumed => return None,
+        PageResult::Message(message) => return Some(message),
+        PageResult::Unhandled(key) => map_key_base(app, key),
     }
-
-    map_key_base(app, key)
 }
 
 fn map_key_global(key: KeyEvent) -> Option<Message> {

@@ -1,5 +1,5 @@
 use crate::api::request::ApiRequest;
-use crate::app::{Message, TextInput};
+use crate::app::{Message, TextInput, page::PageResult};
 use crate::model::{User, UserId};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::widgets::TableState;
@@ -120,8 +120,8 @@ impl UsersPage {
             user.balance.0.to_string(),
             user.spent.0.to_string(),
         ]
-        .iter()
-        .any(|field| field.to_lowercase().contains(query))
+            .iter()
+            .any(|field| field.to_lowercase().contains(query))
     }
 
     fn compare(left: &User, right: &User, field: UserSort) -> Ordering {
@@ -175,11 +175,10 @@ impl UsersPage {
             .and_then(|id| visible.iter().position(|user| user.id == id))
     }
 
-    pub(crate) fn handle_key(&mut self, key: KeyEvent) -> Option<Message> {
+    pub(crate) fn handle_key(&mut self, key: KeyEvent) -> PageResult<KeyEvent> {
         if self.search_active {
             match key.code {
-                KeyCode::Esc => {
-                    self.search.clear();
+                KeyCode::Esc | KeyCode::Char('/') | KeyCode::Enter => {
                     self.search_active = false;
                     self.reconcile_selection();
                 }
@@ -193,16 +192,12 @@ impl UsersPage {
                 }
                 KeyCode::Up => self.move_selection(-1),
                 KeyCode::Down => self.move_selection(1),
-                _ => {}
+                _ => return PageResult::Unhandled(key),
             }
-            return None;
+            return PageResult::Consumed;
         }
         match key.code {
             KeyCode::Char('/') => self.search_active = true,
-            KeyCode::Esc => {
-                self.search.clear();
-                self.reconcile_selection();
-            }
             KeyCode::Up => self.move_selection(-1),
             KeyCode::Down => self.move_selection(1),
             KeyCode::Tab if key.modifiers.contains(KeyModifiers::SHIFT) => {
@@ -213,18 +208,69 @@ impl UsersPage {
             KeyCode::Char('s') => self.sort_order = self.sort_order.toggle(),
             KeyCode::Char('r') => {
                 self.loading = true;
-                return Some(Message::ApiRequest(ApiRequest::ListUsers));
+                return PageResult::Message(Message::ApiRequest(ApiRequest::ListUsers));
             }
             KeyCode::Enter => {
                 let user = self
                     .visible_users()
                     .into_iter()
-                    .find(|u| Some(u.id) == self.selected_user_id)?
-                    .clone();
-                return Some(Message::OpenUser(user));
+                    .find(|u| Some(u.id) == self.selected_user_id);
+                let Some(user) = user else {
+                    return PageResult::Unhandled(key);
+                };
+                return PageResult::Message(Message::OpenUser(user.clone()));
             }
-            _ => return None,
+            _ => return PageResult::Unhandled(key),
         }
-        None
+        PageResult::Consumed
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{Amount, Role};
+    use chrono::NaiveDate;
+    use uuid::Uuid;
+
+    #[test]
+    fn escaping_search_keeps_query_and_filtered_users() {
+        let matching_id = UserId(Uuid::nil());
+        let mut page = UsersPage::new();
+        page.set_users(vec![
+            User {
+                id: matching_id,
+                name: "Alice Example".to_string(),
+                username: "alice".to_string(),
+                program: "Beer Studies".to_string(),
+                card_number: 1,
+                role: Role::User,
+                birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
+                comments: String::new(),
+                balance: Amount(0),
+                spent: Amount(0),
+            },
+            User {
+                id: UserId(Uuid::max()),
+                name: "Bob Example".to_string(),
+                username: "bob".to_string(),
+                program: "Beer Studies".to_string(),
+                card_number: 2,
+                role: Role::User,
+                birthdate: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
+                comments: String::new(),
+                balance: Amount(0),
+                spent: Amount(0),
+            },
+        ]);
+        page.search.set_value("alice");
+        page.search_active = true;
+
+        page.handle_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
+
+        assert!(!page.search_active);
+        assert_eq!(page.search.as_str(), "alice");
+        assert_eq!(page.visible_users().len(), 1);
+        assert_eq!(page.visible_users()[0].id, matching_id);
     }
 }
