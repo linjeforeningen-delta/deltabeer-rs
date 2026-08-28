@@ -2,7 +2,7 @@ use crate::api::{
     auth::Credentials, client::ApiClient, command::ApiCommand, mappings, request::ApiRequest,
     result::ApiResult,
 };
-use crate::app::{AppError, Message};
+use crate::app::{AppError, AuthorizationOperation, Message};
 
 pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Message {
     match command.request {
@@ -43,9 +43,9 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Err(error) => Message::Failed(error.into()),
                 }
             } else {
-                Message::Failed(AppError::Authentication(
-                    t!("auth_errors.topup").to_string(),
-                ))
+                Message::Failed(AppError::MissingAuthorization {
+                    operation: AuthorizationOperation::TopUp,
+                })
             }
         }
 
@@ -85,9 +85,9 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Err(error) => Message::Failed(error.into()),
                 }
             } else {
-                Message::Failed(AppError::Authentication(
-                    t!("auth_errors.end_session").to_string(),
-                ))
+                Message::Failed(AppError::MissingAuthorization {
+                    operation: AuthorizationOperation::EndAdminSession,
+                })
             }
         }
 
@@ -109,9 +109,9 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Err(error) => Message::Failed(error.into()),
                 }
             } else {
-                Message::Failed(AppError::Authentication(
-                    t!("auth_errors.create_user").to_string(),
-                ))
+                Message::Failed(AppError::MissingAuthorization {
+                    operation: AuthorizationOperation::CreateUser,
+                })
             }
         }
 
@@ -131,9 +131,9 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Err(error) => Message::Failed(error.into()),
                 }
             } else {
-                Message::Failed(AppError::Authentication(
-                    t!("auth_errors.update_user").to_string(),
-                ))
+                Message::Failed(AppError::MissingAuthorization {
+                    operation: AuthorizationOperation::UpdateUser,
+                })
             }
         }
 
@@ -147,9 +147,9 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Err(error) => Message::Failed(error.into()),
                 }
             } else {
-                Message::Failed(AppError::Authentication(
-                    t!("auth_errors.grant").to_string(),
-                ))
+                Message::Failed(AppError::MissingAuthorization {
+                    operation: AuthorizationOperation::GrantAdmin,
+                })
             }
         }
 
@@ -163,9 +163,9 @@ pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Mes
                     Err(error) => Message::Failed(error.into()),
                 }
             } else {
-                Message::Failed(AppError::Authentication(
-                    t!("auth_errors.revoke").to_string(),
-                ))
+                Message::Failed(AppError::MissingAuthorization {
+                    operation: AuthorizationOperation::RevokeAdmin,
+                })
             }
         }
     }

@@ -1,7 +1,7 @@
 use crate::api::{command::ApiCommand, request::ApiRequest, result::ApiResult};
 use crate::app::dialog::menu::{set_locale, toggle_locale};
 use crate::app::dialog::{DialogResult, UserDialog};
-use crate::app::{App, AppError, DialogOpenMode, Message};
+use crate::app::{App, AppError, AuthorizationOperation, DialogOpenMode, Message};
 use crate::auth::{AdminContext, AdminSession, AuthState};
 use crate::model::{Role, User};
 
@@ -184,8 +184,16 @@ impl App {
                 None
             }
 
-            AppError::Authentication(error) => {
-                self.status = format!("{}: {}", t!("errors.authentication"), error);
+            AppError::MissingAuthorization { operation } => {
+                let message = match operation {
+                    AuthorizationOperation::TopUp => t!("auth_errors.topup"),
+                    AuthorizationOperation::EndAdminSession => t!("auth_errors.end_session"),
+                    AuthorizationOperation::CreateUser => t!("auth_errors.create_user"),
+                    AuthorizationOperation::UpdateUser => t!("auth_errors.update_user"),
+                    AuthorizationOperation::GrantAdmin => t!("auth_errors.grant"),
+                    AuthorizationOperation::RevokeAdmin => t!("auth_errors.revoke"),
+                };
+                self.status = format!("{}: {}", t!("errors.authentication"), message);
                 None
             }
 

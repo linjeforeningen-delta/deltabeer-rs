@@ -7,6 +7,6 @@ mod update;
 
 pub(crate) use dialog::{Dialog, DialogOpenMode};
 pub(crate) use fields::input::TextInput;
-pub(crate) use message::{AppError, Message};
+pub(crate) use message::{AppError, AuthorizationOperation, Message};
 pub(crate) use page::{Page, PageId};
 pub(crate) use state::App;

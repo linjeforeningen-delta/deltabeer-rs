@@ -41,6 +41,18 @@ pub(crate) enum AppError {
     Transport,
     InvalidResponse,
     Validation(String),
-    Authentication(String),
+    MissingAuthorization {
+        operation: AuthorizationOperation,
+    },
     SessionExpired,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum AuthorizationOperation {
+    TopUp,
+    EndAdminSession,
+    CreateUser,
+    UpdateUser,
+    GrantAdmin,
+    RevokeAdmin,
 }
