@@ -17,6 +17,25 @@ pub(crate) enum AppError {
     SessionExpired,
 }
 
+impl AppError {
+    pub(crate) fn code(&self) -> &'static str {
+        match self {
+            Self::Api => "api",
+            Self::Unauthorized => "unauthorized",
+            Self::Forbidden => "forbidden",
+            Self::NotFound => "not_found",
+            Self::InvalidUserIdentifier => "invalid_user_identifier",
+            Self::Conflict => "conflict",
+            Self::BadRequest => "bad_request",
+            Self::Transport => "transport",
+            Self::InvalidResponse => "invalid_response",
+            Self::Validation(_) => "validation",
+            Self::MissingAuthorization { .. } => "missing_authorization",
+            Self::SessionExpired => "session_expired",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum AuthorizationOperation {
     TopUp,

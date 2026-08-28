@@ -78,6 +78,7 @@ impl ApiClient {
     }
 
     fn request(&self, method: Method, path: &str) -> RequestBuilder {
+        tracing::debug!(%method, path, "preparing API request");
         self.http.request(method, format!("{}{}", self.base, path))
     }
 
@@ -85,38 +86,40 @@ impl ApiClient {
     where
         T: DeserializeOwned,
     {
-        let response = request
-            .send()
-            .await
-            .map_err(|error| ApiClientError::Transport {
+        let response = request.send().await.map_err(|error| {
+            tracing::error!("API request transport failure");
+            ApiClientError::Transport {
                 message: error.to_string(),
-            })?;
+            }
+        })?;
 
         let status = response.status();
 
         if !status.is_success() {
+            tracing::warn!(%status, "API request returned an error status");
             return Err(Self::api_error(status, response).await);
         }
 
-        response
-            .json::<T>()
-            .await
-            .map_err(|error| ApiClientError::InvalidResponse {
+        response.json::<T>().await.map_err(|error| {
+            tracing::error!(error = %error, "API response decoding failed");
+            ApiClientError::InvalidResponse {
                 message: error.to_string(),
-            })
+            }
+        })
     }
 
     async fn empty(&self, request: RequestBuilder) -> Result<()> {
-        let response = request
-            .send()
-            .await
-            .map_err(|error| ApiClientError::Transport {
+        let response = request.send().await.map_err(|error| {
+            tracing::error!("API request transport failure");
+            ApiClientError::Transport {
                 message: error.to_string(),
-            })?;
+            }
+        })?;
 
         let status = response.status();
 
         if !status.is_success() {
+            tracing::warn!(%status, "API request returned an error status");
             return Err(Self::api_error(status, response).await);
         }
 
@@ -131,7 +134,10 @@ impl ApiClient {
                 message: error.message,
             },
             Err(error) => ApiClientError::InvalidResponse {
-                message: error.to_string(),
+                message: {
+                    tracing::error!(error = %error, "API error response decoding failed");
+                    error.to_string()
+                },
             },
         }
     }

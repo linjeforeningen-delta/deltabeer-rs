@@ -25,6 +25,24 @@ use ratatui::{Terminal, backend::CrosstermBackend};
 use runtime::Runtime;
 use std::io;
 use std::time::Duration;
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+
+const TUI_LOG_DIRECTORY: &str = "logs";
+const TUI_LOG_FILE: &str = "tui.log";
+
+fn init_tracing() -> Result<tracing_appender::non_blocking::WorkerGuard> {
+    std::fs::create_dir_all(TUI_LOG_DIRECTORY)?;
+    let appender = tracing_appender::rolling::daily(TUI_LOG_DIRECTORY, TUI_LOG_FILE);
+    let (non_blocking, guard) = tracing_appender::non_blocking(appender);
+
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer().with_writer(non_blocking))
+        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
+        .try_init()
+        .ok();
+
+    Ok(guard)
+}
 
 fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>> {
     enable_raw_mode()?;
@@ -62,22 +80,53 @@ async fn run(
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let _tracing_guard = init_tracing()?;
+
     let args = config::Args::parse();
-    let config = config::Config::load(&args.config)?;
-    config::validate_locale(&config.tui.locale)?;
+    let config = match config::Config::load(&args.config) {
+        Ok(config) => config,
+        Err(error) => {
+            tracing::error!(error = %error, path = %args.config.display(), "failed to load configuration");
+            return Err(error);
+        }
+    };
+    if let Err(error) = config::validate_locale(&config.tui.locale) {
+        tracing::error!(error = %error, locale = %config.tui.locale, "invalid configured locale");
+        return Err(error);
+    }
     rust_i18n::set_locale(&config.tui.locale);
-    let mut terminal = init_terminal()?;
+    let mut terminal = match init_terminal() {
+        Ok(terminal) => terminal,
+        Err(error) => {
+            tracing::error!(error = %error, "failed to initialize terminal");
+            return Err(error);
+        }
+    };
+    let splash = match splash::Splash::new() {
+        Ok(splash) => splash,
+        Err(error) => {
+            tracing::error!(error = %error, "failed to initialize splash screen");
+            return Err(error);
+        }
+    };
     let mut runtime = Runtime::new(
         App::new(),
         ApiClient::new(&config.tui.api_base_url),
         Input::new(Duration::from_millis(config.tui.scanner_max_gap_ms)),
         Duration::from_millis(config.tui.event_poll_interval_ms),
         Duration::from_secs(config.tui.idle_splash_after_seconds),
-        splash::Splash::new()?,
+        splash,
     );
 
+    tracing::info!("TUI started");
     let result = run(&mut terminal, &mut runtime).await;
+    if let Err(error) = &result {
+        tracing::error!(error = %error, "TUI stopped with an application error");
+    }
 
-    restore_terminal(&mut terminal)?;
+    if let Err(error) = restore_terminal(&mut terminal) {
+        tracing::error!(error = %error, "failed to restore terminal");
+        return Err(error);
+    }
     result
 }

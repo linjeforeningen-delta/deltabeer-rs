@@ -63,17 +63,26 @@ async fn admin_auth_middleware(
 
     let token = match auth_header.and_then(|h| h.strip_prefix("Bearer ")) {
         Some(token) => token,
-        None => return Err(ApiError::Unauthorized("Not authorized")),
+        None => {
+            tracing::warn!(path, "admin request missing bearer authorization");
+            return Err(ApiError::Unauthorized("Not authorized"));
+        }
     };
 
     // Wrap token (no validation yet)
     let admin_token: AdminToken = mappings::admin_token_from_dto(AdminTokenDto(token.to_string()))
-        .map_err(|_| ApiError::Unauthorized("Not authorized"))?;
+        .map_err(|_| {
+            tracing::warn!(path, "admin request had malformed authorization");
+            ApiError::Unauthorized("Not authorized")
+        })?;
 
     // Validate token via core
     let admin_id = services::auth::validate_authorization(admin_token.clone(), &state.ctx())
         .await
-        .map_err(|_| ApiError::Unauthorized("Not authorized"))?;
+        .map_err(|_| {
+            tracing::warn!(path, "admin authorization failed");
+            ApiError::Unauthorized("Not authorized")
+        })?;
 
     // Attach admin identity to request
     req.extensions_mut().insert(AdminId(admin_id));
@@ -118,6 +127,8 @@ async fn pass(
         services::auth::issue_admin_pass(admin_id, password, &state.auth_policy, &state.ctx())
             .await?;
 
+    tracing::info!(admin_id = ?admin_id, "admin password authentication succeeded");
+
     Ok((StatusCode::OK, Json(mappings::admin_token_to_dto(&token))))
 }
 
@@ -135,6 +146,7 @@ async fn login(
 ) -> ApiResult<AdminTokenDto> {
     let token =
         services::auth::issue_admin_session(admin_id, &state.auth_policy, &state.ctx()).await?;
+    tracing::info!(admin_id = ?admin_id, "admin session started");
     Ok((StatusCode::OK, Json(mappings::admin_token_to_dto(&token))))
 }
 
@@ -157,6 +169,7 @@ async fn logout(
         .expire_token(&token)
         .await
         .map_err(delta_core::services::ServiceError::from)?;
+    tracing::info!("admin session ended");
     Ok((StatusCode::OK, Json(())))
 }
 

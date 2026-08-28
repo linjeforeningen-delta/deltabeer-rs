@@ -48,8 +48,17 @@ impl ApiError {
 }
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
+        let status = self.status();
+        let code = self.code();
+        match &self {
+            ApiError::Internal(_) => tracing::error!(%status, ?code, "request failed internally"),
+            ApiError::Unauthorized(_) | ApiError::Forbidden(_) => {
+                tracing::debug!(%status, ?code, "request rejected")
+            }
+            _ => tracing::warn!(%status, ?code, "request rejected"),
+        }
         let body = ApiErrorResponse {
-            code: self.code(),
+            code,
             message: match self {
                 ApiError::BadRequest(msg)
                 | ApiError::NotFound(msg)
@@ -62,7 +71,7 @@ impl IntoResponse for ApiError {
             },
         };
 
-        (self.status(), Json(body)).into_response()
+        (status, Json(body)).into_response()
     }
 }
 

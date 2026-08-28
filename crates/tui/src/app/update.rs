@@ -88,10 +88,12 @@ impl App {
             }
 
             ApiResult::AuthenticateAdmin(_) => {
+                tracing::error!("unexpected admin authentication response state");
                 unreachable!("AuthenticateAdmin is handled before dialog routing")
             }
 
             ApiResult::StartAdminSession { user_id, token } => {
+                tracing::info!(%user_id, "admin session started");
                 self.auth = AuthState::Admin(AdminSession::new(user_id, token));
                 self.status = StatusMessage::SessionStarted;
                 self.dialogs.close();
@@ -100,6 +102,7 @@ impl App {
             }
 
             ApiResult::EndAdminSession => {
+                tracing::info!("admin session ended");
                 self.auth = AuthState::Normal;
                 self.dialogs.set_auth_state(&self.auth);
                 self.status = StatusMessage::SessionEnded;
@@ -133,6 +136,7 @@ impl App {
     }
 
     fn handle_error(&mut self, error: AppError) -> Option<ApiCommand> {
+        tracing::warn!(error_code = error.code(), "application request failed");
         self.status = StatusMessage::Error(error);
         None
     }
