@@ -1,13 +1,16 @@
 mod components;
 pub(crate) mod dialogs;
 pub(crate) mod layout;
+pub(crate) mod localization;
 pub(crate) mod pages;
 pub(crate) mod theme;
 mod traits;
 mod widgets;
 
 use crate::app::App;
-use crate::ui::{theme::THEME, widgets::folder_tabs::FolderPageFrame};
+use crate::ui::{
+    localization::localize_status, theme::THEME, widgets::folder_tabs::FolderPageFrame,
+};
 use ratatui::layout::Margin;
 use ratatui::widgets::BorderType;
 use ratatui::{
@@ -39,7 +42,7 @@ pub(crate) fn draw(frame: &mut Frame, app: &App) {
 
     let footer = Paragraph::new(Line::from(format!(
         "{}  |  {}",
-        app.status.localized(),
+        localize_status(&app.status),
         t!("hints.change_language")
     )))
     .style(active_palette.text())
