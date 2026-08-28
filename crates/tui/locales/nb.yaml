@@ -130,6 +130,7 @@ dialogs:
 
 status:
   ready: "Klar for kort"
+  users_loaded: "Lastet %{count} brukere"
   user_loaded: "Bruker %{name} lastet"
   spend_success: "Trakk %{amount}"
   topup_success: "Fylte på %{amount}"
@@ -144,6 +145,7 @@ status:
 
 progress:
   looking_up: "Slår opp bruker..."
+  listing_users: "Laster brukere..."
   spending: "Trekker beløp..."
   topping_up: "Fyller på..."
   authenticating: "Autentiserer admin..."

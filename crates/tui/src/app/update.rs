@@ -27,7 +27,14 @@ impl App {
 
             Message::CardScanned(card) => return self.handle_card_scan(card),
 
-            Message::Navigate(page) => self.page = page.into(),
+            Message::OpenUser(user) => return self.open_user_dialog(user),
+
+            Message::Navigate(page) => {
+                self.page = page.into();
+                if page == crate::app::PageId::Users {
+                    return self.update(Message::ApiRequest(ApiRequest::ListUsers));
+                }
+            }
 
             Message::Quit => self.should_quit = true,
 
@@ -71,6 +78,14 @@ impl App {
 
     fn handle_api_result_default(&mut self, result: ApiResult) -> Option<ApiCommand> {
         match result {
+            ApiResult::Users(users) => {
+                let count = users.len();
+                if let crate::app::Page::Users(page) = &mut self.page {
+                    page.set_users(users);
+                }
+                self.status = StatusMessage::UsersLoaded(count);
+                None
+            }
             ApiResult::LookupUser(user) => {
                 self.status = StatusMessage::UserLoaded(user.name.clone());
                 self.open_user_dialog(user)

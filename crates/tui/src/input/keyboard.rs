@@ -25,11 +25,11 @@ pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
         None => key,
     };
 
-    if let Some(message) = map_key_base(app, key) {
+    if let Some(message) = app.page.handle_key(key) {
         return Some(message);
     }
 
-    app.page.handle_key(key)
+    map_key_base(app, key)
 }
 
 fn map_key_global(key: KeyEvent) -> Option<Message> {

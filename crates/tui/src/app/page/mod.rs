@@ -8,7 +8,7 @@ use crossterm::event::{KeyCode, KeyEvent};
 pub(crate) use home::HomePage;
 pub(crate) use stats::StatsPage;
 pub(crate) use transactions::TransactionsPage;
-pub(crate) use users::UsersPage;
+pub(crate) use users::{SortOrder, UserSort, UsersPage};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum PageId {
@@ -72,7 +72,7 @@ impl From<PageId> for Page {
     fn from(id: PageId) -> Self {
         match id {
             PageId::Home => Self::Home(HomePage),
-            PageId::Users => Self::Users(UsersPage),
+            PageId::Users => Self::Users(UsersPage::new()),
             PageId::Transactions => Self::Transactions(TransactionsPage),
             PageId::Stats => Self::Stats(StatsPage),
         }

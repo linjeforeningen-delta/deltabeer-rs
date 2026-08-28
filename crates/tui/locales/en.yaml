@@ -130,6 +130,7 @@ dialogs:
 
 status:
   ready: "Ready for card"
+  users_loaded: "Loaded %{count} users"
   user_loaded: "User %{name} loaded"
   spend_success: "Spent %{amount} successfully"
   topup_success: "Topped up %{amount} successfully"
@@ -144,6 +145,7 @@ status:
 
 progress:
   looking_up: "Looking up user..."
+  listing_users: "Loading users..."
   spending: "Spending..."
   topping_up: "Topping up..."
   authenticating: "Authenticating admin..."

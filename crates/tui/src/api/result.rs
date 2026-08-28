@@ -3,6 +3,7 @@ use crate::model::{Transaction, User, UserId};
 
 #[derive(Debug)]
 pub(crate) enum ApiResult {
+    Users(Vec<User>),
     LookupUser(User),
     Spend(Transaction),
     TopUp(Transaction),

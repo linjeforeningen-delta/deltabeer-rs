@@ -6,6 +6,13 @@ use crate::app::{AppError, AuthorizationOperation, Message};
 
 pub(crate) async fn execute_command(api: &ApiClient, command: ApiCommand) -> Message {
     match command.request {
+        ApiRequest::ListUsers => match api.users().await {
+            Ok(users) => Message::ApiResponse(ApiResult::Users(
+                users.into_iter().map(mappings::user_from_dto).collect(),
+            )),
+            Err(error) => Message::Failed(error.into()),
+        },
+
         ApiRequest::LookupUser(identifier) => {
             let user_id = match api.resolve_user(&identifier).await {
                 Ok(user_id) => mappings::user_id_from_dto(user_id),

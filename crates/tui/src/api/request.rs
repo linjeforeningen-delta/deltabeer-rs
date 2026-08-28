@@ -4,6 +4,7 @@ use chrono::NaiveDate;
 
 #[derive(Debug)]
 pub(crate) enum ApiRequest {
+    ListUsers,
     LookupUser(String),
     Spend {
         user_id: UserId,
@@ -56,6 +57,7 @@ impl ApiRequest {
 
     pub(crate) fn status_message(&self) -> StatusMessage {
         let progress = match self {
+            Self::ListUsers => ProgressMessage::ListingUsers,
             Self::LookupUser(_) => ProgressMessage::LookingUp,
             Self::Spend { .. } => ProgressMessage::Spending,
             Self::TopUp { .. } => ProgressMessage::ToppingUp,
