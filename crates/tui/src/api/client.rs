@@ -157,7 +157,7 @@ impl ApiClient {
             self.request(Method::POST, &format!("/v1/users/{user_id}/spend"))
                 .json(&amount),
         )
-            .await
+        .await
     }
 }
 

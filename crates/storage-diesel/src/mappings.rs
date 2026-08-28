@@ -25,7 +25,7 @@ impl From<DomainError> for MappingError {
 
 fn parse_id<T>(s: &str) -> Result<T, MappingError>
 where
-        for<'a> T: TryFrom<&'a str, Error=uuid::Error>,
+    for<'a> T: TryFrom<&'a str, Error = uuid::Error>,
 {
     T::try_from(s).map_err(|e| MappingError::InvalidId { source: e })
 }
