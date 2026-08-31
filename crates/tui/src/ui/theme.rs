@@ -55,7 +55,7 @@ impl Theme {
     }
 
     pub(crate) fn admin(&self) -> Palette {
-        self.palette(Color::LightRed, Color::Red)
+        self.palette(Color::Rgb(66, 0, 66), Color::Rgb(66, 0, 66))
     }
 
     fn palette(&self, accent: Color, border: Color) -> Palette {
