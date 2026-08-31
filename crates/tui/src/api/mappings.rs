@@ -1,3 +1,8 @@
+//! Conversions between API wire DTOs and TUI-owned presentation models.
+//!
+//! These mappings keep transport representations separate from the state used
+//! by rendering and interaction code.
+
 use crate::model::{
     Amount, Role, Stats, Transaction, TransactionId, TransactionKind, TransactionSource, User,
     UserId, UserPatch,
@@ -7,13 +12,17 @@ use delta_api::{
     UserPatchDto,
 };
 
+/// Convert a wire identifier into the TUI's presentation model.
 pub(crate) fn user_id_from_dto(value: UserIdDto) -> UserId {
     UserId(value.0)
 }
+
+/// Convert a TUI presentation identifier into the API wire representation.
 pub(crate) fn user_id_to_dto(value: UserId) -> UserIdDto {
     UserIdDto(value.0)
 }
 
+/// Convert API statistics into the TUI's presentation model.
 pub(crate) fn stats_from_dto(value: delta_api::StatsSummaryDto) -> Stats {
     Stats {
         total_users: value.total_users,
@@ -23,6 +32,7 @@ pub(crate) fn stats_from_dto(value: delta_api::StatsSummaryDto) -> Stats {
     }
 }
 
+/// Convert an API user DTO into TUI-owned state for rendering and interaction.
 pub(crate) fn user_from_dto(value: UserDto) -> User {
     User {
         id: user_id_from_dto(value.id),
@@ -41,6 +51,7 @@ pub(crate) fn user_from_dto(value: UserDto) -> User {
     }
 }
 
+/// Convert a TUI edit model into the API patch contract.
 pub(crate) fn user_patch_to_dto(value: UserPatch) -> UserPatchDto {
     UserPatchDto {
         name: value.name,
@@ -51,6 +62,7 @@ pub(crate) fn user_patch_to_dto(value: UserPatch) -> UserPatchDto {
     }
 }
 
+/// Convert an API transaction DTO into the TUI's presentation model.
 pub(crate) fn transaction_from_dto(value: TransactionDto) -> Transaction {
     Transaction {
         id: TransactionId(value.id.0),

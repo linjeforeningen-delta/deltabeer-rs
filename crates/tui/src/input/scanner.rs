@@ -1,6 +1,7 @@
 use crossterm::event::KeyEvent;
 use std::time::{Duration, Instant};
 
+/// Result of classifying the current keyboard event or buffered input.
 pub(crate) enum ScannerResult {
     Waiting,
     Scanned(String),
@@ -22,6 +23,10 @@ impl Scanner {
         }
     }
 
+    /// Buffer digit events and emit a scan only when Enter terminates them.
+    ///
+    /// A non-digit event ends the candidate and returns all buffered keys as
+    /// ordinary input so partial scans are not lost.
     pub(crate) fn handle(&mut self, key: KeyEvent) -> ScannerResult {
         let now = Instant::now();
 
@@ -62,6 +67,9 @@ impl Scanner {
         }
     }
 
+    /// Flush a candidate as ordinary input after the configured inter-key gap.
+    ///
+    /// Candidates within the gap remain buffered for a possible scan.
     pub(crate) fn flush(&mut self) -> ScannerResult {
         if self.buffer.is_empty() {
             return ScannerResult::Waiting;

@@ -1,6 +1,10 @@
 use super::{AdminDialog, Dialog};
 use crate::auth::{AdminContext, AuthState};
 
+/// Determines how a new dialog changes the existing modal stack.
+///
+/// `Push` preserves the current dialog, `ReplaceTop` discards only the active
+/// dialog, and `Reset` discards the complete stack.
 #[derive(Debug)]
 pub(crate) enum DialogOpenMode {
     Push,

@@ -1,6 +1,7 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
 
+/// Presentation-layer user identity; it is intentionally distinct from the API DTO.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct UserId(pub(crate) Uuid);
 
@@ -36,6 +37,7 @@ pub(crate) struct Stats {
     pub(crate) total_transactions: u32,
 }
 
+/// User data retained by the TUI between API results and rendering.
 #[derive(Debug, Clone)]
 pub(crate) struct User {
     pub(crate) id: UserId,

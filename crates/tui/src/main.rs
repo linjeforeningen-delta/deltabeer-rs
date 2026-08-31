@@ -1,3 +1,10 @@
+//! DeltaBeer terminal user interface binary.
+//!
+//! The TUI owns presentation, input, and local application state and
+//! communicates with the server through an HTTP client and shared API DTOs.
+//! It has no direct persistence access; database ownership remains with the
+//! server and its storage adapter.
+
 #[macro_use]
 extern crate rust_i18n;
 
