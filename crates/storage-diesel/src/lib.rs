@@ -1,3 +1,10 @@
+//! Diesel/SQLite implementations of the repository ports defined by
+//! `delta-core`.
+//!
+//! SQL concerns stop at this crate's boundary. Repository operations use
+//! blocking Diesel connections behind Tokio's `spawn_blocking` boundary, so
+//! the async core ports do not expose Diesel or block an async worker thread.
+
 mod mappings;
 mod models;
 mod schema;
@@ -32,12 +39,14 @@ diesel::define_sql_function! {
 
 pub type SqlitePool = Pool<ConnectionManager<SqliteConnection>>;
 
+/// Failure while constructing the SQLite connection pool.
 #[derive(Debug, Error)]
 pub enum PoolError {
     #[error("failed to create database pool")]
     Build(#[from] r2d2::Error),
 }
 
+/// Construct a pooled SQLite connection manager for the repository adapter.
 pub fn create_pool(database_url: &str, pool_size: u32) -> Result<SqlitePool, PoolError> {
     let manager = ConnectionManager::<SqliteConnection>::new(database_url);
 
@@ -46,15 +55,23 @@ pub fn create_pool(database_url: &str, pool_size: u32) -> Result<SqlitePool, Poo
         .build(manager)
         .map_err(PoolError::from)
 }
+/// Repository adapter that translates core repository operations to SQLite
+/// Diesel queries.
+///
+/// Each operation acquires a pooled connection inside Tokio's blocking-task
+/// boundary and normalizes storage and mapping failures to `RepoError`.
 pub struct DieselRepo {
     pool: SqlitePool,
 }
 
 impl DieselRepo {
+    /// Wrap an existing SQLite pool in the repository adapter.
     pub fn new(pool: SqlitePool) -> Self {
         Self { pool }
     }
 
+    /// Expose the underlying pool for integration tests and adapter-specific
+    /// database operations.
     pub fn pool(&self) -> &SqlitePool {
         &self.pool
     }
