@@ -1,0 +1,179 @@
+# Development
+
+## Workspace layout
+
+The root `Cargo.toml` defines the following workspace members.
+
+| Member           | Responsibility                                                                           |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| `delta-core`     | Domain values, business rules, application services, and ports.                          |
+| `delta-api`      | Serializable request and response DTOs shared by the server and TUI.                     |
+| `storage-diesel` | Diesel/SQLite persistence, mappings, schema, and migrations.                             |
+| `server`         | Configuration, dependency assembly, Axum HTTP routes, and OpenAPI.                       |
+| `tui`            | Terminal UI, input handling, presentation state, localization, and HTTP client behavior. |
+| `cli`            | Placeholder command-line binary.                                                         |
+
+See [architecture.md](architecture.md) for dependency and boundary rules.
+
+## Prerequisites
+
+Install Rust and Cargo.
+Install the Diesel CLI with SQLite support because the storage integration tests and migration workflow invoke `diesel`.
+
+```sh
+cargo install diesel_cli --no-default-features --features sqlite
+```
+
+Install the SQLite command-line tool for inspecting databases during development and operations.
+
+There is no repository Rust toolchain file that specifies minimum Rust or Cargo versions.
+
+## Running locally
+
+Run these commands from the repository root so the relative configuration and database paths resolve as documented.
+
+```sh
+cargo run -p server -- --config config/development.yaml
+cargo run -p tui -- --config config/development.yaml
+```
+
+Start the server before starting the TUI.
+Both binaries accept `--config <path>` and use the development configuration by default in debug builds.
+Configuration paths and keys are described in [configuration.md](configuration.md).
+The server does not run migrations at startup, so apply migrations to the configured SQLite database before first use.
+
+## Build and validation commands
+
+Run formatting checks:
+
+```sh
+cargo fmt --all -- --check
+```
+
+Run workspace compilation and tests:
+
+```sh
+cargo check --workspace --all-targets
+cargo test --workspace
+```
+
+Run Clippy across workspace targets:
+
+```sh
+cargo clippy --workspace --all-targets
+```
+
+Build Rust documentation without documenting dependencies:
+
+```sh
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
+```
+
+Build the workspace in release mode:
+
+```sh
+cargo build --workspace --release
+```
+
+Run the storage tests separately when changing persistence code.
+
+```sh
+cargo test -p storage-diesel
+```
+
+## Database development and migrations
+
+Diesel CLI reads `DATABASE_URL` to select the SQLite database for migration commands.
+The storage crate also uses `DATABASE_URL` in its integration tests when they create temporary test databases.
+The migration directory is `crates/storage-diesel/migrations`.
+Migration directories must use the naming format required by the installed Diesel CLI.
+The checked-in migration is currently in the `0001-initial-database` directory.
+Verify migration command compatibility with the installed Diesel CLI before applying migrations to a development or operational database.
+
+Run migrations from the repository root with an explicit migration directory:
+
+```sh
+DATABASE_URL=crates/storage-diesel/data/dev.sqlite \
+  diesel migration run --migration-dir crates/storage-diesel/migrations
+```
+
+The storage crate contains `crates/storage-diesel/.env`, which supplies a default `DATABASE_URL` for Diesel commands run from that crate.
+For a specific database, set `DATABASE_URL` explicitly rather than relying on that default.
+
+To inspect migration state:
+
+```sh
+DATABASE_URL=crates/storage-diesel/data/dev.sqlite \
+  diesel migration list --migration-dir crates/storage-diesel/migrations
+```
+
+Storage integration tests create temporary SQLite files, run the migrations through Diesel CLI, and discard those files after each test.
+
+`TODO:` Update the storage integration-test migration command to provide the repository migration directory explicitly, or otherwise make the tests establish their schema from the workspace root.
+Stop database writers and follow [operations.md](operations.md) before backing up, restoring, or migrating an operational database.
+
+## OpenAPI development
+
+The shared API DTOs define `utoipa::ToSchema` implementations in `crates/delta-api/src`.
+The server defines endpoint `#[utoipa::path]` annotations in `crates/server/src/http` and assembles the document with `#[openapi]` declarations in the same module tree.
+Run the server locally, then inspect the interactive Swagger UI at [http://localhost:3000/docs](http://localhost:3000/docs) or the generated JSON at [http://localhost:3000/api-doc/openapi.json](http://localhost:3000/api-doc/openapi.json).
+The port and bind address come from the selected server configuration.
+
+## Architectural conventions
+
+Keep business rules and use-case policy in `delta-core`.
+Put infrastructure concerns such as Diesel, SQLite, and blocking database work behind the ports defined by core.
+Keep conversions at the boundary that owns each representation.
+Keep HTTP wire DTOs in `delta-api` separate from core domain values and TUI presentation models.
+Treat database checks and triggers as integrity enforcement for invariants that must also hold for direct SQL writes.
+See [architecture.md](architecture.md) for the verified dependency graph, mappings, and invariants.
+
+## Generated documentation
+
+Generate workspace API documentation with:
+
+```sh
+cargo doc --workspace --no-deps
+```
+
+Cargo writes generated documentation below `target/doc`.
+The repository ignores `/target/`, so generated documentation is not committed.
+
+## Release preparation
+
+Choose and verify the intended semantic version according to the change being released.
+Update the workspace package `version` field in the root `Cargo.toml`.
+Confirm that all workspace packages inherit the intended version and that no package has an unintentional override.
+Regenerate or validate `Cargo.lock` if the version change or dependency changes affect it.
+Run formatting, workspace checks, tests, Clippy, and Rustdoc using the commands above.
+Build the workspace with `cargo build --workspace --release`.
+
+Review whether the release changes require a new migration or any operational migration instructions.
+Update relevant developer, API, configuration, deployment, or operations documentation.
+Review the final diff and confirm that the version-bearing files, checks, migrations, and documentation are ready to commit.
+
+## Tagging a release
+
+Commit the version-bearing files and all release changes before creating the tag.
+Use the intended version for `VERSION` when running the release commands:
+
+```sh
+VERSION="X.Y.Z"
+git tag -a "v${VERSION}" -m "Release ${VERSION}"
+git push origin main "v${VERSION}"
+```
+
+The annotated tag follows the repository's existing `v<version>` tag convention.
+Verify the commit and tag references before pushing when the release is prepared from a branch or a non-default remote.
+
+## Release checklist
+
+- [ ] Update and verify the workspace version.
+- [ ] Confirm `Cargo.lock` consistency where affected.
+- [ ] Run `fmt`, workspace `check`, tests, Clippy, and Rustdoc.
+- [ ] Complete a release build.
+- [ ] Review and apply required migrations.
+- [ ] Update relevant documentation.
+- [ ] Commit the version-bearing files and release changes.
+- [ ] Create an annotated `v<version>` tag.
+- [ ] Push the intended commit and tag.
