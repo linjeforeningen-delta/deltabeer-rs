@@ -1,3 +1,11 @@
+//! DeltaBeer HTTP server binary.
+//!
+//! This crate composes configuration, Axum HTTP routing, OpenAPI metadata,
+//! request mappings, core services, and the SQLite repository.
+//!
+//! It owns application wiring and transport concerns; business rules remain
+//! in `delta-core`, while `delta-api` supplies the shared wire contract.
+
 use axum::Router;
 use clap::Parser;
 use delta_core::infra::{clock::SystemClock, id::UuidIdGenerator, token::OpaqueTokenSource};
