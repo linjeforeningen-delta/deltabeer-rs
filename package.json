@@ -1,0 +1,26 @@
+{
+  "name": "deltabeer",
+  "version": "1.0.0",
+  "description": "DeltaBeer is a Rust workspace for managing users, account balances, and transactions. It provides an HTTP server backed by SQLite and a terminal user interface that communicates with the server through the shared API contract. Business rules and application services are kept separate from transport, persistence, and presentation concerns.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "docs:format": "prettier --write \"**/*.md\"",
+    "docs:check": "prettier --check \"**/*.md\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linjeforeningen-delta/deltabeer-rs.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/linjeforeningen-delta/deltabeer-rs/issues"
+  },
+  "homepage": "https://github.com/linjeforeningen-delta/deltabeer-rs#readme",
+  "devDependencies": {
+    "prettier": "^3.9.6"
+  }
+}
