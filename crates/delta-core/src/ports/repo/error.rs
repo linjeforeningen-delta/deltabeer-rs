@@ -1,6 +1,10 @@
 use crate::domain::DomainError;
 use thiserror::Error;
 
+/// Storage outcomes normalized for service-layer decisions.
+///
+/// This abstraction prevents service code from depending on Diesel or another
+/// adapter's error vocabulary.
 #[derive(Debug, Error)]
 pub enum RepoError {
     #[error("entity not found")]

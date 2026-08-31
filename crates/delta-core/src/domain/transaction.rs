@@ -58,10 +58,16 @@ pub enum Approval {
     Approved { by: UserId },
 }
 
+/// Non-negative account value represented by the application's unsigned amount
+/// representation.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Serialize, Deserialize)]
 pub struct Amount(pub u32);
 
 impl Amount {
+    /// Subtract without allowing an underflow.
+    ///
+    /// Returns `DomainError::InsufficientBalance` when `rhs` exceeds this
+    /// amount, leaving the original value unchanged.
     pub fn checked_sub(self, rhs: Amount) -> Result<Amount, DomainError> {
         self.0
             .checked_sub(rhs.0)

@@ -6,15 +6,25 @@ use crate::services::{ServiceError, context::Ctx};
 use chrono::{DateTime, Utc};
 
 const TOKEN_BYTE_SIZE: usize = 32;
+/// Opaque server-side token material.
+///
+/// The API adapter owns external encoding, while core compares the raw bytes
+/// and the token repository stores the associated authorization record.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AdminToken(pub [u8; TOKEN_BYTE_SIZE]);
 
+/// Distinguishes a token invalidated on successful validation from a reusable
+/// session token.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
     SingleUse,
     Session,
 }
 
+/// Persisted token metadata used during authorization.
+///
+/// `SingleUse` records are invalidated by token validation after a successful
+/// lookup, so they cannot authorize a second operation.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TokenData {
     pub user_id: UserId,

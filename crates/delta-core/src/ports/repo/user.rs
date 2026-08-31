@@ -4,6 +4,10 @@ use crate::{
 };
 use async_trait::async_trait;
 
+/// Persistence operations for users and user lookup identities.
+///
+/// Repository implementations are responsible for translating storage errors
+/// into the normalized `RepoError` values consumed by services.
 #[async_trait]
 pub trait UserRepo {
     async fn get_user(&self, key: &UserId) -> Result<User, RepoError>;

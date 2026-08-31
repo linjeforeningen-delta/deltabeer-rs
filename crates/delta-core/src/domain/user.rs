@@ -19,6 +19,7 @@ impl fmt::Display for Role {
     }
 }
 
+/// Stable identity of a user.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 #[serde(transparent)]
 pub struct UserId(pub Uuid);
@@ -29,6 +30,10 @@ impl TryFrom<&str> for UserId {
         Uuid::parse_str(value).map(Self)
     }
 }
+/// Identifier accepted by core lookup services.
+///
+/// String parsing trims surrounding whitespace, recognizes UUIDs first, then
+/// digit-only card numbers, and finally alphabetic usernames in lowercase.
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 pub enum UserIdent {
     Id(UserId),
@@ -68,6 +73,7 @@ impl<'a> TryFrom<&'a str> for UserIdent {
     }
 }
 
+/// Domain representation of an account holder and its derived balances.
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 pub struct User {
     pub id: UserId,

@@ -5,6 +5,10 @@ use crate::{
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
+/// Persistence operations for opaque authorization tokens.
+///
+/// A successful lookup must exclude expired or already-invalidated records so
+/// token validation can treat `None` as an invalid token.
 #[async_trait]
 pub trait TokenRepo: Send + Sync {
     async fn insert_token(

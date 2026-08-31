@@ -5,6 +5,10 @@ use crate::{
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
+/// Atomic persistence operations for balance-changing transactions.
+///
+/// Implementations must persist the balance change and transaction record as
+/// one operation so callers do not observe only half of a transaction.
 #[async_trait]
 pub trait TransactionRepo: UserRepo {
     async fn spend(

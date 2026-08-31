@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use chrono::Duration;
 use thiserror::Error;
 
+/// Failures from token issuance, invalidation, or validation.
 #[derive(Debug, Error)]
 pub enum TokenError {
     #[error("Invalid token")]
@@ -16,6 +17,10 @@ pub enum TokenError {
     FailedToIssueToken,
 }
 
+/// Boundary for token generation and lifecycle operations.
+///
+/// Implementations coordinate opaque token material with `TokenRepo`; callers
+/// do not need to know how tokens are generated or encoded.
 #[async_trait]
 pub trait TokenSource: Send + Sync {
     async fn issue_token(

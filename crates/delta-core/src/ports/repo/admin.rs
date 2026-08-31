@@ -4,6 +4,10 @@ use crate::{
 };
 use async_trait::async_trait;
 
+/// Persistence operations for administrator credentials and grants.
+///
+/// Implementations own storage concerns, while authorization workflows and
+/// password hashing remain in the service layer.
 #[async_trait]
 pub trait AdminRepo {
     async fn get_admin(&self, id: UserId) -> Result<PasswordHash, RepoError>;
