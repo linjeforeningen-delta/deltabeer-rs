@@ -1,10 +1,9 @@
 use anyhow::{Context, Result};
 use image::{DynamicImage, imageops::FilterType};
-use insa::Insa;
 use ratatui::{
     Frame,
     layout::Rect,
-    style::Color,
+    style::{Color, Style},
     text::{Line, Span},
     widgets::Paragraph,
 };
@@ -62,25 +61,52 @@ impl Splash {
 }
 
 fn converted_lines(image: &DynamicImage, columns: u32, rows: u32) -> Vec<Line<'static>> {
-    let resized = image.resize_exact(columns * 8, rows * 16, FilterType::Triangle);
-    let insa = Insa::blocks();
-    insa.convert(&resized)
-        .map(|((_, row), symbol)| (row, symbol))
-        .fold(
-            Vec::<Line<'static>>::with_capacity(rows as usize),
-            |mut lines, (row, symbol)| {
-                if lines.len() <= row as usize {
-                    lines.resize_with(row as usize + 1, Line::default);
-                }
-                lines[row as usize].spans.push(Span::styled(
-                    symbol.brush.to_string(),
-                    ratatui::style::Style::default()
-                        .fg(rgb(symbol.front_color))
-                        .bg(symbol.back_color.map(rgb).unwrap_or(Color::Reset)),
-                ));
-                lines
-            },
-        )
+    let resized = image
+        .resize_exact(columns, rows * 2, FilterType::Nearest)
+        .to_rgba8();
+    let mut lines = Vec::with_capacity(rows as usize);
+
+    for row in 0..rows {
+        let mut line = Line::default();
+        for column in 0..columns {
+            let top = resized.get_pixel(column, row * 2);
+            let bottom = resized.get_pixel(column, row * 2 + 1);
+            let top_visible = top[3] >= 128;
+            let bottom_visible = bottom[3] >= 128;
+
+            let (glyph, foreground, background): (&str, Option<Color>, Option<Color>) =
+                match (top_visible, bottom_visible) {
+                    (false, false) => (" ", None, None),
+                    (true, false) => (
+                        "▀",
+                        Some(Color::Rgb(top[0], top[1], top[2])),
+                        Some(Color::Reset),
+                    ),
+                    (false, true) => (
+                        "▄",
+                        Some(Color::Rgb(bottom[0], bottom[1], bottom[2])),
+                        Some(Color::Reset),
+                    ),
+                    (true, true) => (
+                        "▀",
+                        Some(Color::Rgb(top[0], top[1], top[2])),
+                        Some(Color::Rgb(bottom[0], bottom[1], bottom[2])),
+                    ),
+                };
+
+            let mut style = Style::default();
+            if let Some(color) = foreground {
+                style = style.fg(color);
+            }
+            if let Some(color) = background {
+                style = style.bg(color);
+            }
+            line.spans.push(Span::styled(glyph, style));
+        }
+        lines.push(line);
+    }
+
+    lines
 }
 
 fn fitted_size(area: Rect, image_width: u32, image_height: u32) -> (u32, u32) {
@@ -98,8 +124,4 @@ fn fitted_size(area: Rect, image_width: u32, image_height: u32) -> (u32, u32) {
             (area.width as f32 / image_cell_ratio) as u32,
         )
     }
-}
-
-fn rgb((red, green, blue): (u8, u8, u8)) -> Color {
-    Color::Rgb(red, green, blue)
 }
