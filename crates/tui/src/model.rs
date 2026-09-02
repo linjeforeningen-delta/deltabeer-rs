@@ -76,11 +76,35 @@ pub(crate) enum TransactionSource {
 }
 #[derive(Debug, Clone)]
 pub(crate) struct Transaction {
+    #[expect(
+        dead_code,
+        reason = "retained from the API model for future transaction detail rendering"
+    )]
     pub(crate) id: TransactionId,
+    #[expect(
+        dead_code,
+        reason = "retained from the API model for future transaction detail rendering"
+    )]
     pub(crate) user_id: UserId,
+    #[expect(
+        dead_code,
+        reason = "retained from the API model for future transaction detail rendering"
+    )]
     pub(crate) kind: TransactionKind,
     pub(crate) amount: Amount,
+    #[expect(
+        dead_code,
+        reason = "retained from the API model for future transaction detail rendering"
+    )]
     pub(crate) timestamp: DateTime<Utc>,
+    #[expect(
+        dead_code,
+        reason = "retained from the API model for future transaction detail rendering"
+    )]
     pub(crate) approved_by: Option<UserId>,
+    #[expect(
+        dead_code,
+        reason = "retained from the API model for future transaction detail rendering"
+    )]
     pub(crate) source: TransactionSource,
 }

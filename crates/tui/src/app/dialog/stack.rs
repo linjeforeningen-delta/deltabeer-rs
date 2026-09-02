@@ -8,6 +8,10 @@ use crate::auth::{AdminContext, AuthState};
 #[derive(Debug)]
 pub(crate) enum DialogOpenMode {
     Push,
+    #[expect(
+        dead_code,
+        reason = "supported dialog-stack operation reserved for flows that replace the active dialog"
+    )]
     ReplaceTop,
     Reset,
 }

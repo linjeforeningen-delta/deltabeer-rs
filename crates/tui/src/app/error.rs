@@ -14,6 +14,10 @@ pub(crate) enum AppError {
     MissingAuthorization {
         operation: AuthorizationOperation,
     },
+    #[expect(
+        dead_code,
+        reason = "part of the application error model for session-expiration handling"
+    )]
     SessionExpired,
 }
 
