@@ -65,10 +65,10 @@ impl Runtime {
     fn update_display_state(&mut self) {
         match self.display_state {
             DisplayState::StartupSplash { started }
-            if started.elapsed() >= STARTUP_SPLASH_DURATION =>
-                {
-                    self.activate()
-                }
+                if started.elapsed() >= STARTUP_SPLASH_DURATION =>
+            {
+                self.activate()
+            }
 
             DisplayState::Active if self.last_activity.elapsed() >= self.idle_timeout => {
                 self.idle()
@@ -114,7 +114,7 @@ impl Runtime {
                     true
                 }
 
-                DisplayState::Active { .. } => {
+                DisplayState::Active => {
                     self.splash.begin_idle();
                     self.display_state = DisplayState::Idle;
                     true
@@ -128,17 +128,13 @@ impl Runtime {
     pub(crate) async fn handle_event(&mut self, event: Event) {
         self.update_display_state();
 
-        match event {
-            Event::Key(key) => {
-                if self.handle_global_key(key).await {
-                    return;
-                }
-
-                self.activate();
-                self.handle_key(key).await;
+        if let Event::Key(key) = event {
+            if self.handle_global_key(key).await {
+                return;
             }
 
-            _ => {}
+            self.activate();
+            self.handle_key(key).await;
         }
     }
 
