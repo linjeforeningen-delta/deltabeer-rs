@@ -127,10 +127,17 @@ impl Runtime {
 
     pub(crate) async fn handle_event(&mut self, event: Event) {
         self.update_display_state();
-        self.activate();
 
         match event {
-            Event::Key(key) if !self.handle_global_key(key).await => self.handle_key(key).await,
+            Event::Key(key) => {
+                if self.handle_global_key(key).await {
+                    return;
+                }
+
+                self.activate();
+                self.handle_key(key).await;
+            }
+
             _ => {}
         }
     }
