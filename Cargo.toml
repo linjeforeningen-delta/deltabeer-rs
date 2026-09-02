@@ -9,7 +9,7 @@ members = ["crates/cli", "crates/delta-core",
 
 
 [workspace.package]
-version = "1.0.1"
+version = "1.0.2"
 edition = "2024"         # if your compiler complains, change to "2021"
 license = "MIT"
 authors = ["Even Ytterli Tokle <Even@Tokle.io>"]
@@ -31,5 +31,6 @@ thiserror = "2"
 dotenvy = "0.15"
 base64 = "0.23"
 ratatui = "0.30"
+rand = "0.10"
 crossterm = "0.29"
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }

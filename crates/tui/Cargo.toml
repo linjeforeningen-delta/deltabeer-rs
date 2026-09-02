@@ -12,6 +12,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow.workspace = true
 ratatui.workspace = true
+rand.workspace = true
 crossterm.workspace = true
 image = { version = "0.25", default-features = false, features = ["png"] }
 chrono.workspace = true

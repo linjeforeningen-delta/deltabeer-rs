@@ -3,7 +3,7 @@ use crate::app::{App, Message};
 use crate::input::Input;
 use crate::splash::Splash;
 use crate::ui;
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::Frame;
 use std::time::{Duration, Instant};
 
@@ -84,6 +84,7 @@ impl Runtime {
     }
 
     fn idle(&mut self) {
+        self.splash.begin_idle();
         self.display_state = DisplayState::Idle;
         self.app.dialogs.clear();
     }
@@ -97,21 +98,43 @@ impl Runtime {
     }
 
     async fn handle_global_key(&mut self, key: KeyEvent) -> bool {
-        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('q') {
-            self.dispatch(Message::Quit).await;
-            true
-        } else {
-            false
+        if key.kind != KeyEventKind::Press || !key.modifiers.contains(KeyModifiers::CONTROL) {
+            return false;
+        }
+
+        match key.code {
+            KeyCode::Char('q') => {
+                self.dispatch(Message::Quit).await;
+                true
+            }
+
+            KeyCode::Char('s') => match self.display_state {
+                DisplayState::Idle => {
+                    self.splash.next_variant();
+                    true
+                }
+
+                DisplayState::Active => {
+                    self.splash.begin_idle();
+                    self.display_state = DisplayState::Idle;
+                    true
+                }
+                _ => false,
+            },
+            _ => false,
         }
     }
 
     pub(crate) async fn handle_event(&mut self, event: Event) {
         self.update_display_state();
-        self.activate();
 
-        match event {
-            Event::Key(key) if !self.handle_global_key(key).await => self.handle_key(key).await,
-            _ => {}
+        if let Event::Key(key) = event {
+            if self.handle_global_key(key).await {
+                return;
+            }
+
+            self.activate();
+            self.handle_key(key).await;
         }
     }
 
