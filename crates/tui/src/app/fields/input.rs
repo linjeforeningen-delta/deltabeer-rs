@@ -42,10 +42,6 @@ impl TextInput {
         self.value.pop();
     }
 
-    pub(crate) fn clear(&mut self) {
-        self.value.clear();
-    }
-
     pub(crate) fn as_str(&self) -> &str {
         &self.value
     }
@@ -56,10 +52,6 @@ impl TextInput {
 
     pub(crate) fn as_u32(&self) -> Option<u32> {
         self.value.parse().ok()
-    }
-
-    pub(crate) fn is_empty(&self) -> bool {
-        self.value.is_empty()
     }
 
     pub(crate) fn len(&self) -> usize {
