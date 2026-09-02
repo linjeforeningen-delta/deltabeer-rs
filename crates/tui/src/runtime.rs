@@ -3,7 +3,7 @@ use crate::app::{App, Message};
 use crate::input::Input;
 use crate::splash::Splash;
 use crate::ui;
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::Frame;
 use std::time::{Duration, Instant};
 
@@ -65,10 +65,10 @@ impl Runtime {
     fn update_display_state(&mut self) {
         match self.display_state {
             DisplayState::StartupSplash { started }
-                if started.elapsed() >= STARTUP_SPLASH_DURATION =>
-            {
-                self.activate()
-            }
+            if started.elapsed() >= STARTUP_SPLASH_DURATION =>
+                {
+                    self.activate()
+                }
 
             DisplayState::Active if self.last_activity.elapsed() >= self.idle_timeout => {
                 self.idle()
@@ -98,11 +98,30 @@ impl Runtime {
     }
 
     async fn handle_global_key(&mut self, key: KeyEvent) -> bool {
-        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('q') {
-            self.dispatch(Message::Quit).await;
-            true
-        } else {
-            false
+        if key.kind != KeyEventKind::Press || !key.modifiers.contains(KeyModifiers::CONTROL) {
+            return false;
+        }
+
+        match key.code {
+            KeyCode::Char('q') => {
+                self.dispatch(Message::Quit).await;
+                true
+            }
+
+            KeyCode::Char('s') => match self.display_state {
+                DisplayState::Idle => {
+                    self.splash.next_variant();
+                    true
+                }
+
+                DisplayState::Active { .. } => {
+                    self.splash.begin_idle();
+                    self.display_state = DisplayState::Idle;
+                    true
+                }
+                _ => false,
+            },
+            _ => false,
         }
     }
 

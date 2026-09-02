@@ -57,7 +57,7 @@ impl Splash {
                 image: image::load_from_memory(MARIO)
                     .context("failed to decode embedded Mario splash image")?,
                 weight: 10,
-                sizing: SplashSizing::PixelScaleToFit,
+                sizing: SplashSizing::PixelScale(NonZeroU32::new(1).unwrap()),
             },
         ];
 
@@ -92,6 +92,16 @@ impl Splash {
         tracing::debug!(
             variant = self.variants[self.selected_variant].name,
             "selected idle splash"
+        );
+    }
+
+    pub(crate) fn next_variant(&mut self) {
+        self.selected_variant = (self.selected_variant + 1) % self.variants.len();
+        self.rendered = None;
+
+        tracing::debug!(
+            variant = self.variants[self.selected_variant].name,
+            "changed idle splash manually"
         );
     }
 
@@ -290,7 +300,7 @@ fn fitted_size(area: Rect, image_width: u32, image_height: u32) -> (u32, u32) {
 #[cfg(test)]
 mod tests {
     use super::{
-        NonZeroU32, SplashSizing, SplashVariant, converted_lines_from_pixels, render_size,
+        NonZeroU32, Splash, SplashSizing, SplashVariant, converted_lines_from_pixels, render_size,
         select_variant_for_roll,
     };
     use image::{DynamicImage, Rgba, RgbaImage};
@@ -315,6 +325,44 @@ mod tests {
                 sizing: SplashSizing::Fit,
             },
         ]
+    }
+
+    fn splash_with_variants(variants: Vec<SplashVariant>) -> Splash {
+        Splash {
+            variants,
+            selected_variant: 0,
+            rendered: None,
+        }
+    }
+
+    #[test]
+    fn next_variant_cycles_forward_and_wraps() {
+        let mut splash = splash_with_variants(variants());
+
+        splash.next_variant();
+        assert_eq!(splash.selected_variant, 1);
+
+        splash.next_variant();
+        assert_eq!(splash.selected_variant, 0);
+    }
+
+    #[test]
+    fn next_variant_ignores_weights() {
+        let mut splash = splash_with_variants(variants());
+
+        splash.next_variant();
+
+        assert_eq!(splash.selected_variant, 1);
+    }
+
+    #[test]
+    fn next_variant_clears_render_cache() {
+        let mut splash = splash_with_variants(variants());
+        splash.rendered = Some((1, 1, Vec::new()));
+
+        splash.next_variant();
+
+        assert!(splash.rendered.is_none());
     }
 
     #[test]
@@ -380,7 +428,7 @@ mod tests {
         let image = DynamicImage::new_rgba8(16, 16);
 
         assert_eq!(
-            render_size(Rect::new(0, 0, 8, 8), &image, SplashSizing::PixelScaleToFit,),
+            render_size(Rect::new(0, 0, 8, 8), &image, SplashSizing::PixelScaleToFit, ),
             (8, 4)
         );
     }
