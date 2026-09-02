@@ -18,10 +18,14 @@ use delta_core::{
 use std::collections::HashMap;
 use std::sync::Mutex;
 
+type TokenDigest = [u8; 32];
+type TokenRecord = (TokenData, DateTime<Utc>);
+type TokenStore = HashMap<TokenDigest, TokenRecord>;
+
 pub(crate) struct InMemoryRepo {
     pub(crate) users: Mutex<HashMap<UserId, User>>,
     pub(crate) admins: Mutex<HashMap<UserId, PasswordHash>>,
-    pub(crate) tokens: Mutex<HashMap<[u8; 32], (TokenData, DateTime<Utc>)>>,
+    pub(crate) tokens: Mutex<TokenStore>,
     pub(crate) transactions: Mutex<Vec<Transaction>>,
 }
 
@@ -96,7 +100,7 @@ impl UserRepo for InMemoryRepo {
         if users.values().any(|other| {
             other.id != user.id
                 && delta_core::domain::normalize_username(&other.username)
-                    == delta_core::domain::normalize_username(&user.username)
+                == delta_core::domain::normalize_username(&user.username)
         }) {
             return Err(RepoError::Conflict);
         }

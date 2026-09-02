@@ -27,8 +27,8 @@ pub(crate) fn map_key(app: &mut App, key: KeyEvent) -> Option<Message> {
     };
 
     match app.page.handle_key(key) {
-        PageResult::Consumed => return None,
-        PageResult::Message(message) => return Some(message),
+        PageResult::Consumed => None,
+        PageResult::Message(message) => Some(message),
         PageResult::Unhandled(key) => map_key_base(app, key),
     }
 }
