@@ -4,7 +4,6 @@ use crate::app::dialog::menu::Language;
 use crate::app::{Dialog, DialogOpenMode, PageId};
 
 use super::{error::AppError, status::StatusMessage};
-use crate::model::User;
 
 #[derive(Debug)]
 pub(crate) enum Message {
@@ -25,7 +24,6 @@ pub(crate) enum Message {
     CloseDialog,
 
     CardScanned(String),
-    OpenUser(User),
     Navigate(PageId),
     Quit,
     SetLanguage(Language),

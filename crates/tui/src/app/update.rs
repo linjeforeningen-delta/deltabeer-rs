@@ -27,8 +27,6 @@ impl App {
 
             Message::CardScanned(card) => return self.handle_card_scan(card),
 
-            Message::OpenUser(user) => return self.open_user_dialog(user),
-
             Message::Navigate(page) => {
                 self.page = page.into();
                 if page == crate::app::PageId::Users {
