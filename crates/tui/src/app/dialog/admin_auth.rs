@@ -20,14 +20,6 @@ impl AdminAuthDialog {
             password: TextInput::new(InputConstraint::Any),
         }
     }
-
-    pub(crate) fn empty() -> Self {
-        Self::new(None)
-    }
-
-    pub(crate) fn with_admin(admin: AdminContext) -> Self {
-        Self::new(Some(admin))
-    }
 }
 
 impl DialogBehavior for AdminAuthDialog {
