@@ -1,5 +1,6 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use image::{DynamicImage, imageops::FilterType};
+use rand::random_range;
 use ratatui::{
     Frame,
     layout::Rect,
@@ -9,24 +10,77 @@ use ratatui::{
 };
 
 const LOGO: &[u8] = include_bytes!("../media/logo.png");
+const MARIO: &[u8] = include_bytes!("../media/mario.png");
+
+struct SplashVariant {
+    name: &'static str,
+    image: DynamicImage,
+    weight: u32,
+}
 
 pub(crate) struct Splash {
-    image: DynamicImage,
+    variants: Vec<SplashVariant>,
+    selected_variant: usize,
     rendered: Option<(u16, u16, Vec<Line<'static>>)>,
 }
 
 impl Splash {
     pub(crate) fn new() -> Result<Self> {
+        // Weights are relative: the default logo is selected 90% of the time,
+        // while the current Easter egg receives the remaining 10%.
+        let variants = vec![
+            SplashVariant {
+                name: "default",
+                image: image::load_from_memory(LOGO)
+                    .context("failed to decode embedded default splash logo")?,
+                weight: 90,
+            },
+            SplashVariant {
+                name: "mario",
+                image: image::load_from_memory(MARIO)
+                    .context("failed to decode embedded Mario splash image")?,
+                weight: 10,
+            },
+        ];
+
+        if variants.is_empty() {
+            bail!("embedded splash configuration contains no variants");
+        }
+        if variants
+            .iter()
+            .try_fold(0_u32, |total, variant| total.checked_add(variant.weight))
+            .is_none_or(|total| total == 0)
+        {
+            bail!("embedded splash configuration has no selectable weight");
+        }
+
         Ok(Self {
-            image: image::load_from_memory(LOGO)
-                .context("failed to decode embedded splash logo")?,
+            variants,
+            selected_variant: 0,
             rendered: None,
         })
     }
 
+    pub(crate) fn begin_idle(&mut self) {
+        let total_weight = self
+            .variants
+            .iter()
+            .map(|variant| variant.weight)
+            .sum::<u32>();
+        let roll = random_range(0..total_weight);
+        self.selected_variant = select_variant_for_roll(&self.variants, roll);
+        self.rendered = None;
+
+        tracing::debug!(
+            variant = self.variants[self.selected_variant].name,
+            "selected idle splash"
+        );
+    }
+
     pub(crate) fn draw(&mut self, frame: &mut Frame) {
         let area = frame.area();
-        let (columns, rows) = fitted_size(area, self.image.width(), self.image.height());
+        let image = &self.variants[self.selected_variant].image;
+        let (columns, rows) = fitted_size(area, image.width(), image.height());
         if columns == 0 || rows == 0 {
             return;
         }
@@ -41,7 +95,7 @@ impl Splash {
             self.rendered = Some((
                 columns as u16,
                 rows as u16,
-                converted_lines(&self.image, columns, rows),
+                converted_lines(image, columns, rows),
             ));
         }
 
@@ -58,6 +112,21 @@ impl Splash {
             Rect::new(x, y, columns as u16, rows as u16),
         );
     }
+}
+
+fn select_variant_for_roll(variants: &[SplashVariant], roll: u32) -> usize {
+    let mut remaining = roll;
+    for (index, variant) in variants.iter().enumerate() {
+        if remaining < variant.weight {
+            return index;
+        }
+        remaining -= variant.weight;
+    }
+
+    variants
+        .iter()
+        .rposition(|variant| variant.weight > 0)
+        .expect("splash variants must contain selectable weight")
 }
 
 fn converted_lines(image: &DynamicImage, columns: u32, rows: u32) -> Vec<Line<'static>> {
@@ -123,5 +192,54 @@ fn fitted_size(area: Rect, image_width: u32, image_height: u32) -> (u32, u32) {
             area.width as u32,
             (area.width as f32 / image_cell_ratio) as u32,
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{SplashVariant, select_variant_for_roll};
+    use image::DynamicImage;
+
+    fn variants() -> Vec<SplashVariant> {
+        vec![
+            SplashVariant {
+                name: "default",
+                image: DynamicImage::new_rgba8(1, 1),
+                weight: 90,
+            },
+            SplashVariant {
+                name: "mario",
+                image: DynamicImage::new_rgba8(1, 1),
+                weight: 10,
+            },
+        ]
+    }
+
+    #[test]
+    fn weighted_roll_selects_expected_variant() {
+        let variants = variants();
+
+        assert_eq!(select_variant_for_roll(&variants, 0), 0);
+        assert_eq!(select_variant_for_roll(&variants, 89), 0);
+        assert_eq!(select_variant_for_roll(&variants, 90), 1);
+        assert_eq!(select_variant_for_roll(&variants, 99), 1);
+    }
+
+    #[test]
+    fn zero_weight_variants_are_skipped() {
+        let variants = vec![
+            SplashVariant {
+                name: "default",
+                image: DynamicImage::new_rgba8(1, 1),
+                weight: 100,
+            },
+            SplashVariant {
+                name: "disabled",
+                image: DynamicImage::new_rgba8(1, 1),
+                weight: 0,
+            },
+        ];
+
+        assert_eq!(select_variant_for_roll(&variants, 99), 0);
     }
 }

@@ -3717,6 +3717,7 @@ dependencies = [
  "crossterm",
  "delta-api",
  "image",
+ "rand 0.10.2",
  "ratatui",
  "reqwest",
  "rust-i18n",

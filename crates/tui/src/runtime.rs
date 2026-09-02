@@ -84,6 +84,7 @@ impl Runtime {
     }
 
     fn idle(&mut self) {
+        self.splash.begin_idle();
         self.display_state = DisplayState::Idle;
         self.app.dialogs.clear();
     }
