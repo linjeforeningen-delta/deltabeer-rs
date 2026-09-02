@@ -51,14 +51,8 @@ jobs:
       - name: Cache Rust build artifacts
         uses: Swatinem/rust-cache@v2
 
-      - name: Install Diesel CLI for migration tests
-        run: cargo install diesel_cli --locked --no-default-features --features sqlite
-
       - name: Check formatting
         run: cargo fmt --all -- --check
-
-      # - name: Check workspace
-      #   run: cargo check --workspace --all-targets --locked
 
       - name: Run Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings

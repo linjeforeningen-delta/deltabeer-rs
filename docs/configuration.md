@@ -66,10 +66,10 @@ The scanner contract is documented in [tui.md](tui.md).
 
 ## Environment variables
 
-| Variable       | Server runtime                               | TUI runtime                                                     | Diesel CLI and storage tests                                                                       |
-| -------------- | -------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `RUST_LOG`     | Optional filter override for server tracing. | Optional filter for TUI tracing; otherwise the TUI uses `info`. | Not configured by this repository as an application setting.                                       |
-| `DATABASE_URL` | Not read by the server.                      | Not read by the TUI.                                            | Used to select the SQLite database for Diesel migration commands and by storage integration tests. |
+| Variable       | Server runtime                               | TUI runtime                                                     | Diesel CLI and storage tests                                             |
+| -------------- | -------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `RUST_LOG`     | Optional filter override for server tracing. | Optional filter for TUI tracing; otherwise the TUI uses `info`. | Not configured by this repository as an application setting.             |
+| `DATABASE_URL` | Not read by the server.                      | Not read by the TUI.                                            | Used to select the SQLite database for manual Diesel migration commands. |
 
 `.env` files are tooling inputs only and are not application configuration sources documented here.
 Do not copy secrets from environment files into configuration examples or operational records.

@@ -17,7 +17,7 @@ rules and application services are kept separate from transport, persistence, an
 
 ## Getting started
 
-Install Rust, Cargo, and the Diesel CLI with SQLite support, then work from the repository root.
+Install Rust and Cargo, then work from the repository root.
 Review [configuration.md](docs/configuration.md) and apply the SQLite migration described
 in [deployment.md](docs/deployment.md). The server does not migrate the database at startup.
 

@@ -1,30 +1,13 @@
 use diesel::prelude::*;
-use diesel::sqlite::SqliteConnection;
-use std::path::Path;
-use std::process::{Command, Stdio};
 
-fn setup_test_db(path: &Path) -> SqliteConnection {
-    let db_url = path.to_str().unwrap();
-
-    // Run migrations via diesel CLI (simple + reliable)
-    Command::new("diesel")
-        .env("DATABASE_URL", db_url)
-        .arg("migration")
-        .arg("run")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .expect("failed to run migrations");
-
-    SqliteConnection::establish(db_url).expect("failed to connect to test db")
-}
+mod common;
 
 #[test]
 fn migrations_apply_cleanly() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
 
-    let conn = setup_test_db(&db_path);
+    let conn = common::establish_test_connection(&db_path);
     drop(conn);
 }
 
@@ -32,7 +15,7 @@ fn migrations_apply_cleanly() {
 fn users_are_immutable() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "INSERT INTO users (id, name, username, card_number, birthdate, balance, spent, created_at, created_by)
@@ -50,7 +33,7 @@ fn users_are_immutable() {
 fn topup_requires_active_admin() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -86,7 +69,7 @@ fn topup_requires_active_admin() {
 fn spend_cannot_have_approved_by() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -112,7 +95,7 @@ fn spend_cannot_have_approved_by() {
 fn transaction_source_is_restricted() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "INSERT INTO users (id, name, username, card_number, birthdate, balance, spent, created_at, created_by)
@@ -134,7 +117,7 @@ fn transaction_source_is_restricted() {
 fn approved_by_must_be_admin() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -161,7 +144,7 @@ fn approved_by_must_be_admin() {
 fn active_admin_can_approve_topup() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -197,7 +180,7 @@ fn active_admin_can_approve_topup() {
 fn cannot_delete_admin_user() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -226,7 +209,7 @@ fn cannot_delete_admin_user() {
 fn admin_cannot_revoke_themselves() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -257,7 +240,7 @@ fn admin_cannot_revoke_themselves() {
 fn admin_revocation_must_be_complete() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -291,7 +274,7 @@ fn admin_revocation_must_be_complete() {
 fn admin_revocation_is_immutable() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -321,7 +304,7 @@ fn admin_revocation_is_immutable() {
 fn admin_token_identity_is_immutable() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -354,7 +337,7 @@ fn admin_token_identity_is_immutable() {
 fn admin_token_expiry_cannot_be_extended() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -389,7 +372,7 @@ fn admin_token_expiry_cannot_be_extended() {
 fn user_fields_immutability() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "INSERT INTO users (id, name, username, card_number, birthdate, balance, spent, created_at, created_by)
@@ -411,7 +394,7 @@ fn user_fields_immutability() {
 fn transactions_are_immutable() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -443,7 +426,7 @@ fn transactions_are_immutable() {
 fn only_one_active_admin_per_user() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -479,7 +462,7 @@ fn only_one_active_admin_per_user() {
 fn user_basic_constraints() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     // Empty name
     let result = diesel::sql_query(
@@ -526,7 +509,7 @@ fn user_basic_constraints() {
 fn admin_grant_records_are_immutable() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -559,7 +542,7 @@ fn admin_grant_records_are_immutable() {
 fn transaction_amount_must_be_positive() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -585,7 +568,7 @@ fn transaction_amount_must_be_positive() {
 fn cannot_delete_admin_tokens() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
@@ -614,7 +597,7 @@ fn cannot_delete_admin_tokens() {
 fn admin_token_created_at_is_immutable() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test.sqlite");
-    let mut conn = setup_test_db(&db_path);
+    let mut conn = common::establish_test_connection(&db_path);
 
     diesel::sql_query(
         "
