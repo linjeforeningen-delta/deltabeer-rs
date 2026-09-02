@@ -100,7 +100,7 @@ impl UserRepo for InMemoryRepo {
         if users.values().any(|other| {
             other.id != user.id
                 && delta_core::domain::normalize_username(&other.username)
-                == delta_core::domain::normalize_username(&user.username)
+                    == delta_core::domain::normalize_username(&user.username)
         }) {
             return Err(RepoError::Conflict);
         }
