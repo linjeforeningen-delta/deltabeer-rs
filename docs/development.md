@@ -50,10 +50,9 @@ Run formatting checks:
 cargo fmt --all -- --check
 ```
 
-Run workspace compilation and tests:
+Run workspace tests:
 
 ```sh
-cargo check --workspace --all-targets --locked
 cargo test --workspace --locked
 ```
 
@@ -76,7 +75,7 @@ npm ci
 npm run docs:check
 ```
 
-These are the same principal checks run by the CI workflow. CI runs on pushes to `main` and on pull requests. Security checks run on pull requests, pushes to `main`, and weekly. Keep the Rust and Markdown checks required in the `main` branch ruleset; require dependency review too if it is available for the repository and part of the project’s merge policy.
+These are the same principal checks run by the CI workflow. CI runs on pushes to `main` and `dev`, and on pull requests. Security checks run on pull requests, pushes to `main`, and weekly. Keep the `Rust`, `Test`, and `Markdown` checks required in the `main` branch ruleset; require dependency review too if it is available for the repository and part of the project’s merge policy.
 
 Build the workspace in release mode:
 
@@ -153,7 +152,7 @@ Choose and verify the intended semantic version according to the change being re
 Update the workspace package `version` field in the root `Cargo.toml`.
 Confirm that all workspace packages inherit the intended version and that no package has an unintentional override.
 Regenerate or validate `Cargo.lock` if the version change or dependency changes affect it.
-Run formatting, workspace checks, tests, Clippy, and Rustdoc using the commands above.
+Run formatting, tests, Clippy, and Rustdoc using the commands above.
 Build the workspace with `cargo build --workspace --release`.
 
 Review whether the release changes require a new migration or any operational migration instructions.
@@ -179,13 +178,13 @@ Release provenance attestation is required by the release workflow. The reposito
 
 ## GitHub repository settings
 
-Workflow files do not enable branch protection or rulesets automatically. Configure the `main` ruleset to require the stable `Rust` and `Markdown` checks before merging, and require `Dependency review` if GitHub Code Security support is enabled and that check is part of the project’s policy. Optionally require branches to be up to date before merging. If the repository is maintained by one developer, pull-request requirements can remain disabled if that is intentional. Once history rewriting is no longer needed, block force pushes to `main`.
+Workflow files do not enable branch protection or rulesets automatically. Configure the `main` ruleset to require the stable `Rust`, `Test`, and `Markdown` checks before merging, and require `Dependency review` if GitHub Code Security support is enabled and that check is part of the project’s policy. Optionally require branches to be up to date before merging. If the repository is maintained by one developer, pull-request requirements can remain disabled if that is intentional. Once history rewriting is no longer needed, block force pushes to `main`.
 
 ## Release checklist
 
 - [ ] Update and verify the workspace version.
 - [ ] Confirm `Cargo.lock` consistency where affected.
-- [ ] Run `fmt`, workspace `check`, tests, Clippy, and Rustdoc.
+- [ ] Run `fmt`, tests, Clippy, and Rustdoc.
 - [ ] Complete a release build.
 - [ ] Review and apply required migrations.
 - [ ] Update relevant documentation.
