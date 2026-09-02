@@ -495,7 +495,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "cli"
-version = "1.0.1"
+version = "1.0.2"
 
 [[package]]
 name = "cmake"
@@ -776,7 +776,7 @@ dependencies = [
 
 [[package]]
 name = "delta-api"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "chrono",
  "serde",
@@ -786,7 +786,7 @@ dependencies = [
 
 [[package]]
 name = "delta-core"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "argon2",
@@ -2974,7 +2974,7 @@ dependencies = [
 
 [[package]]
 name = "server"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "axum",
@@ -3140,7 +3140,7 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "storage-diesel"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "async-trait",
  "chrono",
@@ -3709,7 +3709,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tui"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "chrono",

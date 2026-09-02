@@ -9,7 +9,7 @@ members = ["crates/cli", "crates/delta-core",
 
 
 [workspace.package]
-version = "1.0.1"
+version = "1.0.2"
 edition = "2024"         # if your compiler complains, change to "2021"
 license = "MIT"
 authors = ["Even Ytterli Tokle <Even@Tokle.io>"]
