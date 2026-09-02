@@ -17,7 +17,7 @@ pub(crate) enum ApiError {
     // Specific errors
     InvalidUserIdentifier,
 
-    // For internal errors (DB failures, etc.)
+    // Internal details are logged at the response boundary and never sent to clients.
     Internal(String),
 }
 
@@ -51,7 +51,9 @@ impl IntoResponse for ApiError {
         let status = self.status();
         let code = self.code();
         match &self {
-            ApiError::Internal(_) => tracing::error!(%status, ?code, "request failed internally"),
+            ApiError::Internal(message) => {
+                tracing::error!(%status, ?code, error = %message, "request failed internally")
+            }
             ApiError::Unauthorized(_) | ApiError::Forbidden(_) => {
                 tracing::debug!(%status, ?code, "request rejected")
             }
@@ -66,7 +68,8 @@ impl IntoResponse for ApiError {
                 | ApiError::Unauthorized(msg)
                 | ApiError::Forbidden(msg) => Some(msg.to_string()),
 
-                ApiError::Internal(_) => None, // or Some("internal server error".into())
+                // Keep internal details out of the client response.
+                ApiError::Internal(_) => None,
                 ApiError::InvalidUserIdentifier => None,
             },
         };
