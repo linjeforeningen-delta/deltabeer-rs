@@ -120,7 +120,7 @@ jobs:
           tar -tzf "dist/${archive}" | grep -Fx "deltabeer-${GITHUB_REF_NAME}/deltabeer-tui"
 
       - name: Attest release archive
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: dist/deltabeer-${{ github.ref_name }}-x86_64-linux.tar.gz
 
