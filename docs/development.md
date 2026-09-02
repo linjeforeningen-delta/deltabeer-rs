@@ -26,7 +26,7 @@ cargo install diesel_cli --no-default-features --features sqlite
 
 Install the SQLite command-line tool for inspecting databases during development and operations.
 
-There is no repository Rust toolchain file that specifies minimum Rust or Cargo versions.
+The repository toolchain file intentionally uses the floating stable Rust channel and requires `rustfmt` and `clippy`, so local, CI, and release builds track the current stable compiler rather than claiming an MSRV that the project has not defined. CI and release Markdown checks use Node.js 22.
 
 ## Running locally
 
@@ -53,21 +53,30 @@ cargo fmt --all -- --check
 Run workspace compilation and tests:
 
 ```sh
-cargo check --workspace --all-targets
-cargo test --workspace
+cargo check --workspace --all-targets --locked
+cargo test --workspace --locked
 ```
 
 Run Clippy across workspace targets:
 
 ```sh
-cargo clippy --workspace --all-targets
+cargo clippy --workspace --all-targets --locked -- -D warnings
 ```
 
 Build Rust documentation without documenting dependencies:
 
 ```sh
-RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
 ```
+
+The Markdown tooling is installed and checked with npm:
+
+```sh
+npm ci
+npm run docs:check
+```
+
+These are the same principal checks run by the CI workflow. CI runs on pushes to `main` and on pull requests. Security checks run on pull requests, pushes to `main`, and weekly. Keep the Rust and Markdown checks required in the `main` branch ruleset; require dependency review too if it is available for the repository and part of the project’s merge policy.
 
 Build the workspace in release mode:
 
@@ -109,7 +118,6 @@ DATABASE_URL=crates/storage-diesel/data/dev.sqlite \
 
 Storage integration tests create temporary SQLite files, run the migrations through Diesel CLI, and discard those files after each test.
 
-`TODO:` Update the storage integration-test migration command to provide the repository migration directory explicitly, or otherwise make the tests establish their schema from the workspace root.
 Stop database writers and follow [operations.md](operations.md) before backing up, restoring, or migrating an operational database.
 
 ## OpenAPI development
@@ -155,16 +163,23 @@ Review the final diff and confirm that the version-bearing files, checks, migrat
 ## Tagging a release
 
 Commit the version-bearing files and all release changes before creating the tag.
-Use the intended version for `VERSION` when running the release commands:
+The release workflow reruns the Rust and Markdown quality gates, validates that an annotated tag matches the `server` and `tui` versions inherited from the root workspace package version, then builds and publishes those Linux binaries as a checksummed GitHub Release artifact. The TUI logo and locale files are embedded in the TUI binary; configuration and database migrations remain operator-supplied and are not included in the archive. It does not deploy to production; production installation and migrations remain a manual, operator-controlled step described in [deployment.md](deployment.md).
+
+Create and push an annotated semantic-version tag after committing the version-bearing files:
 
 ```sh
-VERSION="X.Y.Z"
-git tag -a "v${VERSION}" -m "Release ${VERSION}"
-git push origin main "v${VERSION}"
+git tag -a vX.Y.Z -m "DeltaBeer X.Y.Z"
+git push origin main vX.Y.Z
 ```
 
-The annotated tag follows the repository's existing `v<version>` tag convention.
+The annotated tag follows the repository's existing `v<version>` tag convention. GitHub Actions builds `deltabeer-vX.Y.Z-x86_64-linux.tar.gz` with a `deltabeer-vX.Y.Z/` top-level directory containing `deltabeer-server` and `deltabeer-tui`, plus its `.sha256` checksum, and creates the GitHub Release from that existing tag. The default Ubuntu GNU target is used; the artifact is not claimed to be static.
 Verify the commit and tag references before pushing when the release is prepared from a branch or a non-default remote.
+
+Release provenance attestation is required by the release workflow. The repository must have GitHub artifact attestations available; if the repository or account does not support them, enable the required GitHub feature before publishing releases.
+
+## GitHub repository settings
+
+Workflow files do not enable branch protection or rulesets automatically. Configure the `main` ruleset to require the stable `Rust` and `Markdown` checks before merging, and require `Dependency review` if GitHub Code Security support is enabled and that check is part of the project’s policy. Optionally require branches to be up to date before merging. If the repository is maintained by one developer, pull-request requirements can remain disabled if that is intentional. Once history rewriting is no longer needed, block force pushes to `main`.
 
 ## Release checklist
 

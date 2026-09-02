@@ -1,0 +1,138 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  validate-release:
+    name: Validate release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify annotated tag and Cargo version
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          tag="${GITHUB_REF_NAME#v}"
+          test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = tag
+          versions="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "server" or .name == "tui") | [.name, .version] | @tsv')"
+          count=0
+          while IFS=$'\t' read -r package version; do
+            [ -n "$package" ] || continue
+            count=$((count + 1))
+            if [ "$version" != "$tag" ]; then
+              echo "Tag version ${tag} does not match released package ${package} version ${version}." >&2
+              exit 1
+            fi
+          done <<< "$versions"
+          test "$count" -eq 2
+          echo "Tag ${GITHUB_REF_NAME} matches the server and tui workspace-inherited release version."
+
+      - name: Install SQLite dependencies
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libsqlite3-dev sqlite3
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Diesel CLI for migration tests
+        run: cargo install diesel_cli --locked --no-default-features --features sqlite
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Check workspace
+        run: cargo check --workspace --all-targets --locked
+
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Run tests
+        run: cargo test --workspace --locked
+
+      - name: Build documentation
+        run: RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install documentation tooling
+        run: npm ci
+
+      - name: Check Markdown formatting
+        run: npm run docs:check
+
+  build-linux-release:
+    name: Build Linux release
+    needs: validate-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install SQLite dependencies
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libsqlite3-dev sqlite3
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build release binaries
+        run: cargo build --release --locked -p server -p tui
+
+      - name: Package release archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="deltabeer-${GITHUB_REF_NAME}-x86_64-linux.tar.gz"
+          rm -rf ./dist
+          mkdir -p dist/deltabeer-${GITHUB_REF_NAME}
+          install -m 0755 target/release/server dist/deltabeer-${GITHUB_REF_NAME}/deltabeer-server
+          install -m 0755 target/release/tui dist/deltabeer-${GITHUB_REF_NAME}/deltabeer-tui
+          tar -C dist -czf "dist/${archive}" "deltabeer-${GITHUB_REF_NAME}"
+          (cd dist && sha256sum "$archive" > "${archive}.sha256")
+          tar -tzf "dist/${archive}" | grep -Fx "deltabeer-${GITHUB_REF_NAME}/deltabeer-server"
+          tar -tzf "dist/${archive}" | grep -Fx "deltabeer-${GITHUB_REF_NAME}/deltabeer-tui"
+
+      - name: Attest release archive
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/deltabeer-${{ github.ref_name }}-x86_64-linux.tar.gz
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="dist/deltabeer-${GITHUB_REF_NAME}-x86_64-linux.tar.gz"
+          checksum="${archive}.sha256"
+          gh release create "$GITHUB_REF_NAME" "$archive" "$checksum" \
+            --verify-tag \
+            --generate-notes \
+            --title "DeltaBeer $GITHUB_REF_NAME"
