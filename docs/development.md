@@ -17,12 +17,7 @@ See [architecture.md](architecture.md) for dependency and boundary rules.
 
 ## Prerequisites
 
-Install Rust and Cargo.
-Install the Diesel CLI with SQLite support because the storage integration tests and migration workflow invoke `diesel`.
-
-```sh
-cargo install diesel_cli --no-default-features --features sqlite
-```
+Install Rust and Cargo. The Diesel CLI is optional for manual migration workflows; automated tests do not require it.
 
 Install the SQLite command-line tool for inspecting databases during development and operations.
 
@@ -91,8 +86,7 @@ cargo test -p storage-diesel
 
 ## Database development and migrations
 
-Diesel CLI reads `DATABASE_URL` to select the SQLite database for migration commands.
-The storage crate also uses `DATABASE_URL` in its integration tests when they create temporary test databases.
+Diesel CLI reads `DATABASE_URL` to select the SQLite database for manual migration commands.
 The migration directory is `crates/storage-diesel/migrations`.
 Migration directories must use the naming format required by the installed Diesel CLI.
 The checked-in migration is currently in the `0001-initial-database` directory.
@@ -115,7 +109,7 @@ DATABASE_URL=crates/storage-diesel/data/dev.sqlite \
   diesel migration list --migration-dir crates/storage-diesel/migrations
 ```
 
-Storage integration tests create temporary SQLite files, run the migrations through Diesel CLI, and discard those files after each test.
+Storage integration tests create temporary SQLite files, run the repository migrations directly through Diesel's migration harness, and discard those files after each test. They do not require the Diesel CLI.
 
 Stop database writers and follow [operations.md](operations.md) before backing up, restoring, or migrating an operational database.
 

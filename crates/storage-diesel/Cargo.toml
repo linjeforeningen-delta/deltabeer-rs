@@ -19,3 +19,5 @@ tempfile = "3.27.0"
 
 delta-core = { path = "../delta-core", features = ["diesel"] }
 
+[dev-dependencies]
+diesel_migrations = "2.3"
