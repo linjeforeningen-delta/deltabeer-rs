@@ -18,25 +18,39 @@ The TUI uses `RUST_LOG` when it is valid and otherwise falls back to `info`.
 The unversioned health endpoint is:
 
 ```sh
-curl -i http://host:port/health
+curl -i https://localhost:3000/health
+```
+
+If the local development CA is not installed in the system trust store, pass `--cacert <path-to-ca-cert>`:
+
+```sh
+curl -i --cacert certs/rootCA.pem https://localhost:3000/health
 ```
 
 It should return HTTP 200 with an `ok` value of `true` and the server version.
 The generated OpenAPI JSON is available at:
 
 ```sh
-curl -i http://host:port/api-doc/openapi.json
+curl -i https://localhost:3000/api-doc/openapi.json
 ```
 
-The interactive Swagger UI is available at `/docs`.
-These checks verify HTTP reachability and routing, not database content or TUI operation.
+The interactive Swagger UI is available at `https://localhost:3000/docs`.
+These checks verify HTTPS reachability and routing, not database content or TUI operation.
 
 ## Startup failures
 
-### Configuration
+### Configuration and TLS
 
 Check the working directory, the `--config` path, file readability, YAML syntax, required sections, and value types.
-Remember that relative configuration and database paths are resolved from the process working directory.
+Remember that relative configuration, certificate, and database paths are resolved from the process working directory.
+
+For TLS errors:
+
+- **Missing certificate or key file**: Verify `server.tls.cert_path` and `server.tls.key_path` point to existing files.
+- **Malformed certificate or private key**: Verify that the files are valid PEM format and not empty or corrupted.
+- **Certificate validation / SAN mismatch**: Verify the certificate contains the expected hostname or IP (e.g. `localhost`, `127.0.0.1`, or `::1`) in its Subject Alternative Names (SANs).
+- **TUI insecure URL error**: The TUI requires an `https://` base URL and will fail immediately if configured with `http://`.
+- **TUI untrusted certificate error**: If using a custom development CA, verify `tui.ca_cert_path` is configured with the CA PEM certificate or that the CA is installed in the system trust store.
 
 ### Database
 

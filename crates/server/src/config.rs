@@ -32,6 +32,13 @@ pub(crate) struct ServerConfig {
     pub(super) bind_addr: String,
     pub(super) database_url: String,
     pub(super) database_pool_size: u32,
+    pub(super) tls: ServerTlsConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct ServerTlsConfig {
+    pub(super) cert_path: PathBuf,
+    pub(super) key_path: PathBuf,
 }
 #[derive(Debug, Deserialize)]
 pub(crate) struct AuthConfig {
@@ -55,5 +62,49 @@ impl Config {
             single_use_token_ttl: chrono::Duration::seconds(self.auth.single_use_token_ttl_seconds),
             admin_session_ttl: chrono::Duration::seconds(self.auth.admin_session_ttl_seconds),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_valid_tls_config() {
+        let yaml = r#"
+server:
+  bind_addr: "127.0.0.1:3000"
+  database_url: "data.sqlite"
+  database_pool_size: 16
+  tls:
+    cert_path: "certs/cert.pem"
+    key_path: "certs/key.pem"
+auth:
+  single_use_token_ttl_seconds: 15
+  admin_session_ttl_seconds: 600
+logging:
+  filter: "info"
+"#;
+        let config: Config = serde_yml::from_str(yaml).unwrap();
+        assert_eq!(config.server.bind_addr, "127.0.0.1:3000");
+        assert_eq!(config.server.tls.cert_path, PathBuf::from("certs/cert.pem"));
+        assert_eq!(config.server.tls.key_path, PathBuf::from("certs/key.pem"));
+    }
+
+    #[test]
+    fn fails_when_tls_section_missing() {
+        let yaml = r#"
+server:
+  bind_addr: "127.0.0.1:3000"
+  database_url: "data.sqlite"
+  database_pool_size: 16
+auth:
+  single_use_token_ttl_seconds: 15
+  admin_session_ttl_seconds: 600
+logging:
+  filter: "info"
+"#;
+        let result: Result<Config, _> = serde_yml::from_str(yaml);
+        assert!(result.is_err());
     }
 }

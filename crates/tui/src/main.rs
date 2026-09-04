@@ -102,6 +102,14 @@ async fn main() -> Result<()> {
         return Err(error);
     }
     rust_i18n::set_locale(&config.tui.locale);
+    let api_client =
+        match ApiClient::new(&config.tui.api_base_url, config.tui.ca_cert_path.as_deref()) {
+            Ok(client) => client,
+            Err(error) => {
+                tracing::error!(error = %error, "failed to initialize API client");
+                return Err(error);
+            }
+        };
     let mut terminal = match init_terminal() {
         Ok(terminal) => terminal,
         Err(error) => {
@@ -118,7 +126,7 @@ async fn main() -> Result<()> {
     };
     let mut runtime = Runtime::new(
         App::new(),
-        ApiClient::new(&config.tui.api_base_url),
+        api_client,
         Input::new(Duration::from_millis(config.tui.scanner_max_gap_ms)),
         Duration::from_millis(config.tui.event_poll_interval_ms),
         Duration::from_secs(config.tui.idle_splash_after_seconds),

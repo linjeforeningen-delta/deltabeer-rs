@@ -31,3 +31,6 @@ TODO.md
 # Logs
 logs/
 *.log
+
+# TLS certificates and private keys
+certs/

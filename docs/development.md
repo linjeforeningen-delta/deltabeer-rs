@@ -33,7 +33,36 @@ Pre-commit formats Rust and repository text files, then runs the fast actionlint
 
 ## Running locally
 
-Run these commands from the repository root so the relative configuration and database paths resolve as documented.
+### Local TLS certificate setup
+
+The server requires HTTPS and terminates TLS directly using Rustls to ensure sensitive data (passwords, bearer tokens, user identifiers) is always transmitted over encrypted connections, satisfying CodeQL transport security checks.
+
+Generate and trust a local development certificate with `mkcert` (or another local CA tool). The certificate must include the Subject Alternative Names (SANs) for the hostnames or IP addresses actually used by the client:
+
+- `localhost` for the default configuration
+- `127.0.0.1` if connecting via that IPv4 address
+- `::1` if connecting via IPv6 loopback
+
+When generating a general localhost development certificate, including all three is convenient but not mandatory.
+
+Setup flow:
+
+```sh
+# 1. Install local CA into system trust store (once per machine)
+mkcert -install
+
+# 2. Generate certificate and private key in the certs directory
+mkdir -p certs
+mkcert -cert-file certs/localhost.pem -key-file certs/localhost-key.pem localhost 127.0.0.1 ::1
+```
+
+Configure `server.tls.cert_path` and `server.tls.key_path` in `config/development.yaml` (or `config/production.yaml`). Never commit private keys or generated certificates to version control (they are ignored by `.gitignore`).
+
+If the TUI is run in an environment that does not use the OS trust store, configure `tui.ca_cert_path` with the path to the root CA certificate (e.g., `$(mkcert -CAROOT)/rootCA.pem`).
+
+### Starting the server and TUI
+
+Run these commands from the repository root so the relative configuration, certificate, and database paths resolve as documented.
 
 ```sh
 cargo run -p server -- --config config/development.yaml
@@ -44,6 +73,16 @@ Start the server before starting the TUI.
 Both binaries accept `--config <path>` and use the development configuration by default in debug builds.
 Configuration paths and keys are described in [configuration.md](configuration.md).
 The server does not run migrations at startup, so apply migrations to the configured SQLite database before first use.
+
+### Remote development and SSH access
+
+The server binds to loopback (`127.0.0.1:3000`) by default for local security. Remote developers accessing the API from another machine over SSH can forward the local HTTPS port securely using SSH tunneling:
+
+```sh
+ssh -L 3000:127.0.0.1:3000 user@remote-host
+```
+
+Then access the HTTPS API locally at `https://localhost:3000`.
 
 ## Build and validation commands
 
@@ -125,7 +164,7 @@ Stop database writers and follow [operations.md](operations.md) before backing u
 
 The shared API DTOs define `utoipa::ToSchema` implementations in `crates/delta-api/src`.
 The server defines endpoint `#[utoipa::path]` annotations in `crates/server/src/http` and assembles the document with `#[openapi]` declarations in the same module tree.
-Run the server locally, then inspect the interactive Swagger UI at [http://localhost:3000/docs](http://localhost:3000/docs) or the generated JSON at [http://localhost:3000/api-doc/openapi.json](http://localhost:3000/api-doc/openapi.json).
+Run the server locally, then inspect the interactive Swagger UI at [https://localhost:3000/docs](https://localhost:3000/docs) or the generated JSON at [https://localhost:3000/api-doc/openapi.json](https://localhost:3000/api-doc/openapi.json).
 The port and bind address come from the selected server configuration.
 
 ## Architectural conventions

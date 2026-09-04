@@ -2,13 +2,16 @@ server:
   bind_addr: "127.0.0.1:3000"
   database_url: "crates/storage-diesel/data/dev.sqlite"
   database_pool_size: 16
+  tls:
+    cert_path: "certs/localhost.pem"
+    key_path: "certs/localhost-key.pem"
 auth:
   single_use_token_ttl_seconds: 15
   admin_session_ttl_seconds: 600
 logging:
   filter: "tower_http=info,axum=info,server=debug"
 tui:
-  api_base_url: "http://localhost:3000"
+  api_base_url: "https://localhost:3000"
   event_poll_interval_ms: 20
   scanner_max_gap_ms: 80
   idle_splash_after_seconds: 60
