@@ -21,7 +21,15 @@ Install Rust and Cargo. The Diesel CLI is optional for manual migration workflow
 
 Install the SQLite command-line tool for inspecting databases during development and operations.
 
-The repository toolchain file intentionally uses the floating stable Rust channel and requires `rustfmt` and `clippy`, so local, CI, and release builds track the current stable compiler rather than claiming an MSRV that the project has not defined. CI and release Markdown checks use Node.js 22.
+The repository toolchain file intentionally uses the floating stable Rust channel and requires `rustfmt` and `clippy`, so local, CI, and release builds track the current stable compiler rather than claiming an MSRV that the project has not defined. CI uses Node.js 22.
+
+Install pre-commit and enable the local hooks:
+
+```sh
+pre-commit install
+```
+
+Pre-commit formats Rust and repository text files, then runs the fast actionlint and yamllint checks. Formatting hooks may change files and stop the commit so the changes can be reviewed and staged. Run `pre-commit run --all-files` to validate the whole repository manually. CI independently checks formatting, repository lint, Clippy, rustdoc, and tests; it never depends on pre-commit.
 
 ## Running locally
 
@@ -63,11 +71,11 @@ Build Rust documentation without documenting dependencies:
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
 ```
 
-The Markdown tooling is installed and checked with npm:
+The repository formatting tooling is installed and checked with npm:
 
 ```sh
 npm ci
-npm run docs:check
+npm run format:check
 ```
 
 These are the same principal checks run by the CI workflow. CI runs on pushes to `main` and `dev`, and on pull requests. Security checks run on pull requests, pushes to `main`, and weekly. Keep `Rust lint`, `Rust test`, `Repository lint`, `Dependency review`, and the three `Analyze (...)` checks required in the `main` branch ruleset.

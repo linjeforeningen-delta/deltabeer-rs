@@ -91,5 +91,5 @@ jobs:
       - name: Install formatting tooling
         run: npm ci
 
-      - name: Check Markdown formatting
-        run: npm run docs:check
+      - name: Check repository formatting
+        run: npm run format:check
