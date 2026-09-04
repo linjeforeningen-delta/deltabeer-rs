@@ -15,7 +15,8 @@ fn random_card_number() -> u32 {
     u32::from_ne_bytes(bytes)
 }
 
-async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
+async fn setup_admin(env: &TestEnv, id: UserId) {
+    let password = common::test_password();
     let user = User {
         id,
         name: "Admin".to_string(),
@@ -42,7 +43,7 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
         &env.repo,
         delta_core::domain::AdminGrantId(Uuid::now_v7()),
         id,
-        delta_core::domain::hash_password(pass),
+        delta_core::domain::hash_password(&password),
         delta_core::domain::ActionRecord {
             actor: id,
             at: env.clock.0,
@@ -58,7 +59,7 @@ async fn test_user_lifecycle() {
     let ctx = env.ctx();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    setup_admin(&env, admin_id).await;
 
     let req = CreateUser {
         name: "Alice".to_string(),
@@ -93,7 +94,7 @@ async fn test_create_and_update_user_normalize_username() {
     let env = TestEnv::new();
     let ctx = env.ctx();
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    setup_admin(&env, admin_id).await;
 
     let user_id = create_user(
         admin_id,
@@ -179,7 +180,7 @@ async fn test_casing_only_duplicate_username_is_rejected() {
     let env = TestEnv::new();
     let ctx = env.ctx();
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    setup_admin(&env, admin_id).await;
 
     let request = || CreateUser {
         name: "Alice".to_string(),
@@ -198,7 +199,7 @@ async fn test_create_user_underage() {
     let ctx = env.ctx();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    setup_admin(&env, admin_id).await;
 
     let req = CreateUser {
         name: "Kid".to_string(),
@@ -274,7 +275,7 @@ async fn test_update_user_partial() {
     let ctx = env.ctx();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    setup_admin(&env, admin_id).await;
 
     let user_id = UserId(Uuid::now_v7());
     let user = User {

@@ -3,6 +3,12 @@ use diesel::sqlite::SqliteConnection;
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 use std::path::Path;
 use storage_diesel::{SqlitePool, create_pool};
+use uuid::Uuid;
+
+#[allow(dead_code)]
+pub(crate) fn test_password() -> String {
+    format!("test-{}", Uuid::now_v7())
+}
 
 pub(crate) const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
