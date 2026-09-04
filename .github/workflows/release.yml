@@ -67,18 +67,6 @@ jobs:
       - name: Build documentation
         run: RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install documentation tooling
-        run: npm ci
-
-      - name: Check Markdown formatting
-        run: npm run docs:check
-
   build-linux-release:
     name: Build Linux release
     needs: validate-release
@@ -108,14 +96,15 @@ jobs:
         run: |
           set -euo pipefail
           archive="deltabeer-${GITHUB_REF_NAME}-x86_64-linux.tar.gz"
+          release_dir="deltabeer-${GITHUB_REF_NAME}"
           rm -rf ./dist
-          mkdir -p dist/deltabeer-${GITHUB_REF_NAME}
-          install -m 0755 target/release/server dist/deltabeer-${GITHUB_REF_NAME}/deltabeer-server
-          install -m 0755 target/release/tui dist/deltabeer-${GITHUB_REF_NAME}/deltabeer-tui
-          tar -C dist -czf "dist/${archive}" "deltabeer-${GITHUB_REF_NAME}"
+          mkdir -p "dist/${release_dir}"
+          install -m 0755 target/release/server "dist/${release_dir}/deltabeer-server"
+          install -m 0755 target/release/tui "dist/${release_dir}/deltabeer-tui"
+          tar -C dist -czf "dist/${archive}" "${release_dir}"
           (cd dist && sha256sum "$archive" > "${archive}.sha256")
-          tar -tzf "dist/${archive}" | grep -Fx "deltabeer-${GITHUB_REF_NAME}/deltabeer-server"
-          tar -tzf "dist/${archive}" | grep -Fx "deltabeer-${GITHUB_REF_NAME}/deltabeer-tui"
+          tar -tzf "dist/${archive}" | grep -Fx "${release_dir}/deltabeer-server"
+          tar -tzf "dist/${archive}" | grep -Fx "${release_dir}/deltabeer-tui"
 
       - name: Attest release archive
         uses: actions/attest-build-provenance@v4

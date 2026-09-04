@@ -70,7 +70,7 @@ npm ci
 npm run docs:check
 ```
 
-These are the same principal checks run by the CI workflow. CI runs on pushes to `main` and `dev`, and on pull requests. Security checks run on pull requests, pushes to `main`, and weekly. Keep the `Rust`, `Test`, and `Markdown` checks required in the `main` branch ruleset; require dependency review too if it is available for the repository and part of the project’s merge policy.
+These are the same principal checks run by the CI workflow. CI runs on pushes to `main` and `dev`, and on pull requests. Security checks run on pull requests, pushes to `main`, and weekly. Keep `Rust lint`, `Rust test`, `Repository lint`, `Dependency review`, and the three `Analyze (...)` checks required in the `main` branch ruleset.
 
 Build the workspace in release mode:
 
@@ -156,7 +156,7 @@ Review the final diff and confirm that the version-bearing files, checks, migrat
 ## Tagging a release
 
 Commit the version-bearing files and all release changes before creating the tag.
-The release workflow reruns the Rust and Markdown quality gates, validates that an annotated tag matches the `server` and `tui` versions inherited from the root workspace package version, then builds and publishes those Linux binaries as a checksummed GitHub Release artifact. The TUI logo and locale files are embedded in the TUI binary; configuration and database migrations remain operator-supplied and are not included in the archive. It does not deploy to production; production installation and migrations remain a manual, operator-controlled step described in [deployment.md](deployment.md).
+The release workflow reruns the Rust quality gates, validates that an annotated tag matches the `server` and `tui` versions inherited from the root workspace package version, then builds and publishes those Linux binaries as a checksummed GitHub Release artifact. The TUI logo and locale files are embedded in the TUI binary; configuration and database migrations remain operator-supplied and are not included in the archive. It does not deploy to production; production installation and migrations remain a manual, operator-controlled step described in [deployment.md](deployment.md).
 
 Create and push an annotated semantic-version tag after committing the version-bearing files:
 
@@ -172,7 +172,7 @@ Release provenance attestation is required by the release workflow. The reposito
 
 ## GitHub repository settings
 
-Workflow files do not enable branch protection or rulesets automatically. Configure the `main` ruleset to require the stable `Rust`, `Test`, and `Markdown` checks before merging, and require `Dependency review` if GitHub Code Security support is enabled and that check is part of the project’s policy. Optionally require branches to be up to date before merging. If the repository is maintained by one developer, pull-request requirements can remain disabled if that is intentional. Once history rewriting is no longer needed, block force pushes to `main`.
+Workflow files do not enable branch protection or rulesets automatically. Configure the `main` ruleset to require `Rust lint`, `Rust test`, `Repository lint`, `Dependency review`, `Analyze (actions)`, `Analyze (python)`, and `Analyze (rust)` before merging. Optionally require branches to be up to date before merging. If the repository is maintained by one developer, pull-request requirements can remain disabled if that is intentional. Once history rewriting is no longer needed, block force pushes to `main`.
 
 ## Release checklist
 
