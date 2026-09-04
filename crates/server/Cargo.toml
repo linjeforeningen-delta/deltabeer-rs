@@ -7,6 +7,7 @@ authors.workspace = true
 
 [dependencies]
 axum = { version = "0.8", features = ["macros", "tokio", "http1"] }
+axum-server = { version = "0.8", features = ["tls-rustls"] }
 tower-http = { version = "0.7", features = ["trace"] }
 utoipa = { version = "5", features = ["macros", "chrono", "axum_extras"] }
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
@@ -26,3 +27,8 @@ delta-api = { path = "../delta-api" }
 
 delta-core = { path = "../delta-core" }
 storage-diesel = { path = "../storage-diesel" }
+
+[dev-dependencies]
+rcgen = "0.14"
+tempfile = "3"
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }

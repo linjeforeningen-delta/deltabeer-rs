@@ -10,7 +10,6 @@ use axum::Router;
 use clap::Parser;
 use delta_core::infra::{clock::SystemClock, id::UuidIdGenerator, token::OpaqueTokenSource};
 use std::sync::Arc;
-use tokio::net::TcpListener;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 mod api;
@@ -71,14 +70,55 @@ async fn main() -> anyhow::Result<()> {
         .with_state(app_state) // attach state on the parent
         .layer(tower_http::trace::TraceLayer::new_for_http());
 
-    let listener = match TcpListener::bind(&config.server.bind_addr).await {
-        Ok(listener) => listener,
+    let tls_config = match axum_server::tls_rustls::RustlsConfig::from_pem_file(
+        &config.server.tls.cert_path,
+        &config.server.tls.key_path,
+    )
+    .await
+    {
+        Ok(tls_config) => tls_config,
         Err(error) => {
-            tracing::error!(error = %error, bind_addr = %config.server.bind_addr, "failed to bind server listener");
-            return Err(anyhow::Error::from(error));
+            tracing::error!(
+                error = %error,
+                cert_path = %config.server.tls.cert_path.display(),
+                key_path = %config.server.tls.key_path.display(),
+                "failed to load TLS certificate or private key"
+            );
+            return Err(anyhow::anyhow!(
+                "failed to load TLS certificate ('{}') or private key ('{}'): {error}",
+                config.server.tls.cert_path.display(),
+                config.server.tls.key_path.display()
+            ));
         }
     };
-    let addr = match listener.local_addr() {
+
+    let addr: std::net::SocketAddr = match config.server.bind_addr.parse() {
+        Ok(addr) => addr,
+        Err(error) => {
+            tracing::error!(error = %error, bind_addr = %config.server.bind_addr, "invalid bind address");
+            return Err(anyhow::anyhow!(
+                "invalid bind address '{}': {error}",
+                config.server.bind_addr
+            ));
+        }
+    };
+
+    let listener = match std::net::TcpListener::bind(addr) {
+        Ok(listener) => {
+            if let Err(error) = listener.set_nonblocking(true) {
+                tracing::error!(error = %error, "failed to set server listener to non-blocking");
+                return Err(anyhow::Error::from(error));
+            }
+            listener
+        }
+        Err(error) => {
+            tracing::error!(error = %error, bind_addr = %config.server.bind_addr, "failed to bind server listener");
+            return Err(anyhow::anyhow!(
+                "failed to bind server listener on {addr}: {error}"
+            ));
+        }
+    };
+    let local_addr = match listener.local_addr() {
         Ok(addr) => addr,
         Err(error) => {
             tracing::error!(error = %error, "failed to determine server address");
@@ -86,9 +126,16 @@ async fn main() -> anyhow::Result<()> {
         }
     };
     tracing::info!("server started");
-    tracing::info!(%addr, "Server listening on http://{addr}");
-    tracing::info!(%addr, "Swagger UI available at http://{addr}/docs");
-    if let Err(error) = axum::serve(listener, app).await {
+    tracing::info!(addr = %local_addr, "Server listening on https://{local_addr}");
+    tracing::info!(addr = %local_addr, "Swagger UI available at https://{local_addr}/docs");
+    let server = match axum_server::from_tcp_rustls(listener, tls_config) {
+        Ok(server) => server,
+        Err(error) => {
+            tracing::error!(error = %error, "failed to initialize TLS server");
+            return Err(anyhow::Error::from(error));
+        }
+    };
+    if let Err(error) = server.serve(app.into_make_service()).await {
         tracing::error!(error = %error, "server stopped unexpectedly");
         return Err(anyhow::Error::from(error));
     }

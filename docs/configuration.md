@@ -20,11 +20,16 @@ The loader reads the selected file directly and does not search relative to the 
 These keys are deserialized by the server.
 All fields are required in the YAML accepted by the server.
 
-| Key                         | Type             | Required | Meaning                                   | Default |
-| --------------------------- | ---------------- | -------- | ----------------------------------------- | ------- |
-| `server.bind_addr`          | string           | yes      | Local address passed to the TCP listener. | none    |
-| `server.database_url`       | string           | yes      | SQLite database URL passed to Diesel.     | none    |
-| `server.database_pool_size` | unsigned integer | yes      | Maximum SQLite connection-pool size.      | none    |
+| Key                         | Type             | Required | Meaning                                             | Default |
+| --------------------------- | ---------------- | -------- | --------------------------------------------------- | ------- |
+| `server.bind_addr`          | string           | yes      | Local address passed to the TCP listener.           | none    |
+| `server.database_url`       | string           | yes      | SQLite database URL passed to Diesel.               | none    |
+| `server.database_pool_size` | unsigned integer | yes      | Maximum SQLite connection-pool size.                | none    |
+| `server.tls.cert_path`      | string (path)    | yes      | Filesystem path to the PEM-encoded TLS certificate. | none    |
+| `server.tls.key_path`       | string (path)    | yes      | Filesystem path to the PEM-encoded TLS private key. | none    |
+
+The server terminates TLS directly using Rustls. Relative certificate and key paths are resolved relative to the process working directory.
+Never commit private keys or certificates into version control.
 
 The server does not supply application defaults for these fields.
 
@@ -54,13 +59,15 @@ If the server cannot parse `RUST_LOG`, startup logging falls back to the source-
 
 | Key                             | Type             | Required | Meaning                                                                               | Unit         |
 | ------------------------------- | ---------------- | -------- | ------------------------------------------------------------------------------------- | ------------ |
-| `tui.api_base_url`              | string           | yes      | Base URL for the server HTTP API.                                                     | URL          |
+| `tui.api_base_url`              | string           | yes      | Base URL for the server HTTPS API (must use `https://`).                              | URL          |
 | `tui.event_poll_interval_ms`    | unsigned integer | yes      | Interval used for terminal event polling and scanner flush cadence.                   | milliseconds |
 | `tui.scanner_max_gap_ms`        | unsigned integer | yes      | Maximum gap between buffered digit events before they are released as ordinary input. | milliseconds |
 | `tui.idle_splash_after_seconds` | unsigned integer | yes      | Inactivity duration before the active UI returns to the idle splash.                  | seconds      |
 | `tui.locale`                    | string           | yes      | Initial bundled UI locale.                                                            | locale code  |
+| `tui.ca_cert_path`              | string (path)    | no       | Optional path to custom CA root certificate PEM if not using OS trust store.          | none         |
 
-The TUI does not provide application defaults for these fields.
+The TUI does not provide application defaults for these fields (except `tui.ca_cert_path` which is optional).
+The TUI validates `tui.api_base_url` at startup and rejects non-HTTPS endpoints (`http://`).
 
 The scanner contract is documented in [tui.md](tui.md).
 
@@ -90,8 +97,8 @@ An unsupported locale causes startup to fail.
 ## Validation and startup failures
 
 Missing files, unreadable files, malformed YAML, missing required fields, or values with incompatible YAML types fail during configuration loading.
-The source explicitly validates only whether the configured TUI locale is bundled.
-The source does not perform general range validation for numeric settings.
+The TUI explicitly validates that the configured TUI locale is bundled and that `tui.api_base_url` is a valid URL with the `https://` scheme.
+The server requires `server.tls.cert_path` and `server.tls.key_path` and fails startup immediately if certificate or private key files are missing, unreadable, or malformed.
 Invalid bind addresses or unavailable bind addresses fail when the server creates its listener.
 Database pool construction can fail later if the database URL, pool size, path, or permissions are unsuitable.
 Terminal initialization and embedded splash-logo decoding can fail during TUI startup.
@@ -104,18 +111,23 @@ The checked-in development and production files are examples with different data
 
 ```yaml
 server:
-  bind_addr: "0.0.0.0:3000"
+  bind_addr: "127.0.0.1:3000"
   database_url: "crates/storage-diesel/data/dev.sqlite"
   database_pool_size: 16
+  tls:
+    cert_path: "certs/localhost.pem"
+    key_path: "certs/localhost-key.pem"
 auth:
   single_use_token_ttl_seconds: 15
   admin_session_ttl_seconds: 600
 logging:
   filter: "tower_http=info,axum=info,server=debug"
 tui:
-  api_base_url: "http://localhost:3000"
+  api_base_url: "https://localhost:3000"
   event_poll_interval_ms: 20
   scanner_max_gap_ms: 80
   idle_splash_after_seconds: 60
   locale: "nb"
+  # Optional explicit CA root certificate path:
+  # ca_cert_path: "certs/rootCA.pem"
 ```

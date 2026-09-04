@@ -23,12 +23,12 @@ The resulting binaries are `target/release/server` and `target/release/tui`.
 
 ## Runtime files and directories
 
-The server needs its binary, a readable YAML file, an existing writable parent directory for the SQLite database, and a database that has been migrated before first use.
+The server needs its binary, a readable YAML file, valid PEM-encoded TLS certificate and private key files configured under `server.tls`, an existing writable parent directory for the SQLite database, and a database that has been migrated before first use.
 The TUI needs its binary, a readable YAML file, and access to a terminal.
 The TUI logo and locale files are embedded in the binary at build time.
 The server has no enforced installation directories.
 `/etc/deltabeer/` for configuration, `/var/lib/deltabeer/` for SQLite data, and `/var/log/deltabeer/` for operator-managed logs are recommendations only.
-Relative configuration and database paths resolve against each process's working directory.
+Relative configuration, certificate, and database paths resolve against each process's working directory.
 The TUI creates a `logs` directory under its working directory for its own log file.
 
 ## Server startup
@@ -113,10 +113,11 @@ Test restores periodically on a separate copy or disposable environment.
 ## Deployment checklist
 
 - [ ] Release binaries built.
-- [ ] Configuration paths and working directories recorded.
+- [ ] Configuration, TLS certificate, and private key paths and working directories recorded.
+- [ ] TLS certificate SANs verified for configured hostname/IP (e.g. `localhost`).
 - [ ] Database parent directory exists and is writable.
 - [ ] Database migrations applied and state recorded.
 - [ ] Server and TUI runtime users and permissions verified.
 - [ ] Backup and restore procedure tested.
-- [ ] Server health and OpenAPI checks pass.
+- [ ] Server HTTPS health and OpenAPI checks pass.
 - [ ] TUI connection, scanner, and authentication smoke tests pass.
