@@ -1,5 +1,5 @@
 server:
-  bind_addr: "0.0.0.0:3000"
+  bind_addr: "127.0.0.1:3000"
   database_url: "crates/storage-diesel/data/dev.sqlite"
   database_pool_size: 16
 auth:

@@ -98,7 +98,7 @@ async fn test_auth_flow() {
     let login_res = login(user_id, password, &ctx).await;
     assert!(login_res.is_ok());
 
-    let login_fail = login(user_id, "wrong root_token".to_string(), &ctx).await;
+    let login_fail = login(user_id, test_password(), &ctx).await;
     assert!(login_fail.is_err());
 }
 
