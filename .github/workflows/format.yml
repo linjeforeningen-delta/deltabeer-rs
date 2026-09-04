@@ -1,0 +1,47 @@
+name: Format
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: format
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: Format repository files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install formatting tooling
+        run: npm ci
+
+      - name: Format repository files
+        run: npm run format
+
+      - name: Create or update formatting pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/format
+          base: main
+          delete-branch: true
+          title: "chore: format repository files"
+          commit-message: "chore: format repository files"
+          body: |
+            Automated formatting updates from Prettier.
+
+            This pull request is created by the scheduled/manual formatting workflow.

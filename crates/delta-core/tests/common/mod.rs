@@ -17,6 +17,11 @@ use delta_core::{
 };
 use std::collections::HashMap;
 use std::sync::Mutex;
+use uuid::Uuid;
+
+pub(crate) fn test_password() -> String {
+    format!("test-{}", Uuid::now_v7())
+}
 
 type TokenDigest = [u8; 32];
 type TokenRecord = (TokenData, DateTime<Utc>);

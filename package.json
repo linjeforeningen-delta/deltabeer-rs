@@ -7,8 +7,8 @@
     "doc": "docs"
   },
   "scripts": {
-    "docs:format": "prettier --write \"**/*.md\"",
-    "docs:check": "prettier --check \"**/*.md\""
+    "format": "prettier --write \"**/*.{yml,yaml,md,json}\"",
+    "format:check": "prettier --check \"**/*.{yml,yaml,md,json}\""
   },
   "repository": {
     "type": "git",

@@ -164,6 +164,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn test_password() -> String {
+        format!("test-{}", Uuid::now_v7())
+    }
     use crate::domain::{Amount, Role, User, UserId};
     use crate::ports::repo::{AdminRepo, RepoError, TokenRepo, UserRepo};
     use crate::ports::{Clock, IdGenerator, TokenSource};
@@ -333,8 +336,8 @@ mod tests {
     #[tokio::test]
     async fn test_login_success() {
         let user_id = UserId(Uuid::nil());
-        let password = "password123";
-        let hash = hash_password(password);
+        let password = test_password();
+        let hash = hash_password(&password);
 
         let mut admins = std::collections::HashMap::new();
         admins.insert(user_id, hash.0);
@@ -360,8 +363,8 @@ mod tests {
     #[tokio::test]
     async fn test_login_wrong_password() {
         let user_id = UserId(Uuid::nil());
-        let password = "password123";
-        let hash = hash_password(password);
+        let password = test_password();
+        let hash = hash_password(&password);
 
         let mut admins = std::collections::HashMap::new();
         admins.insert(user_id, hash.0);
@@ -380,7 +383,7 @@ mod tests {
             tokens: &tokens,
         };
 
-        let res = login(user_id, "wrong".to_string(), &ctx).await;
+        let res = login(user_id, test_password(), &ctx).await;
         assert!(res.is_err());
     }
 
@@ -402,7 +405,7 @@ mod tests {
 
         let actor_id = UserId(Uuid::nil());
         let user_id = UserId(Uuid::nil());
-        let res = grant_admin(actor_id, user_id, "newpass".to_string(), &ctx).await;
+        let res = grant_admin(actor_id, user_id, test_password(), &ctx).await;
         assert!(res.is_ok());
 
         assert!(repo.admins.lock().unwrap().contains_key(&user_id));

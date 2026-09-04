@@ -44,7 +44,8 @@ async fn setup_user(env: &common::TestEnv, name: &str, balance: u32) -> UserId {
     user_id
 }
 
-async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
+async fn setup_admin(env: &TestEnv, id: UserId) -> String {
+    let password = common::test_password();
     let user = User {
         id,
         name: "Admin".to_string(),
@@ -71,7 +72,7 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
         &env.repo,
         delta_core::domain::AdminGrantId(Uuid::now_v7()),
         id,
-        delta_core::domain::hash_password(pass),
+        delta_core::domain::hash_password(&password),
         delta_core::domain::ActionRecord {
             actor: id,
             at: env.clock.0,
@@ -79,6 +80,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
     )
     .await
     .unwrap();
+
+    password
 }
 
 #[tokio::test]
@@ -94,7 +97,7 @@ async fn test_transaction_flow() {
     assert_eq!(user.spent, Amount(40));
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    setup_admin(&env, admin_id).await;
 
     top_up(user_id, Amount(50), admin_id, &ctx).await.unwrap();
     let user = UserRepo::get_user(&env.repo, &user_id).await.unwrap();
@@ -128,11 +131,11 @@ async fn test_multiple_transactions_consistency() {
     assert_eq!(user.spent, Amount(100));
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    let password = setup_admin(&env, admin_id).await;
 
     for _ in 0..5 {
         let _admin_token =
-            issue_admin_pass(admin_id, "admin".to_string(), &AuthPolicy::default(), &ctx)
+            issue_admin_pass(admin_id, password.clone(), &AuthPolicy::default(), &ctx)
                 .await
                 .unwrap();
         top_up(user_id, Amount(20), admin_id, &ctx).await.unwrap();
@@ -148,19 +151,19 @@ async fn test_revoked_admin_cannot_top_up() {
     let ctx = env.ctx();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    let password = setup_admin(&env, admin_id).await;
 
     let user_id = setup_user(&env, "Alice", 100).await;
 
     assert!(top_up(user_id, Amount(10), admin_id, &ctx).await.is_ok());
 
     let root_id = UserId(Uuid::now_v7());
-    setup_admin(&env, root_id, "root").await;
+    setup_admin(&env, root_id).await;
     delta_core::services::auth::revoke_admin(root_id, admin_id, &ctx)
         .await
         .unwrap();
 
-    let res = issue_admin_pass(admin_id, "admin".to_string(), &AuthPolicy::default(), &ctx).await;
+    let res = issue_admin_pass(admin_id, password, &AuthPolicy::default(), &ctx).await;
     assert!(res.is_err());
 }
 
@@ -182,7 +185,7 @@ async fn test_top_up_non_existent_user() {
     let ctx = env.ctx();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    setup_admin(&env, admin_id).await;
 
     let res = top_up(UserId(Uuid::now_v7()), Amount(100), admin_id, &ctx).await;
     assert!(res.is_err());
