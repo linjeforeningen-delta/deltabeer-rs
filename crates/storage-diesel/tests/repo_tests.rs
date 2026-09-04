@@ -134,7 +134,7 @@ async fn test_admin_repo_grant_and_get() {
         .await
         .expect("insert user failed");
 
-    let password_hash = hash_password("hashed_password");
+    let password_hash = hash_password(&common::test_password());
     AdminRepo::grant_admin(
         &repo,
         admin_grant_id,
@@ -171,7 +171,7 @@ async fn test_admin_repo_revoke() {
         &repo,
         admin_grant_id,
         admin_id,
-        hash_password("pass"),
+        hash_password(&common::test_password()),
         create_action_record(admin_id),
     )
     .await
@@ -229,7 +229,7 @@ async fn test_transaction_repo_topup_atomic() {
         &repo,
         admin_grant_id,
         admin_id,
-        hash_password("hash"),
+        hash_password(&common::test_password()),
         admin_record,
     )
     .await
@@ -461,7 +461,7 @@ async fn test_admin_repo_revoke_already_revoked() {
         &repo,
         admin_grant_id,
         admin_id,
-        hash_password("pass"),
+        hash_password(&common::test_password()),
         create_action_record(admin_id),
     )
     .await
@@ -498,7 +498,7 @@ async fn test_admin_repo_self_revocation_forbidden() {
         &repo,
         admin_grant_id,
         admin_id,
-        hash_password("hash"),
+        hash_password(&common::test_password()),
         create_action_record(admin_id),
     )
     .await

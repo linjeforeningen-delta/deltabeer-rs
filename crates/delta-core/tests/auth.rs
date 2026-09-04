@@ -1,7 +1,7 @@
 mod common;
 
 use chrono::{Duration, Utc};
-use common::TestEnv;
+use common::{TestEnv, test_password};
 use delta_core::{
     domain::{Amount, AuthPolicy, Role, User, UserId},
     ports::repo::{AdminRepo, UserRepo},
@@ -18,7 +18,8 @@ fn random_card_number() -> u32 {
     u32::from_ne_bytes(bytes)
 }
 
-async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
+async fn setup_admin(env: &TestEnv, id: UserId) -> String {
+    let password = test_password();
     let user = User {
         id,
         name: "Admin".to_string(),
@@ -45,7 +46,7 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
         &env.repo,
         delta_core::domain::AdminGrantId(Uuid::now_v7()),
         id,
-        delta_core::domain::hash_password(pass),
+        delta_core::domain::hash_password(&password),
         delta_core::domain::ActionRecord {
             actor: id,
             at: Utc::now(),
@@ -53,6 +54,8 @@ async fn setup_admin(env: &TestEnv, id: UserId, pass: &str) {
     )
     .await
     .unwrap();
+
+    password
 }
 
 #[tokio::test]
@@ -61,7 +64,7 @@ async fn test_auth_flow() {
     let ctx = env.ctx();
 
     let root_id = UserId(Uuid::now_v7());
-    setup_admin(&env, root_id, "root").await;
+    setup_admin(&env, root_id).await;
 
     let user_id = UserId(Uuid::now_v7());
     let user = User {
@@ -87,7 +90,7 @@ async fn test_auth_flow() {
     .await
     .unwrap();
 
-    let password = "secret-password".to_string();
+    let password = test_password();
     grant_admin(root_id, user_id, password.clone(), &ctx)
         .await
         .unwrap();
@@ -105,7 +108,7 @@ async fn test_revoke_admin() {
     let ctx = env.ctx();
 
     let root_id = UserId(Uuid::now_v7());
-    setup_admin(&env, root_id, "root").await;
+    setup_admin(&env, root_id).await;
 
     let user_id = UserId(Uuid::now_v7());
     let user = User {
@@ -131,7 +134,7 @@ async fn test_revoke_admin() {
     .await
     .unwrap();
 
-    grant_admin(root_id, user_id, "pass".to_string(), &ctx)
+    grant_admin(root_id, user_id, test_password(), &ctx)
         .await
         .unwrap();
 
@@ -155,7 +158,7 @@ async fn test_session_token_flow() {
     let ctx = env.ctx();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin-pass").await;
+    setup_admin(&env, admin_id).await;
 
     let session_token = issue_admin_session(admin_id, &AuthPolicy::default(), &ctx)
         .await
@@ -173,17 +176,12 @@ async fn test_token_expiration() {
     let mut env = TestEnv::new();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin-pass").await;
+    let password = setup_admin(&env, admin_id).await;
 
     let ctx = env.ctx();
-    let pass_token = issue_admin_pass(
-        admin_id,
-        "admin-pass".to_string(),
-        &AuthPolicy::default(),
-        &ctx,
-    )
-    .await
-    .unwrap();
+    let pass_token = issue_admin_pass(admin_id, password, &AuthPolicy::default(), &ctx)
+        .await
+        .unwrap();
 
     assert!(
         validate_authorization(pass_token.clone(), &ctx)
@@ -204,17 +202,18 @@ async fn test_update_password_flow() {
     let ctx = env.ctx();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "old-pass").await;
+    let old_password = setup_admin(&env, admin_id).await;
 
-    assert!(login(admin_id, "old-pass".to_string(), &ctx).await.is_ok());
+    assert!(login(admin_id, old_password.clone(), &ctx).await.is_ok());
 
-    update_password(admin_id, "new-pass".to_string(), &ctx)
+    let new_password = test_password();
+    update_password(admin_id, new_password.clone(), &ctx)
         .await
         .unwrap();
 
-    assert!(login(admin_id, "old-pass".to_string(), &ctx).await.is_err());
+    assert!(login(admin_id, old_password, &ctx).await.is_err());
 
-    assert!(login(admin_id, "new-pass".to_string(), &ctx).await.is_ok());
+    assert!(login(admin_id, new_password, &ctx).await.is_ok());
 }
 
 #[tokio::test]
@@ -222,7 +221,7 @@ async fn test_login_non_existent_user() {
     let env = TestEnv::new();
     let ctx = env.ctx();
 
-    let res = login(UserId(Uuid::now_v7()), "pass".to_string(), &ctx).await;
+    let res = login(UserId(Uuid::now_v7()), test_password(), &ctx).await;
     assert!(res.is_err());
 }
 
@@ -232,17 +231,18 @@ async fn test_grant_admin_already_admin() {
     let ctx = env.ctx();
 
     let root_id = UserId(Uuid::now_v7());
-    setup_admin(&env, root_id, "root").await;
+    setup_admin(&env, root_id).await;
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin").await;
+    setup_admin(&env, admin_id).await;
 
     // Grant admin to someone who is already admin should work (idempotent/update password)
-    let res = grant_admin(root_id, admin_id, "new-pass".to_string(), &ctx).await;
+    let password = test_password();
+    let res = grant_admin(root_id, admin_id, password.clone(), &ctx).await;
     assert!(res.is_ok());
 
     // Should be able to login with new pass
-    assert!(login(admin_id, "new-pass".to_string(), &ctx).await.is_ok());
+    assert!(login(admin_id, password, &ctx).await.is_ok());
 }
 
 #[tokio::test]
@@ -250,7 +250,7 @@ async fn test_session_token_expiration() {
     let mut env = TestEnv::new();
 
     let admin_id = UserId(Uuid::now_v7());
-    setup_admin(&env, admin_id, "admin-pass").await;
+    setup_admin(&env, admin_id).await;
 
     let ctx = env.ctx();
 
