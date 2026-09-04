@@ -113,10 +113,15 @@ pub(crate) fn verify_password(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use uuid::Uuid;
+
+    pub(crate) fn test_password() -> String {
+        format!("test-{}", Uuid::now_v7())
+    }
 
     #[test]
     fn test_hash_and_verify() {
-        let password = "password123";
+        let password = &*test_password();
         let hash = hash_password(password);
         let result = verify_password(password, &hash).unwrap();
         assert!(matches!(result, PasswordCheck::Verified));
@@ -124,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_needs_rehash_older_params() {
-        let password = "password123";
+        let password = &*test_password();
         let salt = generate_salt();
 
         // intentionally use lower cost params
@@ -144,7 +149,7 @@ mod tests {
 
     #[test]
     fn test_needs_rehash_different_algorithm() {
-        let password = "password123";
+        let password = &*test_password();
         let salt = generate_salt();
 
         let params = Params::new(
@@ -166,7 +171,7 @@ mod tests {
 
     #[test]
     fn test_needs_rehash_invalid_hash() {
-        let hash = PasswordHash("not a password hash".to_owned());
+        let hash = PasswordHash(test_password());
 
         assert_eq!(needs_rehash(&hash), Err(DomainError::InvalidPasswordHash));
     }
