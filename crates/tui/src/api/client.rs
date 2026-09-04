@@ -1,6 +1,6 @@
 use anyhow::{Context, bail};
 use chrono::NaiveDate;
-use reqwest::{Client, Method, RequestBuilder, StatusCode};
+use reqwest::{Client, Method, RequestBuilder, StatusCode, Url};
 use serde::de::DeserializeOwned;
 use std::{fs, path::Path};
 
@@ -68,13 +68,12 @@ type Result<T> = std::result::Result<T, ApiClientError>;
 #[derive(Clone)]
 pub(crate) struct ApiClient {
     http: Client,
-    base: String,
+    base: Url,
 }
 
 impl ApiClient {
     pub(crate) fn new(base: impl AsRef<str>, ca_cert_path: Option<&Path>) -> anyhow::Result<Self> {
-        let parsed = Self::validate_base_url(base.as_ref())?;
-        let base = parsed.as_str().trim_end_matches('/').to_string();
+        let base = Self::validate_base_url(base.as_ref())?;
 
         let mut builder = Client::builder();
         if let Some(ca_path) = ca_cert_path {
@@ -99,8 +98,8 @@ impl ApiClient {
         Ok(Self { http, base })
     }
 
-    pub(crate) fn validate_base_url(url: &str) -> anyhow::Result<reqwest::Url> {
-        let parsed = reqwest::Url::parse(url)
+    pub(crate) fn validate_base_url(url: &str) -> anyhow::Result<Url> {
+        let mut parsed = Url::parse(url)
             .with_context(|| format!("malformed or invalid API base URL '{url}'"))?;
         if parsed.scheme() != "https" {
             bail!("insecure API base URL '{url}'; scheme must be 'https'");
@@ -108,12 +107,38 @@ impl ApiClient {
         if parsed.host_str().is_none() {
             bail!("invalid API base URL '{url}'; missing host");
         }
+        if !parsed.path().ends_with('/') {
+            let mut path = parsed.path().to_string();
+            path.push('/');
+            parsed.set_path(&path);
+        }
         Ok(parsed)
     }
 
-    fn request(&self, method: Method, path: &str) -> RequestBuilder {
-        tracing::debug!(%method, path, "preparing API request");
-        self.http.request(method, format!("{}{}", self.base, path))
+    pub(crate) fn endpoint_url(&self, segments: &[&str]) -> Result<Url> {
+        let mut url = self.base.clone();
+        {
+            let mut path_segments =
+                url.path_segments_mut()
+                    .map_err(|_| ApiClientError::Transport {
+                        message: "API base URL cannot be used as a path base".to_string(),
+                    })?;
+            path_segments.pop_if_empty();
+            for segment in segments {
+                for part in segment.split('/') {
+                    if !part.is_empty() {
+                        path_segments.push(part);
+                    }
+                }
+            }
+        }
+        Ok(url)
+    }
+
+    fn request(&self, method: Method, segments: &[&str]) -> Result<RequestBuilder> {
+        let url = self.endpoint_url(segments)?;
+        tracing::debug!(%method, %url, "preparing API request");
+        Ok(self.http.request(method, url))
     }
 
     async fn json<T>(&self, request: RequestBuilder) -> Result<T>
@@ -179,30 +204,32 @@ impl ApiClient {
 
 impl ApiClient {
     pub(crate) async fn user(&self, user_id: UserIdDto) -> Result<UserDto> {
-        self.json(self.request(Method::GET, &format!("/v1/users/{user_id}")))
-            .await
+        let user_id_str = user_id.to_string();
+        let request = self.request(Method::GET, &["v1", "users", &user_id_str])?;
+        self.json(request).await
     }
 
     pub(crate) async fn resolve_user(&self, identifier: &str) -> Result<UserIdDto> {
-        self.json(self.request(Method::GET, &format!("/v1/users/resolve/{identifier}")))
-            .await
+        let request = self.request(Method::GET, &["v1", "users", "resolve", identifier])?;
+        self.json(request).await
     }
 
     pub(crate) async fn users(&self) -> Result<Vec<UserDto>> {
-        self.json(self.request(Method::GET, "/v1/users")).await
+        let request = self.request(Method::GET, &["v1", "users"])?;
+        self.json(request).await
     }
 
     pub(crate) async fn stats(&self) -> Result<StatsSummaryDto> {
-        self.json(self.request(Method::GET, "/v1/stats/summary"))
-            .await
+        let request = self.request(Method::GET, &["v1", "stats", "summary"])?;
+        self.json(request).await
     }
 
     pub(crate) async fn spend(&self, user_id: &UserIdDto, amount: u32) -> Result<TransactionDto> {
-        self.json(
-            self.request(Method::POST, &format!("/v1/users/{user_id}/spend"))
-                .json(&amount),
-        )
-        .await
+        let user_id_str = user_id.to_string();
+        let request = self
+            .request(Method::POST, &["v1", "users", &user_id_str, "spend"])?
+            .json(&amount);
+        self.json(request).await
     }
 }
 
@@ -211,32 +238,26 @@ impl ApiClient {
         &self,
         credentials: &Credentials,
     ) -> Result<SingleUseToken> {
-        let admin_token: AdminTokenDto = self
-            .json(
-                self.request(Method::POST, "/v1/admins/pass")
-                    .json(credentials),
-            )
-            .await?;
+        let request = self
+            .request(Method::POST, &["v1", "admins", "pass"])?
+            .json(credentials);
+        let admin_token: AdminTokenDto = self.json(request).await?;
 
         Ok(admin_token.into())
     }
 
     pub(crate) async fn create_session(&self, token: &SingleUseToken) -> Result<SessionToken> {
-        let admin_token: AdminTokenDto = self
-            .json(
-                self.http
-                    .post(format!("{}/v1/admins/session", self.base))
-                    .bearer_auth(token.as_str()),
-            )
-            .await?;
+        let request = self
+            .request(Method::POST, &["v1", "admins", "session"])?
+            .bearer_auth(token.as_str());
+        let admin_token: AdminTokenDto = self.json(request).await?;
 
         Ok(admin_token.into())
     }
 
     pub(crate) async fn logout(&self, token: AdminTokenDto) -> Result<()> {
         let request = self
-            .http
-            .delete(format!("{}/v1/admins/session", self.base))
+            .request(Method::DELETE, &["v1", "admins", "session"])?
             .bearer_auth(token.0.as_str());
 
         self.empty(request).await
@@ -250,15 +271,14 @@ impl ApiClient {
         amount: u32,
         token: AdminTokenDto,
     ) -> Result<TransactionDto> {
+        let user_id_str = user_id.to_string();
         let request = self
-            .http
-            .post(format!(
-                "{}/v1/admins/user_management/{user_id}/topup",
-                self.base
-            ))
-            .json(&amount);
-
-        let request = request.bearer_auth(token.0.as_str());
+            .request(
+                Method::POST,
+                &["v1", "admins", "user_management", &user_id_str, "topup"],
+            )?
+            .json(&amount)
+            .bearer_auth(token.0.as_str());
 
         self.json(request).await
     }
@@ -280,8 +300,7 @@ impl ApiClient {
             birthdate,
         };
         let request = self
-            .http
-            .post(format!("{}/v1/admins/user_management/create", self.base))
+            .request(Method::POST, &["v1", "admins", "user_management", "create"])?
             .json(&content)
             .bearer_auth(token.0.as_str());
 
@@ -294,12 +313,12 @@ impl ApiClient {
         patch: UserPatchDto,
         token: AdminTokenDto,
     ) -> Result<UserDto> {
+        let user_id_str = user_id.to_string();
         let request = self
-            .http
-            .patch(format!(
-                "{}/v1/admins/user_management/{user_id}/update",
-                self.base
-            ))
+            .request(
+                Method::PATCH,
+                &["v1", "admins", "user_management", &user_id_str, "update"],
+            )?
             .json(&patch)
             .bearer_auth(token.0.as_str());
 
@@ -312,12 +331,12 @@ impl ApiClient {
         password: String,
         token: AdminTokenDto,
     ) -> Result<()> {
+        let user_id_str = user_id.to_string();
         let request = self
-            .http
-            .post(format!(
-                "{}/v1/admins/user_management/{user_id}/admin",
-                self.base
-            ))
+            .request(
+                Method::POST,
+                &["v1", "admins", "user_management", &user_id_str, "admin"],
+            )?
             .json(&password)
             .bearer_auth(token.0.as_str());
 
@@ -329,12 +348,12 @@ impl ApiClient {
         user_id: UserIdDto,
         token: AdminTokenDto,
     ) -> Result<()> {
+        let user_id_str = user_id.to_string();
         let request = self
-            .http
-            .delete(format!(
-                "{}/v1/admins/user_management/{user_id}/admin",
-                self.base
-            ))
+            .request(
+                Method::DELETE,
+                &["v1", "admins", "user_management", &user_id_str, "admin"],
+            )?
             .bearer_auth(token.0.as_str());
 
         self.empty(request).await
@@ -345,6 +364,7 @@ impl ApiClient {
 mod tests {
     use super::*;
     use std::io::Write;
+    use uuid::Uuid;
 
     #[test]
     fn rejects_insecure_http_url() {
@@ -368,6 +388,56 @@ mod tests {
         assert!(client.is_ok());
         let client_ip = ApiClient::new("https://127.0.0.1:3000", None);
         assert!(client_ip.is_ok());
+    }
+
+    #[test]
+    fn preserves_https_after_endpoint_construction() {
+        let client = ApiClient::new("https://localhost:3000", None).unwrap();
+        let url = client.endpoint_url(&["v1", "users"]).unwrap();
+        assert_eq!(url.scheme(), "https");
+        assert_eq!(url.as_str(), "https://localhost:3000/v1/users");
+    }
+
+    #[test]
+    fn dynamic_path_construction_with_user_id() {
+        let client = ApiClient::new("https://localhost:3000", None).unwrap();
+        let user_id = UserIdDto(Uuid::nil());
+        let url = client
+            .endpoint_url(&[
+                "v1",
+                "admins",
+                "user_management",
+                &user_id.to_string(),
+                "admin",
+            ])
+            .unwrap();
+        assert_eq!(url.scheme(), "https");
+        assert_eq!(
+            url.as_str(),
+            format!("https://localhost:3000/v1/admins/user_management/{user_id}/admin")
+        );
+    }
+
+    #[test]
+    fn no_accidental_double_slashes() {
+        let client = ApiClient::new("https://localhost:3000/", None).unwrap();
+        let url = client.endpoint_url(&["/v1/", "/users/"]).unwrap();
+        assert_eq!(url.scheme(), "https");
+        assert_eq!(url.as_str(), "https://localhost:3000/v1/users");
+        assert!(!url.path().contains("//"));
+    }
+
+    #[test]
+    fn no_accidental_loss_of_base_path() {
+        let client_no_slash = ApiClient::new("https://localhost:3000/api", None).unwrap();
+        let url = client_no_slash.endpoint_url(&["v1", "users"]).unwrap();
+        assert_eq!(url.scheme(), "https");
+        assert_eq!(url.as_str(), "https://localhost:3000/api/v1/users");
+
+        let client_with_slash = ApiClient::new("https://localhost:3000/api/", None).unwrap();
+        let url2 = client_with_slash.endpoint_url(&["v1", "users"]).unwrap();
+        assert_eq!(url2.scheme(), "https");
+        assert_eq!(url2.as_str(), "https://localhost:3000/api/v1/users");
     }
 
     #[test]
