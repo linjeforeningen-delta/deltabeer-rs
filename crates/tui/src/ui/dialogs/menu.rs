@@ -76,6 +76,7 @@ fn option_label(label: MenuLabel) -> String {
         MenuLabel::Quit => t!("menu.quit").to_string(),
         MenuLabel::English => t!("languages.en").to_string(),
         MenuLabel::NorwegianBokmaal => t!("languages.nb").to_string(),
+        MenuLabel::NorwegianNynorsk => t!("languages.nn").to_string(),
         MenuLabel::TopUp => t!("menu.top_up").to_string(),
         MenuLabel::MakeUser => t!("menu.make_user").to_string(),
         MenuLabel::UpdateUser => t!("menu.update_user").to_string(),

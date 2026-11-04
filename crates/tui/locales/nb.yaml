@@ -88,6 +88,7 @@ menu:
 languages:
   en: "Engelsk"
   nb: "Norsk bokmål"
+  nn: "Norsk nynorsk"
 
 about:
   title: "Om programmet"
@@ -123,7 +124,7 @@ dialogs:
   admin_auth:
     heading: "Administratorautentisering"
     title: "Administratorautentisering"
-    welcome: "Velkommen %{name}"
+    welcome: "Velkommen, %{name}"
     stranger: "Fremmed"
   admin_login:
     heading: "Admin-innlogging"

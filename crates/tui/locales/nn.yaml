@@ -1,0 +1,218 @@
+# Norsk nynorsk (nn) locale for the DeltaBeer TUI.
+#
+# Keys are looked up with `rust-i18n`; only user-facing text lives
+# here; Rust identifiers, API fields, DB names, enum variants, config keys, and
+# protocol values stay in the source code.
+#
+# `%{name}`, `%{amount}`, and `%{id}` are placeholders substituted at runtime and
+# may be repositioned to suit the language.
+
+nav:
+  home: "Heim"
+  users: "Brukarar"
+  transactions: "Transaksjonar"
+  stats: "Statistikk"
+
+home:
+  welcome: "Velkommen til DeltaBeer"
+  scan_hint: "Skann eit kort når som helst for å opne ein brukar."
+
+users_table:
+  name: "Namn"
+  username: "Brukarnamn"
+  program: "Program"
+  card: "Kort"
+  role: "Rolle"
+  birthdate: "Fødselsdato"
+  balance: "Saldo"
+  spent: "Brukt"
+
+users:
+  search: "Søk"
+  loading: "Lastar brukarar..."
+  empty: "Ingen brukarar funne."
+  no_match: "Ingen brukarar samsvarer med søket."
+  balance: "Saldo"
+
+tx_table:
+  time: "Tid"
+  user: "Brukar"
+  kind: "Type"
+  amount: "Beløp"
+  source: "Kjelde"
+
+stats:
+  title: "Systemstatistikk"
+  users: "Brukarar"
+  total_balance: "Total saldo"
+  total_spent: "Totalt brukt"
+  transactions: "Transaksjonar"
+  loading: "Lastar statistikk..."
+  empty: "Ingen statistikk tilgjengeleg."
+
+labels:
+  user: "Brukar"
+  card: "Kort"
+  scan_card: "Skann kort"
+  amount: "Beløp"
+  program: "Program"
+  role: "Rolle"
+  balance: "Saldo"
+  spent: "Brukt"
+  password: "Passord"
+  confirm: "Stadfest"
+  name: "Namn"
+  username: "Brukarnamn"
+  birthdate: "Fødselsdato"
+  comments: "Kommentarar"
+
+roles:
+  admin: "Admin"
+  user: "Brukar"
+
+menu:
+  admin: "Admin"
+  application: "Program"
+  language: "Språk"
+  about: "Om programmet"
+  change_language: "Byt språk"
+  quit: "Avslutt"
+  top_up: "Fyll på"
+  make_user: "Ny brukar"
+  update_user: "Endre brukar"
+  grant_admin: "Gje admin"
+  revoke_admin: "Opphev admin"
+  login: "Logg inn"
+  logout: "Logg ut"
+
+languages:
+  en: "Engelsk"
+  nb: "Norsk bokmål"
+  nn: "Norsk nynorsk"
+
+about:
+  title: "Om programmet"
+  application_name: "DeltaBeer"
+  version: "Versjon: %{version}"
+  first_release: "Første lansering: %{date}"
+  updated: "Oppdatert: %{date}"
+
+hints:
+  change_language: "Ctrl+L: Bytt språk"
+  back: "Tilbake"
+  cancel: "Avbryt"
+  close: "Lukk"
+  authenticate: "Autentiser"
+  login: "Logg inn"
+  logout: "Logg ut"
+  grant: "Gje"
+  revoke: "Opphev"
+  create: "Opprett"
+  save: "Lagre"
+  find: "Søk"
+  spend: "Bruk"
+  top_up: "Fyll på"
+  select_field: "Vel felt"
+
+dialogs:
+  user:
+    title: "Brukardetaljar"
+    amount: "Beløp"
+  topup:
+    title: "Fyll på"
+    amount_prompt: "Påfyllingsbeløp"
+  admin_auth:
+    heading: "Administratorautentisering"
+    title: "Administratorautentisering"
+    welcome: "Velkommen %{name}"
+    stranger: "Framand"
+  admin_login:
+    heading: "Admininnlogging"
+    title: "Admininnlogging"
+    start_session: "Byrje økt som %{name}?"
+  grant_admin:
+    title: "Gje administrator"
+    prompt: "Opprett administratorlegitimasjon for %{name}."
+    prompt_generic: "Opprett administratorlegitimasjon for denne brukaren."
+  revoke_admin:
+    title: "Opphev administrator"
+    prompt: "Oppheve administratorrettar for %{name}?"
+    prompt_generic: "Oppheve administratorrettar for denne brukaren?"
+    warning: "Dette fjernar administratorrettane."
+  make_user:
+    title: "Opprett brukar"
+    birthdate_format: "Format fødselsdato: ÅÅÅÅ-MM-DD"
+  update_user:
+    title: "Endre brukar"
+    scan_prompt: "Skann eit brukarkort"
+    or: "eller"
+    editing: "Endrar %{name}"
+    editing_generic: "Endrar brukar"
+
+status:
+  ready: "Klar for kort"
+  users_loaded: "Lasta %{count} brukarar"
+  stats_loaded: "Statistikk lasta"
+  user_loaded: "Brukar %{name} lasta"
+  spend_success: "Trakk %{amount}"
+  topup_success: "Fylte på %{amount}"
+  session_started: "Adminøkt byrja"
+  session_ended: "Adminøkt avslutta"
+  user_created: "Brukar %{name} oppretta"
+  user_updated: "Brukar %{name} oppdatert"
+  admin_granted: "Gav admin til brukar %{id}"
+  admin_revoked: "Oppheva admin frå bruker %{id}"
+  session_expired: "Økt utløpt"
+  no_changes: "Ingen endringar å lagre"
+
+progress:
+  looking_up: "Slår opp brukar..."
+  listing_users: "Lastar brukarar..."
+  loading_stats: "Lastar statistikk..."
+  spending: "Trekkjer beløp..."
+  topping_up: "Fyller på..."
+  authenticating: "Autentiserar admin..."
+  starting_session: "Byrjar adminøkt..."
+  ending_session: "Avsluttar adminøkt..."
+  creating_user: "Opprettar bruker..."
+  updating_user: "Oppdaterer bruker..."
+  granting_admin: "Gjev admin..."
+  revoking_admin: "Opphevar admin..."
+
+errors:
+  api: "API-feil"
+  unauthorized: "Autorisasjon vart mislykka"
+  forbidden: "Du har ikkje åtgang til å utføre denne handlinga"
+  not_found: "Brukar ikkje funne"
+  invalid_user_identifier: "Ugyldig brukaridentifikator"
+  conflict: "Handlinga er i konflikt med gjeldande tilstand"
+  bad_request: "Førespurnaden var ugyldig"
+  network: "Nettverksfeil"
+  invalid_response: "Sørvaren returnerte eit ugyldig svar"
+  validation: "Valideringsfeil"
+  authentication: "Autentiseringsfeil"
+
+validation:
+  invalid_amount: "Ugyldig beløp"
+  card_required_topup: "Kortskann krevjast for påfylling"
+  name_required: "Namn er påkravd"
+  username_required: "Brukarnamn er påkravd"
+  program_required: "Program er påkravd"
+  birthdate_format: "Fødselsdato må vere ÅÅÅÅ-MM-DD"
+  scan_card_first: "Skann eit kort først"
+  invalid_card: "Ugyldig kortnummer"
+  user_not_identified: "Brukar ikkje identifisert"
+  card_required_grant: "Kortskann krevjast for å gje admin"
+  password_required: "Passord er påkravd"
+  confirm_required: "Passordstadfesting er påkravd"
+  passwords_mismatch: "Passorda er ikkje like"
+  card_required_revoke: "Kortskann krevjast for å oppheve admin"
+  admin_required_auth: "Admin krevjast for autentisering"
+
+auth_errors:
+  topup: "Admin-token krevjast for påfylling"
+  end_session: "Admin-token krevjast for å avslutte adminøkt"
+  create_user: "Admin-token krevjast for å opprette brukar"
+  update_user: "Admin-token krevjast for å oppdatere brukar"
+  grant: "Admin-token krevjast for å gje adminrettar"
+  revoke: "Admin-token krevjast for å oppheve adminrettar"
