@@ -46,11 +46,12 @@ pub(crate) fn set_locale(language: Language) {
 }
 
 pub(crate) fn toggle_locale() {
-    let language = match rust_i18n::locale().as_ref() { //Hurtigtast rullerer mellom språka
-    "nb" => Language::NorwegianNynorsk,
-    "nn" => Language::English,
-    _ => Language::NorwegianBokmaal,
-};
+    let language = match rust_i18n::locale().as_ref() {
+        //Hurtigtast rullerer mellom språka
+        "nb" => Language::NorwegianNynorsk,
+        "nn" => Language::English,
+        _ => Language::NorwegianBokmaal,
+    };
     set_locale(language);
 }
 
