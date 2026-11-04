@@ -9,8 +9,11 @@ pub(crate) fn new() -> MenuDialog {
             MenuOption::new(MenuLabel::English, 'E', || {
                 Message::SetLanguage(Language::English)
             }),
-            MenuOption::new(MenuLabel::NorwegianBokmaal, 'N', || {
+            MenuOption::new(MenuLabel::NorwegianBokmaal, 'B', || {
                 Message::SetLanguage(Language::NorwegianBokmaal)
+            }),
+            MenuOption::new(MenuLabel::NorwegianNynorsk, 'N', || {
+                Message::SetLanguage(Language::NorwegianNynorsk)
             }),
         ],
         MenuKind::Normal,

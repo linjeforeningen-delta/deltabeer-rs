@@ -14,6 +14,7 @@ pub(crate) enum MenuLabel {
     Quit,
     English,
     NorwegianBokmaal,
+    NorwegianNynorsk,
     TopUp,
     MakeUser,
     UpdateUser,
@@ -27,6 +28,7 @@ pub(crate) enum MenuLabel {
 pub(crate) enum Language {
     English,
     NorwegianBokmaal,
+    NorwegianNynorsk,
 }
 
 impl Language {
@@ -34,6 +36,7 @@ impl Language {
         match self {
             Self::English => "en",
             Self::NorwegianBokmaal => "nb",
+            Self::NorwegianNynorsk => "nn",
         }
     }
 }
@@ -43,11 +46,11 @@ pub(crate) fn set_locale(language: Language) {
 }
 
 pub(crate) fn toggle_locale() {
-    let language = if &*rust_i18n::locale() == "nb" {
-        Language::English
-    } else {
-        Language::NorwegianBokmaal
-    };
+    let language = match rust_i18n::locale().as_ref() { //Hurtigtast rullerer mellom språka
+    "nb" => Language::NorwegianNynorsk,
+    "nn" => Language::English,
+    _ => Language::NorwegianBokmaal,
+};
     set_locale(language);
 }
 
